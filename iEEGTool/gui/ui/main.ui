@@ -1,0 +1,703 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1000</width>
+    <height>666</height>
+   </rect>
+  </property>
+  <property name="font">
+   <font>
+    <family>Ubuntu</family>
+   </font>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <property name="minimumSize">
+    <size>
+     <width>1000</width>
+     <height>600</height>
+    </size>
+   </property>
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <property name="spacing">
+     <number>0</number>
+    </property>
+    <property name="leftMargin">
+     <number>0</number>
+    </property>
+    <property name="topMargin">
+     <number>0</number>
+    </property>
+    <property name="rightMargin">
+     <number>0</number>
+    </property>
+    <property name="bottomMargin">
+     <number>0</number>
+    </property>
+    <item>
+     <widget class="QStackedWidget" name="_seeg_viz_stack">
+      <property name="focusPolicy">
+       <enum>Qt::NoFocus</enum>
+      </property>
+      <property name="styleSheet">
+       <string notr="true"/>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QToolBar" name="_toolbar">
+   <property name="windowTitle">
+    <string>toolBar</string>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="_load_t1_action"/>
+   <addaction name="_load_ct_action"/>
+   <addaction name="_load_seeg_action"/>
+   <addaction name="separator"/>
+   <addaction name="_crop_seeg_action"/>
+   <addaction name="_resample_seeg_action"/>
+   <addaction name="actionFIR_filter"/>
+   <addaction name="separator"/>
+   <addaction name="_channels_info_action"/>
+   <addaction name="_set_montage_action"/>
+   <addaction name="_preference_action"/>
+   <addaction name="separator"/>
+   <addaction name="_screenshot_action"/>
+   <addaction name="_ieeg_toolbar_action"/>
+   <addaction name="separator"/>
+   <addaction name="_github_action"/>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>1000</width>
+     <height>26</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuFile">
+    <property name="font">
+     <font>
+      <family>Ubuntu</family>
+     </font>
+    </property>
+    <property name="title">
+     <string>File</string>
+    </property>
+    <widget class="QMenu" name="menuClear_Workbench">
+     <property name="title">
+      <string>Clear Workbench</string>
+     </property>
+     <addaction name="_clear_mri_action"/>
+     <addaction name="_clear_ct_action"/>
+     <addaction name="_clear_ieeg_action"/>
+     <addaction name="_clear_coordinate_action"/>
+    </widget>
+    <addaction name="_load_t1_action"/>
+    <addaction name="_load_ct_action"/>
+    <addaction name="separator"/>
+    <addaction name="_load_seeg_action"/>
+    <addaction name="_export_seeg_action"/>
+    <addaction name="separator"/>
+    <addaction name="_load_coordinates_action"/>
+    <addaction name="_export_coordinates_action"/>
+    <addaction name="separator"/>
+    <addaction name="_export_anatomy_action"/>
+    <addaction name="separator"/>
+    <addaction name="menuClear_Workbench"/>
+    <addaction name="separator"/>
+    <addaction name="_preference_action"/>
+   </widget>
+   <widget class="QMenu" name="menuProcess">
+    <property name="title">
+     <string>Signal</string>
+    </property>
+    <widget class="QMenu" name="menuReference">
+     <property name="title">
+      <string>Reference</string>
+     </property>
+     <addaction name="_monopolar_action"/>
+     <addaction name="_bipolar_action"/>
+     <addaction name="_average_action"/>
+    </widget>
+    <widget class="QMenu" name="menuDrop_bad">
+     <property name="title">
+      <string>Drop bad</string>
+     </property>
+     <addaction name="_drop_annotations_action"/>
+     <addaction name="_drop_white_matters_action"/>
+     <addaction name="_drop_gray_matters_action"/>
+    </widget>
+    <widget class="QMenu" name="menuFilter">
+     <property name="title">
+      <string>Filter</string>
+     </property>
+     <addaction name="actionFIR_filter"/>
+     <addaction name="actionIIR_filter"/>
+    </widget>
+    <addaction name="_set_montage_action"/>
+    <addaction name="separator"/>
+    <addaction name="_crop_seeg_action"/>
+    <addaction name="_resample_seeg_action"/>
+    <addaction name="menuFilter"/>
+    <addaction name="menuReference"/>
+    <addaction name="menuDrop_bad"/>
+    <addaction name="separator"/>
+    <addaction name="_epoch_action"/>
+    <addaction name="separator"/>
+    <addaction name="_generate_roi_signal_action"/>
+   </widget>
+   <widget class="QMenu" name="menuAnalysis">
+    <property name="title">
+     <string>Analysis</string>
+    </property>
+    <widget class="QMenu" name="menuEpilepsy">
+     <property name="title">
+      <string>Epilepsy</string>
+     </property>
+     <addaction name="_epileptogenic_index_action"/>
+     <addaction name="_high_frequency_action"/>
+    </widget>
+    <widget class="QMenu" name="menuConnectivity">
+     <property name="title">
+      <string>Connectivity</string>
+     </property>
+     <addaction name="_coherence_action"/>
+     <addaction name="_coherency_action"/>
+    </widget>
+    <widget class="QMenu" name="menuTime_Frequency_Response">
+     <property name="title">
+      <string>Time-Frequency Response</string>
+     </property>
+     <addaction name="_tfr_multitaper_action"/>
+     <addaction name="_tfr_morlet_action"/>
+     <addaction name="_tfr_stockwell_action"/>
+    </widget>
+    <widget class="QMenu" name="menuPower_Spectral_Density">
+     <property name="title">
+      <string>Power Spectral Density</string>
+     </property>
+     <addaction name="_psd_multitaper_action"/>
+     <addaction name="_psd_welch_action"/>
+    </widget>
+    <addaction name="_get_anatomy_action"/>
+    <addaction name="separator"/>
+    <addaction name="menuPower_Spectral_Density"/>
+    <addaction name="actionCross_Spectral_Density"/>
+    <addaction name="menuTime_Frequency_Response"/>
+    <addaction name="separator"/>
+    <addaction name="menuConnectivity"/>
+    <addaction name="separator"/>
+    <addaction name="menuEpilepsy"/>
+   </widget>
+   <widget class="QMenu" name="menuHelp">
+    <property name="title">
+     <string>Help</string>
+    </property>
+    <addaction name="_github_action"/>
+   </widget>
+   <widget class="QMenu" name="menuVisualization">
+    <property name="title">
+     <string>Visualization</string>
+    </property>
+    <addaction name="_parcellation_action"/>
+    <addaction name="separator"/>
+    <addaction name="_electrodes_action"/>
+    <addaction name="_rois_action"/>
+    <addaction name="separator"/>
+    <addaction name="_freeview_action"/>
+   </widget>
+   <widget class="QMenu" name="menuLocalization">
+    <property name="title">
+     <string>Localization </string>
+    </property>
+    <widget class="QMenu" name="menuAlignment">
+     <property name="title">
+      <string>Alignment</string>
+     </property>
+     <addaction name="_conventional_align_action"/>
+     <addaction name="_ants_align_action"/>
+    </widget>
+    <widget class="QMenu" name="menuReconstruction">
+     <property name="title">
+      <string>Reconstruction</string>
+     </property>
+     <addaction name="_recon_freesurfer_action"/>
+     <addaction name="_recon_fastsurfer_action"/>
+     <addaction name="_recon_deepcsr_action"/>
+    </widget>
+    <addaction name="_acpc_alignment_action"/>
+    <addaction name="menuAlignment"/>
+    <addaction name="_plot_overlay_action"/>
+    <addaction name="separator"/>
+    <addaction name="menuReconstruction"/>
+    <addaction name="separator"/>
+    <addaction name="_edit_channels_action"/>
+    <addaction name="_ieeg_locator_action"/>
+   </widget>
+   <widget class="QMenu" name="menuView">
+    <property name="title">
+     <string>View</string>
+    </property>
+    <addaction name="_display_mri_action"/>
+    <addaction name="_display_ct_action"/>
+    <addaction name="separator"/>
+    <addaction name="_mri_info_action"/>
+    <addaction name="_ct_info_action"/>
+    <addaction name="_ieeg_info_action"/>
+    <addaction name="_channels_info_action"/>
+   </widget>
+   <addaction name="menuFile"/>
+   <addaction name="menuView"/>
+   <addaction name="menuLocalization"/>
+   <addaction name="menuProcess"/>
+   <addaction name="menuAnalysis"/>
+   <addaction name="menuVisualization"/>
+   <addaction name="menuHelp"/>
+  </widget>
+  <action name="_website_action">
+   <property name="text">
+    <string>Website</string>
+   </property>
+  </action>
+  <action name="_epileptogenic_index_action">
+   <property name="text">
+    <string>Epileptogenic Index</string>
+   </property>
+  </action>
+  <action name="_high_frequency_action">
+   <property name="text">
+    <string>High Frequency Oscillations</string>
+   </property>
+  </action>
+  <action name="_coherence_action">
+   <property name="text">
+    <string>Coherence</string>
+   </property>
+  </action>
+  <action name="_resample_seeg_action">
+   <property name="text">
+    <string>Resample</string>
+   </property>
+  </action>
+  <action name="actionCrop">
+   <property name="text">
+    <string>Crop</string>
+   </property>
+  </action>
+  <action name="_load_t1_action">
+   <property name="icon">
+    <iconset>
+     <normaloff>../../icon/mri.svg</normaloff>../../icon/mri.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Load MRI</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+T</string>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>true</bool>
+   </property>
+   <property name="shortcutVisibleInContextMenu">
+    <bool>false</bool>
+   </property>
+  </action>
+  <action name="_load_seeg_action">
+   <property name="icon">
+    <iconset>
+     <normaloff>../../icon/ieeg.svg</normaloff>../../icon/ieeg.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Load SEEG</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+O</string>
+   </property>
+  </action>
+  <action name="_load_coordinates_action">
+   <property name="icon">
+    <iconset>
+     <normaloff>../../icon/electrodes.svg</normaloff>../../icon/electrodes.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Load Coordinates</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+D</string>
+   </property>
+  </action>
+  <action name="_clear_seeg_action">
+   <property name="text">
+    <string>Clear SEEG</string>
+   </property>
+  </action>
+  <action name="_preference_action">
+   <property name="icon">
+    <iconset>
+     <normaloff>../../icon/subject.svg</normaloff>../../icon/subject.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Preference</string>
+   </property>
+  </action>
+  <action name="_parcellation_action">
+   <property name="text">
+    <string>Parcellation</string>
+   </property>
+  </action>
+  <action name="actionFreeSurfer">
+   <property name="text">
+    <string>FreeSurfer</string>
+   </property>
+  </action>
+  <action name="actionFastSurfer">
+   <property name="text">
+    <string>FastSurfer</string>
+   </property>
+  </action>
+  <action name="actionDeepCSR">
+   <property name="text">
+    <string>DeepCSR</string>
+   </property>
+  </action>
+  <action name="actionAlign">
+   <property name="text">
+    <string>Align</string>
+   </property>
+  </action>
+  <action name="actionlocator">
+   <property name="text">
+    <string>Locator</string>
+   </property>
+  </action>
+  <action name="_monopolar_action">
+   <property name="text">
+    <string>Monopolar</string>
+   </property>
+  </action>
+  <action name="_bipolar_action">
+   <property name="text">
+    <string>Bipolar</string>
+   </property>
+  </action>
+  <action name="_average_action">
+   <property name="text">
+    <string>Average</string>
+   </property>
+  </action>
+  <action name="_load_ct_action">
+   <property name="icon">
+    <iconset>
+     <normaloff>../../icon/ct.svg</normaloff>../../icon/ct.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Load CT</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+P</string>
+   </property>
+  </action>
+  <action name="_export_seeg_action">
+   <property name="text">
+    <string>Export SEEG</string>
+   </property>
+  </action>
+  <action name="_electrodes_action">
+   <property name="text">
+    <string>Electrodes with ROIs</string>
+   </property>
+  </action>
+  <action name="_rois_action">
+   <property name="text">
+    <string>Regions of Interests</string>
+   </property>
+  </action>
+  <action name="_freeview_action">
+   <property name="text">
+    <string>Freeview</string>
+   </property>
+  </action>
+  <action name="_crop_seeg_action">
+   <property name="text">
+    <string>Crop</string>
+   </property>
+  </action>
+  <action name="_drop_annotations_action">
+   <property name="text">
+    <string>Annotations</string>
+   </property>
+  </action>
+  <action name="_drop_white_matters_action">
+   <property name="text">
+    <string>White matters</string>
+   </property>
+  </action>
+  <action name="_drop_gray_matters_action">
+   <property name="text">
+    <string>Gray matters</string>
+   </property>
+  </action>
+  <action name="_generate_roi_signal_action">
+   <property name="text">
+    <string>Generate ROI signals by averaging</string>
+   </property>
+  </action>
+  <action name="_export_coordinates_action">
+   <property name="text">
+    <string>Export Coordinates</string>
+   </property>
+  </action>
+  <action name="_get_anatomy_action">
+   <property name="text">
+    <string>Anatomy</string>
+   </property>
+  </action>
+  <action name="_display_mri_action">
+   <property name="text">
+    <string>Display MRI</string>
+   </property>
+  </action>
+  <action name="_display_ct_action">
+   <property name="text">
+    <string>Display CT</string>
+   </property>
+  </action>
+  <action name="_plot_overlay_action">
+   <property name="text">
+    <string>Overlay CT on MRI</string>
+   </property>
+  </action>
+  <action name="actionFreeSurfer_2">
+   <property name="text">
+    <string>FreeSurfer</string>
+   </property>
+  </action>
+  <action name="actionFastSurferr">
+   <property name="text">
+    <string>FastSurferr</string>
+   </property>
+  </action>
+  <action name="actionDeepCSR_2">
+   <property name="text">
+    <string>DeepCSR</string>
+   </property>
+  </action>
+  <action name="_conventional_align_action">
+   <property name="text">
+    <string>Dipy</string>
+   </property>
+  </action>
+  <action name="_export_anatomy_action">
+   <property name="text">
+    <string>Export Anatomy</string>
+   </property>
+  </action>
+  <action name="_ants_align_action">
+   <property name="text">
+    <string>AntsPy</string>
+   </property>
+  </action>
+  <action name="_recon_freesurfer_action">
+   <property name="text">
+    <string>FreeSurfer</string>
+   </property>
+  </action>
+  <action name="_recon_fastsurfer_action">
+   <property name="text">
+    <string>FastSurfer</string>
+   </property>
+  </action>
+  <action name="_recon_deepcsr_action">
+   <property name="text">
+    <string>DeepCSR</string>
+   </property>
+  </action>
+  <action name="_ieeg_locator_action">
+   <property name="text">
+    <string>iEEG Locator</string>
+   </property>
+  </action>
+  <action name="actionCross_Spectral_Density">
+   <property name="text">
+    <string>Cross Spectral Density</string>
+   </property>
+  </action>
+  <action name="_psd_multitaper_action">
+   <property name="text">
+    <string>Multitaper</string>
+   </property>
+  </action>
+  <action name="_psd_welch_action">
+   <property name="text">
+    <string>Welch</string>
+   </property>
+  </action>
+  <action name="_tfr_multitaper_action">
+   <property name="text">
+    <string>Multitaper</string>
+   </property>
+  </action>
+  <action name="_tfr_morlet_action">
+   <property name="text">
+    <string>Morlet Wavelets</string>
+   </property>
+  </action>
+  <action name="_tfr_stockwell_action">
+   <property name="text">
+    <string>Stockwell</string>
+   </property>
+  </action>
+  <action name="_coherency_action">
+   <property name="text">
+    <string>Coherency</string>
+   </property>
+  </action>
+  <action name="_github_action">
+   <property name="icon">
+    <iconset>
+     <normaloff>../../icon/github.svg</normaloff>../../icon/github.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Github</string>
+   </property>
+  </action>
+  <action name="_seeg_information">
+   <property name="text">
+    <string>Signal Information</string>
+   </property>
+  </action>
+  <action name="_edit_channels_action">
+   <property name="text">
+    <string>Edit Channels</string>
+   </property>
+  </action>
+  <action name="_set_montage_action">
+   <property name="icon">
+    <iconset>
+     <normaloff>../../icon/montage.svg</normaloff>../../icon/montage.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Set Montage</string>
+   </property>
+  </action>
+  <action name="_ieeg_info_action">
+   <property name="text">
+    <string>iEEG Information</string>
+   </property>
+  </action>
+  <action name="_channels_info_action">
+   <property name="icon">
+    <iconset>
+     <normaloff>../../icon/electrodes.svg</normaloff>../../icon/electrodes.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Channels Information</string>
+   </property>
+  </action>
+  <action name="_mri_info_action">
+   <property name="text">
+    <string>MRI Information</string>
+   </property>
+  </action>
+  <action name="_ct_info_action">
+   <property name="text">
+    <string>CT Information</string>
+   </property>
+  </action>
+  <action name="_screenshot_action">
+   <property name="icon">
+    <iconset>
+     <normaloff>../../icon/screenshot.svg</normaloff>../../icon/screenshot.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Screenshot</string>
+   </property>
+  </action>
+  <action name="_ieeg_toolbar_action">
+   <property name="icon">
+    <iconset>
+     <normaloff>../../icon/toolbar.svg</normaloff>../../icon/toolbar.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Toolbar</string>
+   </property>
+  </action>
+  <action name="actionClear_MRI">
+   <property name="text">
+    <string>Clear MRI</string>
+   </property>
+  </action>
+  <action name="actionClear_CT">
+   <property name="text">
+    <string>Clear CT</string>
+   </property>
+  </action>
+  <action name="_clear_coordinates_action">
+   <property name="text">
+    <string>Clear Coordinates</string>
+   </property>
+  </action>
+  <action name="_clear_mri_action">
+   <property name="text">
+    <string>Clear MRI</string>
+   </property>
+  </action>
+  <action name="_clear_ieeg_action">
+   <property name="text">
+    <string>Clear SEEG</string>
+   </property>
+  </action>
+  <action name="_clear_ct_action">
+   <property name="text">
+    <string>Clear CT</string>
+   </property>
+  </action>
+  <action name="_clear_coordinates_action_2">
+   <property name="text">
+    <string>Clear Coordinates</string>
+   </property>
+  </action>
+  <action name="_clear_coordinate_action">
+   <property name="text">
+    <string>Clear Coordinates</string>
+   </property>
+  </action>
+  <action name="_acpc_alignment_action">
+   <property name="text">
+    <string>ACPC Alignment</string>
+   </property>
+  </action>
+  <action name="_epoch_action">
+   <property name="text">
+    <string>Epoch</string>
+   </property>
+  </action>
+  <action name="actionFIR_filter">
+   <property name="text">
+    <string>FIR filter</string>
+   </property>
+  </action>
+  <action name="actionIIR_filter">
+   <property name="text">
+    <string>IIR filter</string>
+   </property>
+  </action>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
