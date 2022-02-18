@@ -80,14 +80,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # File Menu
         self._load_t1_action.triggered.connect(self._import_t1)
         self._load_ct_action.triggered.connect(self._import_ct)
-        self._load_seeg_action.triggered.connect(self._import_ieeg)
+        self._load_ieeg_action.triggered.connect(self._import_ieeg)
 
         self._clear_mri_action.triggered.connect(self._clear_mri)
         self._clear_ct_action.triggered.connect(self._clear_ct)
         self._clear_coordinate_action.triggered.connect(self._clear_coordinates)
         self._clear_ieeg_action.triggered.connect(self._clear_ieeg)
 
-        self._preference_action.triggered.connect(self._write_info)
+        self._setting_action.triggered.connect(self._write_info)
 
         # Localization Menu
         self._display_mri_action.triggered.connect(self._display_t1)
@@ -96,8 +96,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self._ieeg_locator_action.triggered.connect(self._locate_ieeg)
 
         # Signal Menu
-        self._crop_seeg_action.triggered.connect(self._crop_ieeg)
-        self._resample_seeg_action.triggered.connect(self._resample_ieeg)
+        self._crop_ieeg_action.triggered.connect(self._crop_ieeg)
+        self._resample_ieeg_action.triggered.connect(self._resample_ieeg)
 
         # Help Menu
         self._github_action.triggered.connect(self._open_github)
@@ -115,10 +115,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         fig._set_annotations_visible(False)
         fig.mne.toolbar.setVisible(False)
 
-        if self._seeg_viz_stack.count() > 0:
-            widget = self._seeg_viz_stack.widget(0)
-            self._seeg_viz_stack.removeWidget(widget)
-        self._seeg_viz_stack.addWidget(fig)
+        if self._ieeg_viz_stack.count() > 0:
+            widget = self._ieeg_viz_stack.widget(0)
+            self._ieeg_viz_stack.removeWidget(widget)
+        self._ieeg_viz_stack.addWidget(fig)
 
     def _short_cut(self):
         # QShortcut(QKeySequence(self.tr("Ctrl+O")), self, self._import_ieeg)
@@ -135,7 +135,20 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         ieeg_icon = QIcon()
         ieeg_icon.addPixmap(QPixmap("icon/ieeg.svg"), QIcon.Normal, QIcon.Off)
-        self._load_seeg_action.setIcon(ieeg_icon)
+        self._load_ieeg_action.setIcon(ieeg_icon)
+
+        crop_icon = QIcon()
+        crop_icon.addPixmap(QPixmap("icon/scissor.svg"), QIcon.Normal, QIcon.Off)
+        self._crop_ieeg_action.setIcon(crop_icon)
+
+        resample_icon = QIcon()
+        resample_icon.addPixmap(QPixmap("icon/resample.svg"), QIcon.Normal, QIcon.Off)
+        self._resample_ieeg_action.setIcon(resample_icon)
+
+        filter_icon = QIcon()
+        filter_icon.addPixmap(QPixmap("icon/filter.svg"), QIcon.Normal, QIcon.Off)
+        self._fir_filter_action.setIcon(filter_icon)
+
 
         elec_icon = QIcon()
         elec_icon.addPixmap(QPixmap("icon/electrodes.svg"), QIcon.Normal, QIcon.Off)
@@ -145,9 +158,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         montage_icon.addPixmap(QPixmap("icon/montage.svg"), QIcon.Normal, QIcon.Off)
         self._set_montage_action.setIcon(montage_icon)
 
-        preference_icon = QIcon()
-        preference_icon.addPixmap(QPixmap("icon/subject.svg"), QIcon.Normal, QIcon.Off)
-        self._preference_action.setIcon(preference_icon)
+        setting_icon = QIcon()
+        setting_icon.addPixmap(QPixmap("icon/subject.svg"), QIcon.Normal, QIcon.Off)
+        self._setting_action.setIcon(setting_icon)
 
         github_icon = QIcon()
         github_icon.addPixmap(QPixmap("icon/github.svg"), QIcon.Normal, QIcon.Off)
@@ -212,8 +225,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def _clear_ieeg(self):
         self.subject.remove_ieeg()
         try:
-            widget = self._seeg_viz_stack.widget(0)
-            self._seeg_viz_stack.removeWidget(widget)
+            widget = self._ieeg_viz_stack.widget(0)
+            self._ieeg_viz_stack.removeWidget(widget)
             logger.info('clear iEEG')
         except:
             logger.info('What??????')
@@ -397,16 +410,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     # Toolbar
     def _take_screenshot(self):
-        if self._seeg_viz_stack.count() > 0:
-            fig = self._seeg_viz_stack.widget(0)
+        if self._ieeg_viz_stack.count() > 0:
+            fig = self._ieeg_viz_stack.widget(0)
             fpath, _ = QFileDialog.getSaveFileName(self, 'Screenshot', default_path)
             if len(fpath):
                 fig.mne.view.grab().save(f'{fpath}.JPEG')
                 logger.info(f'take a screenshot to {fpath}')
 
     def _viz_ieeg_toolbar(self):
-        if self._seeg_viz_stack.count() > 0:
-            fig = self._seeg_viz_stack.widget(0)
+        if self._ieeg_viz_stack.count() > 0:
+            fig = self._ieeg_viz_stack.widget(0)
             viz = fig.mne.toolbar.isVisible()
             fig.mne.toolbar.setVisible(not viz)
 

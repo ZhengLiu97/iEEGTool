@@ -42,7 +42,7 @@
      <number>0</number>
     </property>
     <item>
-     <widget class="QStackedWidget" name="_seeg_viz_stack">
+     <widget class="QStackedWidget" name="_ieeg_viz_stack">
       <property name="focusPolicy">
        <enum>Qt::NoFocus</enum>
       </property>
@@ -65,15 +65,15 @@
    </attribute>
    <addaction name="_load_t1_action"/>
    <addaction name="_load_ct_action"/>
-   <addaction name="_load_seeg_action"/>
+   <addaction name="_load_ieeg_action"/>
    <addaction name="separator"/>
-   <addaction name="_crop_seeg_action"/>
-   <addaction name="_resample_seeg_action"/>
-   <addaction name="actionFIR_filter"/>
+   <addaction name="_crop_ieeg_action"/>
+   <addaction name="_resample_ieeg_action"/>
+   <addaction name="_fir_filter_action"/>
    <addaction name="separator"/>
    <addaction name="_channels_info_action"/>
    <addaction name="_set_montage_action"/>
-   <addaction name="_preference_action"/>
+   <addaction name="_setting_action"/>
    <addaction name="separator"/>
    <addaction name="_screenshot_action"/>
    <addaction name="_ieeg_toolbar_action"/>
@@ -110,8 +110,8 @@
     <addaction name="_load_t1_action"/>
     <addaction name="_load_ct_action"/>
     <addaction name="separator"/>
-    <addaction name="_load_seeg_action"/>
-    <addaction name="_export_seeg_action"/>
+    <addaction name="_load_ieeg_action"/>
+    <addaction name="_export_ieeg_action"/>
     <addaction name="separator"/>
     <addaction name="_load_coordinates_action"/>
     <addaction name="_export_coordinates_action"/>
@@ -120,7 +120,7 @@
     <addaction name="separator"/>
     <addaction name="menuClear_Workbench"/>
     <addaction name="separator"/>
-    <addaction name="_preference_action"/>
+    <addaction name="_setting_action"/>
    </widget>
    <widget class="QMenu" name="menuProcess">
     <property name="title">
@@ -146,13 +146,13 @@
      <property name="title">
       <string>Filter</string>
      </property>
-     <addaction name="actionFIR_filter"/>
-     <addaction name="actionIIR_filter"/>
+     <addaction name="_fir_filter_action"/>
+     <addaction name="_iir_filter_action"/>
     </widget>
     <addaction name="_set_montage_action"/>
     <addaction name="separator"/>
-    <addaction name="_crop_seeg_action"/>
-    <addaction name="_resample_seeg_action"/>
+    <addaction name="_crop_ieeg_action"/>
+    <addaction name="_resample_ieeg_action"/>
     <addaction name="menuFilter"/>
     <addaction name="menuReference"/>
     <addaction name="menuDrop_bad"/>
@@ -289,7 +289,11 @@
     <string>Coherence</string>
    </property>
   </action>
-  <action name="_resample_seeg_action">
+  <action name="_resample_ieeg_action">
+   <property name="icon">
+    <iconset>
+     <normaloff>../../icon/resize-image.svg</normaloff>../../icon/resize-image.svg</iconset>
+   </property>
    <property name="text">
     <string>Resample</string>
    </property>
@@ -317,7 +321,7 @@
     <bool>false</bool>
    </property>
   </action>
-  <action name="_load_seeg_action">
+  <action name="_load_ieeg_action">
    <property name="icon">
     <iconset>
      <normaloff>../../icon/ieeg.svg</normaloff>../../icon/ieeg.svg</iconset>
@@ -346,13 +350,13 @@
     <string>Clear SEEG</string>
    </property>
   </action>
-  <action name="_preference_action">
+  <action name="_setting_action">
    <property name="icon">
     <iconset>
      <normaloff>../../icon/subject.svg</normaloff>../../icon/subject.svg</iconset>
    </property>
    <property name="text">
-    <string>Preference</string>
+    <string>Setting...</string>
    </property>
   </action>
   <action name="_parcellation_action">
@@ -412,7 +416,7 @@
     <string>Ctrl+P</string>
    </property>
   </action>
-  <action name="_export_seeg_action">
+  <action name="_export_ieeg_action">
    <property name="text">
     <string>Export SEEG</string>
    </property>
@@ -432,7 +436,11 @@
     <string>Freeview</string>
    </property>
   </action>
-  <action name="_crop_seeg_action">
+  <action name="_crop_ieeg_action">
+   <property name="icon">
+    <iconset>
+     <normaloff>../../icon/scissor.svg</normaloff>../../icon/scissor.svg</iconset>
+   </property>
    <property name="text">
     <string>Crop</string>
    </property>
@@ -687,12 +695,16 @@
     <string>Epoch</string>
    </property>
   </action>
-  <action name="actionFIR_filter">
+  <action name="_fir_filter_action">
+   <property name="icon">
+    <iconset>
+     <normaloff>../../icon/filter.svg</normaloff>../../icon/filter.svg</iconset>
+   </property>
    <property name="text">
     <string>FIR filter</string>
    </property>
   </action>
-  <action name="actionIIR_filter">
+  <action name="_iir_filter_action">
    <property name="text">
     <string>IIR filter</string>
    </property>
