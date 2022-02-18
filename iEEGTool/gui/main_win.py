@@ -37,7 +37,7 @@ from utils.log_config import create_logger
 from utils.decorator import safe_event
 from utils.locate_ieeg import locate_ieeg
 from utils.contacts import calc_ch_pos
-from utils.process import get_chan_group, set_montage
+from utils.process import get_chan_group, set_montage, clean_chans
 
 matplotlib.use('Qt5Agg')
 mne.viz.set_browser_backend('pyqtgraph')
@@ -84,6 +84,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self._load_t1_action.triggered.connect(self._import_t1)
         self._load_ct_action.triggered.connect(self._import_ct)
         self._load_ieeg_action.triggered.connect(self._import_ieeg)
+        self._export_fif_action.triggered.connect(self._export_ieeg_fif)
+        self._export_edf_action.triggered.connect(self._export_ieeg_edf)
+        self._export_set_action.triggered.connect(self._export_ieeg_set)
+
 
         self._clear_mri_action.triggered.connect(self._clear_mri)
         self._clear_ct_action.triggered.connect(self._clear_ct)
@@ -208,9 +212,57 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self._import_ieeg_thread.start()
 
     def _get_ieeg(self, ieeg):
+        ieeg = clean_chans(ieeg)
+        logger.info(f'Cleaning channels finished!')
         self.subject.set_ieeg(ieeg)
         self._update_fig()
         logger.info('Set iEEG')
+
+    def _export_ieeg_fif(self):
+        ieeg_format = '.fif'
+        default_fname = os.path.join('data', self.subject.get_name() + ieeg_format)
+        fname, _ = QFileDialog.getSaveFileName(self, 'iEEG', default_fname, filter=f"Neuromag (*{ieeg_format})")
+        if len(fname):
+            raw = self.subject.get_ieeg()
+            index = fname.rfind(ieeg_format)
+            if index == -1:
+                fname += ieeg_format
+            raw.save(fname, verbose='error', overwrite=True)
+            logger.info('Exporting iEEG to FIF finished!')
+            QMessageBox.information(self, 'SEEG', 'Exporting iEEG to FIF finished!')
+        else:
+            logger.info('Stop exporting iEEG')
+
+    def _export_ieeg_edf(self):
+        ieeg_format = '.edf'
+        default_fname = os.path.join('data', self.subject.get_name() + ieeg_format)
+        fname, _ = QFileDialog.getSaveFileName(self, 'iEEG', default_fname, filter=f"EDF+ (*{ieeg_format})")
+        if len(fname):
+            raw = self.subject.get_ieeg()
+            index = fname.rfind(ieeg_format)
+            if index == -1:
+                fname += ieeg_format
+            raw.export(fname, verbose='error', overwrite=True)
+            logger.info('Exporting iEEG to EDF finished!')
+            QMessageBox.information(self, 'SEEG', 'Exporting iEEG to EDF finished!')
+        else:
+            logger.info('Stop exporting iEEG')
+
+    def _export_ieeg_set(self):
+        ieeg_format = '.set'
+        default_fname = os.path.join('data', self.subject.get_name() + ieeg_format)
+        fname, _ = QFileDialog.getSaveFileName(self, 'iEEG', default_fname, filter=f"EEGLAB (*{ieeg_format})")
+        if len(fname):
+            raw = self.subject.get_ieeg()
+            index = fname.rfind(ieeg_format)
+            if index == -1:
+                fname += ieeg_format
+            raw.export(fname, verbose='error', overwrite=True)
+            logger.info('Exporting iEEG to SET finished!')
+            QMessageBox.information(self, 'SEEG', 'Exporting iEEG to SET finished!')
+        else:
+            logger.info('Stop exporting iEEG')
+
 
     def _clear_mri(self):
         self.subject.remove_t1()

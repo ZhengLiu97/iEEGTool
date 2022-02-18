@@ -63,6 +63,35 @@ def get_chan_group(chans, exclude=['E']):
     return chan_group
 
 
+def clean_chans(ieeg):
+    import re
+
+    ieeg.rename_channels({chan: chan[4:]
+                          for chan in ieeg.ch_names
+                          if 'POL' in chan})
+    ieeg.rename_channels({chan: chan[:-4]
+                          for chan in ieeg.ch_names
+                          if 'Ref' in chan})
+    ieeg.rename_channels({chan: chan[4:]
+                               for chan in ieeg.ch_names
+                               if 'EEG' in chan})
+    print('Finish renaming channels')
+    print('Start Dropping channels')
+    drop_chans = []
+    for chan in ieeg.ch_names:
+        chan_num = re.findall("\d+", chan)
+        if len(chan_num):
+            chan_num = int(chan_num[0])
+        if ('DC' in chan) or ('EKG' in chan) or ('BP' in chan) \
+                or ('E' == chan) or chan[0].isdigit() or (chan_num > 16):
+            drop_chans.append(chan)
+    print(f"Dropping channels {drop_chans}")
+    ieeg.drop_channels(drop_chans)
+
+    return ieeg
+
+
+
 def set_bipolar(ieeg):
     '''
     Reference SEEG data using Bipolar Reference

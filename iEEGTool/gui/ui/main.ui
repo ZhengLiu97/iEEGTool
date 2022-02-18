@@ -107,11 +107,19 @@
      <addaction name="_clear_ieeg_action"/>
      <addaction name="_clear_coordinate_action"/>
     </widget>
+    <widget class="QMenu" name="menuExport_SEEG">
+     <property name="title">
+      <string>Export SEEG</string>
+     </property>
+     <addaction name="_export_fif_action"/>
+     <addaction name="_export_edf_action"/>
+     <addaction name="_export_set_action"/>
+    </widget>
     <addaction name="_load_t1_action"/>
     <addaction name="_load_ct_action"/>
     <addaction name="separator"/>
     <addaction name="_load_ieeg_action"/>
-    <addaction name="_export_ieeg_action"/>
+    <addaction name="menuExport_SEEG"/>
     <addaction name="separator"/>
     <addaction name="_load_coordinates_action"/>
     <addaction name="_export_coordinates_action"/>
@@ -416,11 +424,6 @@
     <string>Ctrl+P</string>
    </property>
   </action>
-  <action name="_export_ieeg_action">
-   <property name="text">
-    <string>Export SEEG</string>
-   </property>
-  </action>
   <action name="_electrodes_action">
    <property name="text">
     <string>Electrodes with ROIs</string>
@@ -707,6 +710,21 @@
   <action name="_iir_filter_action">
    <property name="text">
     <string>IIR filter</string>
+   </property>
+  </action>
+  <action name="_export_set_action">
+   <property name="text">
+    <string>EEGLAB (.set)</string>
+   </property>
+  </action>
+  <action name="_export_edf_action">
+   <property name="text">
+    <string>EDF+ (.edf)</string>
+   </property>
+  </action>
+  <action name="_export_fif_action">
+   <property name="text">
+    <string>Neuromag (.fif)</string>
    </property>
   </action>
  </widget>
