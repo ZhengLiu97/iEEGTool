@@ -30,6 +30,7 @@ from gui.main_ui import Ui_MainWindow
 from gui.resample_win import ResampleWin
 from gui.crop_win import CropWin
 from gui.info_win import InfoWin
+from gui.fir_filter_win import FIRFilterWin
 from utils.subject import Subject
 from utils.thread import *
 from utils.log_config import create_logger
@@ -69,6 +70,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self._crop_win = None
         self._resample_win = None
+        self._fir_filter_win = None
+        self._iir_filter_win = None
 
     def _center_win(self):
         qr = self.frameGeometry()
@@ -98,6 +101,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # Signal Menu
         self._crop_ieeg_action.triggered.connect(self._crop_ieeg)
         self._resample_ieeg_action.triggered.connect(self._resample_ieeg)
+        self._fir_filter_action.triggered.connect(self._fir_filter_ieeg)
 
         # Help Menu
         self._github_action.triggered.connect(self._open_github)
@@ -408,6 +412,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.subject.set_ieeg(ieeg)
         self._update_fig()
 
+    def _fir_filter_ieeg(self):
+        raw = self.subject.get_ieeg()
+        if raw is not None:
+            self._fir_filter_win = FIRFilterWin(raw)
+            self._fir_filter_win.IEEG_SIGNAL.connect(self._get_filtered_ieeg)
+            self._fir_filter_win.show()
+
+    def _get_filtered_ieeg(self, ieeg):
+        QMessageBox.information(self, 'iEEG', 'Filtering finished!')
+        self.subject.set_ieeg(ieeg)
+        self._update_fig()
+
     # Toolbar
     def _take_screenshot(self):
         if self._ieeg_viz_stack.count() > 0:
@@ -436,3 +452,5 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self._crop_win.close()
         if self._resample_win is not None:
             self._resample_win.close()
+        if self._fir_filter_win is not None:
+            self._fir_filter_win.close()

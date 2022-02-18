@@ -12,6 +12,10 @@ import pandas as pd
 from mne.io import BaseRaw
 from PyQt5.QtCore import QThread, pyqtSignal
 
+from utils.log_config import create_logger
+
+logger = create_logger(filename='iEEGTool.log')
+
 
 class ImportSEEG(QThread):
     # Thread for importing iEEG
@@ -52,7 +56,34 @@ class ResampleiEEG(QThread):
         self.RESAMPLE_SIGNAL.emit(self.ieeg)
 
 
-class CalculateSpectralCon(QThread):
+class FIRFilter(QThread):
+    IEEG_SIGNAL = pyqtSignal(object)
+
+    def __init__(self, ieeg, lfreq, hfreq, notch_freqs, params):
+        super(FIRFilter, self).__init__()
+
+        self.ieeg = ieeg
+
+        self.lfreq = lfreq
+        self.hfreq = hfreq
+        self.notch_freqs = notch_freqs
+        self.params = params
+
+    def run(self) -> None:
+        if self.lfreq is not None or self.hfreq is not None:
+            logger.info(f"Start running FIR filter {self.lfreq}-{self.hfreq}Hz")
+            self.ieeg.filter(self.lfreq, self.hfreq, **self.params)
+        if self.notch_freqs is not None:
+            logger.info(f"Start running FIR notch filter at {self.notch_freqs[0]} "
+                        f"with level {len(self.notch_freqs)}")
+            self.ieeg.notch_filter(self.notch_freqs, **self.params)
+        logger.info("Finish filtering")
+        self.IEEG_SIGNAL.emit(self.ieeg)
+
+
+
+
+class ComputeSpectralCon(QThread):
     _FINISH_SIGNAL = pyqtSignal(list)
 
     def __init__(self, data, params):
