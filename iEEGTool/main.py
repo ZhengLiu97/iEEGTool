@@ -8,7 +8,8 @@
 
 if __name__ == '__main__':
     import sys
-    from PyQt5.QtWidgets import QApplication
+    from PyQt5.QtWidgets import QApplication, QCoreApplication
+    from PyQt5.QtCore import Qt, QCoreApplication
     from gui.main_win import MainWindow
 
     QCoreApplication.setAttribute(Qt.AA_X11InitThreads)
