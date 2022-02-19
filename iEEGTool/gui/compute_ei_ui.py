@@ -468,7 +468,7 @@ class Ui_MainWindow(object):
         self._viz_ieeg_action.setObjectName("_viz_ieeg_action")
         self._save_excel_action = QtWidgets.QAction(MainWindow)
         icon1 = QtGui.QIcon()
-        icon1.addPixmap(QtGui.QPixmap("../../icon/file_save.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon1.addPixmap(QtGui.QPixmap("../../icon/save.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self._save_excel_action.setIcon(icon1)
         font = QtGui.QFont()
         font.setFamily("Ubuntu")

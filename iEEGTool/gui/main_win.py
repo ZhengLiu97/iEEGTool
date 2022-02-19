@@ -74,6 +74,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self._fir_filter_win = None
         self._iir_filter_win = None
 
+        self._ei_win = None
+
     def _center_win(self):
         qr = self.frameGeometry()
         cp = QDesktopWidget().availableGeometry().center()
@@ -516,3 +518,5 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self._resample_win.close()
         if self._fir_filter_win is not None:
             self._fir_filter_win.close()
+        if self._ei_win is not None:
+            self._ei_win.close()

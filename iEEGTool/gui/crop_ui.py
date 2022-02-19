@@ -15,6 +15,8 @@ class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(537, 47)
+        MainWindow.setMinimumSize(QtCore.QSize(537, 47))
+        MainWindow.setMaximumSize(QtCore.QSize(537, 47))
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         font = QtGui.QFont()
         font.setFamily("Ubuntu")

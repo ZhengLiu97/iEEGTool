@@ -81,8 +81,6 @@ class FIRFilter(QThread):
         self.IEEG_SIGNAL.emit(self.ieeg)
 
 
-
-
 class ComputeSpectralCon(QThread):
     _FINISH_SIGNAL = pyqtSignal(list)
 
@@ -366,17 +364,17 @@ class ComputeHFOsRate(QThread):
 
 
 class ComputeEI(QThread):
-    _EI_THREAD = pyqtSignal(list)
+    EI_SIGNAL = pyqtSignal(list)
 
-    def __init__(self, raw, params):
+    def __init__(self, ieeg, params):
         super(ComputeEI, self).__init__()
-        self._raw = raw
+        self.ieeg = ieeg
         self._params = params
 
     def run(self) -> None:
-        from utils._epi_index import calc_EI
+        from utils.epi_index import calc_EI
 
         print('Start calculating EI')
-        ei_df, U_n = calc_EI(self._raw, **self._params)
+        ei_df, U_n = calc_EI(self.ieeg, **self._params)
         print('Finish calculating EI')
-        self._EI_THREAD.emit([ei_df, U_n])
+        self.EI_SIGNAL.emit([ei_df, U_n])

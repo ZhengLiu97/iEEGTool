@@ -1159,7 +1159,7 @@
   <action name="_save_excel_action">
    <property name="icon">
     <iconset>
-     <normaloff>../../icon/file_save.svg</normaloff>../../icon/file_save.svg</iconset>
+     <normaloff>../../icon/save.svg</normaloff>../../icon/save.svg</iconset>
    </property>
    <property name="text">
     <string>Save EI</string>
