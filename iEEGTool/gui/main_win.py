@@ -55,7 +55,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self):
         super(MainWindow, self).__init__()
         self.setupUi(self)
-
         self.setWindowTitle('iEEG Tool')
         self.setWindowIcon(QIcon('icon/iEEGTool.png'))
 
@@ -63,6 +62,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self._slot_connection()
         self._short_cut()
         self._set_icon()
+
+        self.ieeg_title = ''
+        self.mri_title = ''
+        self.ct_title = ''
 
         # self.subject = Subject('sample')
         self.subject = Subject('cenjianv')
@@ -198,6 +201,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if len(fpath):
             t1 = nib.load(fpath)
             self.subject.set_t1(t1)
+            self.mri_title = f'MRI {fpath}'
+            self.setWindowTitle(f'iEEG Tool      {self.ieeg_title}   {self.mri_title}   '
+                                f'{self.ct_title}')
             QMessageBox.information(self, 'T1-MRI', 'T1-MRI Loaded')
 
     def _import_ct(self):
@@ -206,11 +212,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if len(fpath):
             ct = nib.load(fpath)
             self.subject.set_ct(ct)
+            self.ct_title = f'CT {fpath}'
+            self.setWindowTitle(f'iEEG Tool      {self.ieeg_title}   {self.mri_title}   '
+                                f'{self.ct_title}')
             QMessageBox.information(self, 'CT', 'CT Loaded')
 
     def _import_ieeg(self):
         fpath, _ = QFileDialog.getOpenFileName(self, "Import iEEG", default_path,
                                                filter="iEEG (*.edf *.set *.fif *.vhdr)")
+        self.ieeg_title = f"iEEG {fpath}"
         if len(fpath):
             logger.info(f'iEEG path {fpath}')
             self._import_ieeg_thread = ImportSEEG(fpath)
@@ -222,6 +232,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         logger.info(f'Cleaning channels finished!')
         self.subject.set_ieeg(ieeg)
         self._update_fig()
+        self.setWindowTitle(f'iEEG Tool      {self.ieeg_title}   {self.mri_title}   '
+                            f'{self.ct_title}')
         logger.info('Set iEEG')
 
     def _export_ieeg_fif(self):
@@ -271,10 +283,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def _clear_mri(self):
         self.subject.remove_t1()
+        self.mri_title = ''
+        self.setWindowTitle(f'iEEG Tool      {self.ieeg_title}   {self.mri_title}   '
+                            f'{self.ct_title}')
         logger.info('clear T1 MRI')
 
     def _clear_ct(self):
         self.subject.remove_ct()
+        self.ct_title = ''
+        self.setWindowTitle(f'iEEG Tool      {self.ieeg_title}   {self.mri_title}   '
+                            f'{self.ct_title}')
         logger.info('clear CT')
 
     def _clear_coordinates(self):
@@ -288,6 +306,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         try:
             widget = self._ieeg_viz_stack.widget(0)
             self._ieeg_viz_stack.removeWidget(widget)
+            self.ieeg_title = ''
+            self.setWindowTitle(f'iEEG Tool      {self.ieeg_title}   {self.mri_title}   '
+                                f'{self.ct_title}')
             logger.info('clear iEEG')
         except:
             logger.info('What??????')
