@@ -7,7 +7,7 @@
 '''
 import numpy as np
 
-from PyQt5.QtWidgets import QMainWindow, QMessageBox
+from PyQt5.QtWidgets import QMainWindow, QMessageBox, QDesktopWidget
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtGui import QIntValidator
 
@@ -20,6 +20,7 @@ class FIRFilterWin(QMainWindow, Ui_MainWindow):
     def __init__(self, ieeg):
         super(FIRFilterWin, self).__init__()
         self.setupUi(self)
+        self._center_win()
         self.setWindowTitle('FIR Filter')
 
         self.ieeg = ieeg
@@ -33,6 +34,12 @@ class FIRFilterWin(QMainWindow, Ui_MainWindow):
 
         self._ok_btn.clicked.connect(self._run_filter)
         self._cancel_btn.clicked.connect(self.close)
+
+    def _center_win(self):
+        qr = self.frameGeometry()
+        cp = QDesktopWidget().availableGeometry().center()
+        qr.moveCenter(cp)
+        self.move(qr.topLeft())
 
     def _run_filter(self):
         params = dict()

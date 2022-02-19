@@ -5,7 +5,7 @@
 @Author  ：Barry
 @Date    ：2022/2/18 22:03 
 '''
-from PyQt5.QtWidgets import QMainWindow, QMessageBox
+from PyQt5.QtWidgets import QMainWindow, QMessageBox, QDesktopWidget
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtGui import QIntValidator
 
@@ -19,6 +19,7 @@ class InfoWin(QMainWindow, Ui_MainWindow):
     def __init__(self, info):
         super(InfoWin, self).__init__()
         self.setupUi(self)
+        self._center_win()
         self.setWindowTitle('Subject Information')
 
         subject_name = info['subject_name']
@@ -27,6 +28,12 @@ class InfoWin(QMainWindow, Ui_MainWindow):
         self._name_le.setText(subject_name)
         self._age_le.setText(age)
         self._gender_le.setText(gender)
+
+    def _center_win(self):
+        qr = self.frameGeometry()
+        cp = QDesktopWidget().availableGeometry().center()
+        qr.moveCenter(cp)
+        self.move(qr.topLeft())
 
     @safe_event
     def closeEvent(self, event):

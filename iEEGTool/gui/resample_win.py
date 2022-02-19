@@ -5,7 +5,7 @@
 @Author  ：Barry
 @Date    ：2022/2/18 20:29 
 '''
-from PyQt5.QtWidgets import QMainWindow
+from PyQt5.QtWidgets import QMainWindow, QDesktopWidget
 from PyQt5.QtCore import pyqtSignal
 
 from gui.resample_ui import Ui_MainWindow
@@ -21,12 +21,19 @@ class ResampleWin(QMainWindow, Ui_MainWindow):
     def __init__(self, ieeg):
         super(ResampleWin, self).__init__()
         self.setupUi(self)
+        self._center_win()
         self.setWindowTitle('Resample iEEG')
 
         self.ieeg = ieeg
 
         self._start_btn.clicked.connect(self._resample_ieeg)
         self._start_btn.clicked.connect(self.close)
+
+    def _center_win(self):
+        qr = self.frameGeometry()
+        cp = QDesktopWidget().availableGeometry().center()
+        qr.moveCenter(cp)
+        self.move(qr.topLeft())
 
     def _resample_ieeg(self):
         if self._resampling_rate_le.text().isdigit():

@@ -263,7 +263,7 @@
            <enum>Qt::ClickFocus</enum>
           </property>
           <property name="text">
-           <string>2</string>
+           <string/>
           </property>
           <property name="alignment">
            <set>Qt::AlignCenter</set>

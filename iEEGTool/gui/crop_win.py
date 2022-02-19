@@ -5,7 +5,7 @@
 @Author  ：Barry
 @Date    ：2022/2/18 21:00 
 '''
-from PyQt5.QtWidgets import QMainWindow, QMessageBox
+from PyQt5.QtWidgets import QMainWindow, QMessageBox, QDesktopWidget
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtGui import QDoubleValidator
 
@@ -22,6 +22,7 @@ class CropWin(QMainWindow, Ui_MainWindow):
     def __init__(self, tmin, tmax):
         super(CropWin, self).__init__()
         self.setupUi(self)
+        self._center_win()
         self.setWindowTitle('Crop iEEG')
 
         self.tmax = tmax
@@ -34,6 +35,12 @@ class CropWin(QMainWindow, Ui_MainWindow):
         self._tmax_le.setValidator(validator)
 
         self._start_btn.clicked.connect(self._return_params)
+
+    def _center_win(self):
+        qr = self.frameGeometry()
+        cp = QDesktopWidget().availableGeometry().center()
+        qr.moveCenter(cp)
+        self.move(qr.topLeft())
 
     def _return_params(self):
         tmin = self._tmin_le.text()

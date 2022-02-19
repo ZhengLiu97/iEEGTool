@@ -24,13 +24,14 @@ from nibabel.viewers import OrthoSlicer3D
 from PyQt5.QtWidgets import QMainWindow, QApplication, QStyleFactory, QDesktopWidget, \
                             QFileDialog, QMessageBox, QShortcut, QAction
 from PyQt5.QtCore import pyqtSignal, QTimer, QUrl
-from PyQt5.QtGui import QIcon, QDesktopServices, QKeySequence, QFont, QIcon, QPixmap
+from PyQt5.QtGui import QIcon, QDesktopServices, QKeySequence, QFont, QPixmap
 
 from gui.main_ui import Ui_MainWindow
 from gui.resample_win import ResampleWin
 from gui.crop_win import CropWin
 from gui.info_win import InfoWin
 from gui.fir_filter_win import FIRFilterWin
+from gui.compute_ei_win import EIWin
 from utils.subject import Subject
 from utils.thread import *
 from utils.log_config import create_logger
@@ -106,6 +107,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self._crop_ieeg_action.triggered.connect(self._crop_ieeg)
         self._resample_ieeg_action.triggered.connect(self._resample_ieeg)
         self._fir_filter_action.triggered.connect(self._fir_filter_ieeg)
+
+        # Analysis Menu
+        self._epileptogenic_index_action.triggered.connect(self._compute_ei)
 
         # Help Menu
         self._github_action.triggered.connect(self._open_github)
@@ -262,7 +266,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             QMessageBox.information(self, 'SEEG', 'Exporting iEEG to SET finished!')
         else:
             logger.info('Stop exporting iEEG')
-
 
     def _clear_mri(self):
         self.subject.remove_t1()
@@ -475,6 +478,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         QMessageBox.information(self, 'iEEG', 'Filtering finished!')
         self.subject.set_ieeg(ieeg)
         self._update_fig()
+
+    # Analysis Menu
+    def _compute_ei(self):
+        raw = self.subject.get_ieeg()
+        if raw is not None:
+            self._ei_win = EIWin(raw)
+            self._ei_win.show()
 
     # Toolbar
     def _take_screenshot(self):
