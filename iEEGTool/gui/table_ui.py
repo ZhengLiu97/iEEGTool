@@ -25,7 +25,7 @@ class Ui_MainWindow(object):
         self.verticalLayout = QtWidgets.QVBoxLayout(self.centralwidget)
         self.verticalLayout.setObjectName("verticalLayout")
         self._table_widget = QtWidgets.QTableWidget(self.centralwidget)
-        self._table_widget.setMinimumSize(QtCore.QSize(800, 600))
+        self._table_widget.setMinimumSize(QtCore.QSize(0, 600))
         self._table_widget.setMaximumSize(QtCore.QSize(800, 600))
         self._table_widget.setObjectName("_table_widget")
         self._table_widget.setColumnCount(0)

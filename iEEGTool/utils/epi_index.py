@@ -9,8 +9,7 @@ import mne
 import numpy as np
 import pandas as pd
 
-
-import numpy as np
+import matplotlib.pyplot as plt
 from skmultiflow.drift_detection.base_drift_detector import BaseDriftDetector
 
 
@@ -34,12 +33,10 @@ class PageHinkley(BaseDriftDetector):
         and the mean.
     """
 
-    def __init__(self, min_instances=30, delta=0.005, threshold=50, alpha=1 - 0.0001):
+    def __init__(self, delta=0.1, threshold=1):
         super().__init__()
-        self.min_instances = min_instances
         self.delta = delta
         self.threshold = threshold
-        self.alpha = alpha
         self.x_mean = None
         self.sample_count = None
         self.sum = None
@@ -81,7 +78,7 @@ class PageHinkley(BaseDriftDetector):
 
         self.x_mean = self.x_mean + (x - self.x_mean) / float(self.sample_count)
         self._mean.append(self.x_mean)
-        self.sum = self.alpha * self.sum + (x - self.x_mean - self.delta)
+        self.sum = self.sum + (x - self.x_mean - self.delta)
         self.U_n.append(self.sum)
         self.U_n_min.append(self.sum)
         self.sample_count += 1
@@ -91,9 +88,6 @@ class PageHinkley(BaseDriftDetector):
         self.in_warning_zone = False
 
         self.delay = 0
-
-        if self.sample_count < self.min_instances:
-            return None
 
         # print(f'sum {self.sum}  threshold {self.threshold}')
         if self.sum - min(self.U_n_min) > self.threshold:
@@ -121,15 +115,15 @@ def calc_psd_welch(raw, freqs, window=1, step=0.25):
     samples_per_seg = int(raw.info['sfreq'] * window)
     fmin = freqs[0]
     fmax = freqs[1]
-    overlap = int((1 - step) * raw.info['sfreq'])
+    step_points = int(step * raw.info['sfreq'])
+    overlap = raw.info['sfreq'] - step_points
     print(f"sampling rate {raw.info['sfreq']}")
     print(f"step {step}")
     print(f"overlap {overlap}")
     print(f"samples_per_seg {samples_per_seg}")
     psd, freqs = mne.time_frequency.psd_welch(raw, fmin=fmin, fmax=fmax, n_fft=samples_per_seg,
                                               n_per_seg=samples_per_seg,
-                                              n_overlap=overlap, average=None)
-    print(f"Frequencies {freqs[0]}-{freqs[1]}")
+                                              n_overlap=overlap, average=None, window='hamming')
     print(f'PSD shape = {psd.shape}')
     return psd, freqs
 
@@ -199,7 +193,7 @@ def page_hinkley(ch_names, ER, start, step, threshold=1, bias=1):
     U_n = []
     for i in range(len(ch_names)):
         ch_drift_idx = []
-        ph = PageHinkley(threshold=threshold, delta=bias, min_instances=1)
+        ph = PageHinkley(threshold=threshold, delta=bias)
         for j in range(len(ER[i, :])):
             ph.add_element(ER[i, j])
             if ph.detected_change():
@@ -229,7 +223,7 @@ def page_hinkley(ch_names, ER, start, step, threshold=1, bias=1):
 
 
 def calc_EI(raw, low=(4, 12), high=(12, 127), window=1, step=0.25,
-            bias=1, threshold=1, tau=1, H=5):
+            bias=0.1, threshold=1, tau=1, H=5):
     '''
     Parameters
     ----------
@@ -274,7 +268,7 @@ def calc_EI(raw, low=(4, 12), high=(12, 127), window=1, step=0.25,
             if end > ER.shape[-1]:
                 ei_df.loc[i, 'ER'] = np.sum(ER[i, N_di_idx:])
             else:
-                ei_df.loc[i, 'ER'] = np.sum(ER[i, N_di_idx: end])
+                ei_df.loc[i, 'ER'] = np.sum(ER[i, N_di_idx: end + 1])
             ei_df.loc[i, 'EI'] = ei_df.loc[i, 'ER'] / denom
 
     ER_max = ei_df['ER'].max()

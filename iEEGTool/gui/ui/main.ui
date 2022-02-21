@@ -124,6 +124,7 @@
     <addaction name="_load_coordinates_action"/>
     <addaction name="_export_coordinates_action"/>
     <addaction name="separator"/>
+    <addaction name="_load_anatomy_action"/>
     <addaction name="_export_anatomy_action"/>
     <addaction name="separator"/>
     <addaction name="menuClear_Workbench"/>
@@ -203,6 +204,7 @@
      <addaction name="_psd_welch_action"/>
     </widget>
     <addaction name="_get_anatomy_action"/>
+    <addaction name="_mni_transform_action"/>
     <addaction name="separator"/>
     <addaction name="menuPower_Spectral_Density"/>
     <addaction name="actionCross_Spectral_Density"/>
@@ -725,6 +727,21 @@
   <action name="_export_fif_action">
    <property name="text">
     <string>Neuromag (.fif)</string>
+   </property>
+  </action>
+  <action name="_mni_transform_action">
+   <property name="text">
+    <string>MNI Transform</string>
+   </property>
+  </action>
+  <action name="_load_anatomy_action">
+   <property name="text">
+    <string>Load Anatomy</string>
+   </property>
+  </action>
+  <action name="actionExport_Anatomy">
+   <property name="text">
+    <string>Export Anatomy</string>
    </property>
   </action>
  </widget>

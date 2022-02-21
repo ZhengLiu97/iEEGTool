@@ -20,6 +20,7 @@ from utils.log_config import create_logger
 from utils.thread import ComputeEI
 from utils.process import get_chan_group
 from utils.config import color
+from utils.decorator import safe_event
 
 logger = create_logger(filename='iEEGTool.log')
 
@@ -38,6 +39,8 @@ class EIWin(QMainWindow, Ui_MainWindow):
         self.chans = ieeg.ch_names
         self.ei = None
 
+        self._ei_table_win = None
+
         int_validator = QIntValidator()
         self._lfreq_low_le.setValidator(int_validator)
         self._lfreq_high_le.setValidator(int_validator)
@@ -53,9 +56,9 @@ class EIWin(QMainWindow, Ui_MainWindow):
         self._threshold_le.setValidator(float_validator)
         self._ez_threshold_le.setValidator(float_validator)
 
-        # self._viz_ieeg_action.triggered.connect(self._viz_ieeg)
-
+        self._viz_ieeg_action.triggered.connect(self._viz_ieeg)
         self._bar_chart_action.triggered.connect(self._plot_ei_barchart)
+
         self._select_chan_btn.clicked.connect(self._select_chans)
         self._compute_btn.clicked.connect(self._compute_ei)
         self._display_table_btn.clicked.connect(self._display_table)
@@ -181,8 +184,29 @@ class EIWin(QMainWindow, Ui_MainWindow):
                 fig.tight_layout()
                 plt.show()
 
+    def _viz_ieeg(self):
+        if self.ei is not None:
+            logger.info('Plot EI in iEEG')
+            ieeg = self.ieeg.copy()
+            ch_names = ieeg.ch_names
+            annot = ieeg.annotations
+            ei_df = self.ei
+            for i in range(len(ch_names)):
+                if not np.isnan(ei_df.iloc[i].detection_idx):
+                    onset = ei_df.iloc[i].detection_time
+                    ch = [[ei_df.iloc[i].Channel]]
+                    des = f"{ch[0][0]} EI {ei_df.iloc[i].norm_EI}"
+                    annot.append(onset, 0, des, ch)
+            ieeg.set_annotations(annot)
+            ieeg.plot(scalings='auto', color='k')
+
     def _display_table(self):
         logger.info("Display EI Table!")
         if self.ei is not None:
             self._ei_table_win = TableWin(self.ei)
             self._ei_table_win.show()
+
+    @safe_event
+    def closeEvent(self, event):
+        if self._ei_table_win is not None:
+            self._ei_table_win.close()

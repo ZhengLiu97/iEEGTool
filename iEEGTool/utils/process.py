@@ -12,6 +12,9 @@ import numpy as np
 import traceback
 import mne
 
+from mne.transforms import apply_trans, invert_transform
+from mne._freesurfer import _read_mri_info
+
 
 def get_chan_group(chans, exclude=['E']):
     '''Group iEEG channel
@@ -90,8 +93,6 @@ def clean_chans(ieeg):
 
     return ieeg
 
-
-
 def set_bipolar(ieeg):
     '''
     Reference SEEG data using Bipolar Reference
@@ -141,13 +142,11 @@ def set_bipolar(ieeg):
 
     return bipolar_ieeg
 
-
 def get_bipolar_pair(ch_names):
     from utils._process import get_chan_group
     group = get_chan_group(chans=ch_names)
     group_pair = {name: [group[name][:-1], group[name][1:]] for name in group}
     return group_pair
-
 
 def mne_bipolar(raw):
     from mne import set_bipolar_reference
@@ -184,12 +183,13 @@ def get_montage(ch_pos, subject, subjects_dir):
     montage = montage_mri.copy()
     montage.add_estimated_fiducials(subject, subjects_dir)
     montage.apply_trans(mri_to_head_trans)
-    return montage_mri, montage,
+    return montage_mri, montage
 
-def set_montage(seeg, ch_pos, subject, subjects_dir):
+def set_montage(ieeg, ch_pos, subject, subjects_dir):
+    print(f'Load files from {subjects_dir}/{subject}')
     _, montage = get_montage(ch_pos, subject, subjects_dir)
-    seeg.set_montage(montage, on_missing='ignore')
-    return seeg
+    ieeg.set_montage(montage, on_missing='ignore')
+    return ieeg
 
 def get_gm_chans(roi_df):
     ch_names = roi_df['Channel'].to_list()
@@ -202,3 +202,21 @@ def get_gm_chans(roi_df):
                 ('unknown' not in ch_roi) and ('white' not in ch_roi):
             gm_chs.append(ch)
     return gm_chs
+
+def ras_to_tkras(ras, subject, subjects_dir):
+    if not isinstance(ras, np.ndarray):
+        ras = np.asarray(ras)
+    t1_path = os.path.join(subjects_dir, subject, 'mri', 'T1.mgz')
+    _, _, tkras_to_ras, _, _ = _read_mri_info(t1_path)
+    ras_to_tkras = invert_transform(tkras_to_ras)
+    print(ras_to_tkras)
+    return apply_trans(ras_to_tkras, ras)
+
+
+def tkras_to_ras(tkras, subject, subjects_dir):
+    if not isinstance(tkras, np.ndarray):
+        tkras = np.asarray(tkras)
+    t1_path = os.path.join(subjects_dir, subject, 'mri', 'T1.mgz')
+    _, _, tkras_to_ras, _, _ = _read_mri_info(t1_path)
+    print(tkras_to_ras)
+    return apply_trans(tkras_to_ras, tkras)

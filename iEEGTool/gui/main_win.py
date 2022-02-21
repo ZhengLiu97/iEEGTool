@@ -32,13 +32,14 @@ from gui.crop_win import CropWin
 from gui.info_win import InfoWin
 from gui.fir_filter_win import FIRFilterWin
 from gui.compute_ei_win import EIWin
+from gui.table_win import TableWin
 from utils.subject import Subject
 from utils.thread import *
 from utils.log_config import create_logger
 from utils.decorator import safe_event
 from utils.locate_ieeg import locate_ieeg
 from utils.contacts import calc_ch_pos
-from utils.process import get_chan_group, set_montage, clean_chans
+from utils.process import get_chan_group, set_montage, clean_chans, get_montage
 
 matplotlib.use('Qt5Agg')
 mne.viz.set_browser_backend('pyqtgraph')
@@ -68,7 +69,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.ct_title = ''
 
         # self.subject = Subject('sample')
-        self.subject = Subject('cenjianv')
+        self.subject = Subject('')
         self._info = {'subject_name': '', 'age': '', 'gender': ''}
         self.subjects_dir = op.join(default_path, 'freesurfer')
 
@@ -90,10 +91,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self._load_t1_action.triggered.connect(self._import_t1)
         self._load_ct_action.triggered.connect(self._import_ct)
         self._load_ieeg_action.triggered.connect(self._import_ieeg)
+        self._load_coordinates_action.triggered.connect(self._import_coord)
         self._export_fif_action.triggered.connect(self._export_ieeg_fif)
         self._export_edf_action.triggered.connect(self._export_ieeg_edf)
         self._export_set_action.triggered.connect(self._export_ieeg_set)
-
 
         self._clear_mri_action.triggered.connect(self._clear_mri)
         self._clear_ct_action.triggered.connect(self._clear_ct)
@@ -102,6 +103,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self._setting_action.triggered.connect(self._write_info)
 
+        # View Menu
+        self._channels_info_action.triggered.connect(self._view_chs_info)
+
         # Localization Menu
         self._display_mri_action.triggered.connect(self._display_t1)
         self._display_ct_action.triggered.connect(self._display_ct)
@@ -109,6 +113,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self._ieeg_locator_action.triggered.connect(self._locate_ieeg)
 
         # Signal Menu
+        self._set_montage_action.triggered.connect(self._set_ieeg_montage)
         self._crop_ieeg_action.triggered.connect(self._crop_ieeg)
         self._resample_ieeg_action.triggered.connect(self._resample_ieeg)
         self._fir_filter_action.triggered.connect(self._fir_filter_ieeg)
@@ -236,10 +241,31 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                             f'{self.ct_title}')
         logger.info('Set iEEG')
 
+    def _import_coord(self):
+        fname, _ = QFileDialog.getOpenFileName(self, 'Coordinates', default_path,
+                                               filter='Coordinates (*.txt *.tsv)')
+        if len(fname):
+            try:
+                coords_df = pd.read_table(fname)
+                ch_names = coords_df['Channel'].to_list()
+                x = coords_df['x'].to_numpy()
+                y = coords_df['y'].to_numpy()
+                z = coords_df['z'].to_numpy()
+                ch_pos = pd.DataFrame()
+                ch_pos['Channel'] = ch_names
+                ch_pos['x'] = x
+                ch_pos['y'] = y
+                ch_pos['z'] = z
+                self.subject.set_electrodes(ch_pos)
+                logger.info("Importing channels' coordinates finished!")
+            except:
+                QMessageBox.warning(self, 'Coordinates', 'Wrong file format!')
+
     def _export_ieeg_fif(self):
         ieeg_format = '.fif'
-        default_fname = os.path.join('data', self.subject.get_name() + ieeg_format)
-        fname, _ = QFileDialog.getSaveFileName(self, 'iEEG', default_fname, filter=f"Neuromag (*{ieeg_format})")
+        default_fname = os.path.join(default_path, self.subject.get_name() + ieeg_format)
+        fname, _ = QFileDialog.getSaveFileName(self, 'iEEG', default_fname,
+                                               filter=f"Neuromag (*{ieeg_format})")
         if len(fname):
             raw = self.subject.get_ieeg()
             index = fname.rfind(ieeg_format)
@@ -253,7 +279,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def _export_ieeg_edf(self):
         ieeg_format = '.edf'
-        default_fname = os.path.join('data', self.subject.get_name() + ieeg_format)
+        default_fname = os.path.join(default_path, self.subject.get_name() + ieeg_format)
         fname, _ = QFileDialog.getSaveFileName(self, 'iEEG', default_fname, filter=f"EDF+ (*{ieeg_format})")
         if len(fname):
             raw = self.subject.get_ieeg()
@@ -268,7 +294,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def _export_ieeg_set(self):
         ieeg_format = '.set'
-        default_fname = os.path.join('data', self.subject.get_name() + ieeg_format)
+        default_fname = os.path.join(default_path, self.subject.get_name() + ieeg_format)
         fname, _ = QFileDialog.getSaveFileName(self, 'iEEG', default_fname, filter=f"EEGLAB (*{ieeg_format})")
         if len(fname):
             raw = self.subject.get_ieeg()
@@ -322,6 +348,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self._info = info
         self.subject.set_name(info['subject_name'])
         logger.info(f"Update subject's info to {info}")
+
+    # View Menu
+    def _view_chs_info(self):
+        ch_pos = self.subject.get_electrodes()
+        if ch_pos is not None:
+            self._table_win = TableWin(ch_pos)
+            self._table_win.show()
 
     # Localization Menu
     def _display_t1(self):
@@ -466,6 +499,38 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             raw.set_montage(montage, on_missing='ignore')
 
     # Signal Menu
+    def _set_ieeg_montage(self):
+        ch_pos = self.subject.get_electrodes()
+        ieeg = self.subject.get_ieeg()
+        subject = self.subject.get_name()
+        if ch_pos is None:
+            QMessageBox.warning(self, 'Coordinates', 'Please load Coordinates first!')
+            return
+        if ieeg is None:
+            QMessageBox.warning(self, 'iEEG', 'Please load iEEG first!')
+            return
+        if subject is None:
+            QMessageBox.warning(self, 'Subject', "Please set Subject's name first!")
+            return
+        ch_names = ch_pos['Channel'].to_list()
+        xyz = ch_pos[['x', 'y', 'z']].to_numpy() / 1000.
+        ch_pos = dict(zip(ch_names, xyz))
+
+        # subj_trans = mne.coreg.estimate_head_mri_t(subject, self.subjects_dir)
+        # mri_to_head_trans = mne.transforms.invert_transform(subj_trans)
+        # print('Start transforming mri to head')
+        # print(mri_to_head_trans)
+        #
+        # montage = mne.channels.make_dig_montage(ch_pos, coord_frame='mri')
+        # montage.add_estimated_fiducials(subject, subjects_dir)
+        # montage.apply_trans(mri_to_head_trans)
+        # self.subject.get_ieeg()._montage(montage, on_missing='ignore')
+
+        ieeg = set_montage(ieeg, ch_pos, subject, self.subjects_dir)
+        self.subject.set_ieeg(ieeg)
+        logger.info('Set iEEG montage finished!')
+        QMessageBox.information(self, 'Montage', 'Set iEEG montage finished!')
+
     def _crop_ieeg(self):
         if self.subject.get_ieeg() is not None:
             raw = self.subject.get_ieeg()

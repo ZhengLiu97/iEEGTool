@@ -268,6 +268,8 @@ class Ui_MainWindow(object):
         self._export_edf_action.setObjectName("_export_edf_action")
         self._export_fif_action = QtWidgets.QAction(MainWindow)
         self._export_fif_action.setObjectName("_export_fif_action")
+        self._mni_transform_action = QtWidgets.QAction(MainWindow)
+        self._mni_transform_action.setObjectName("_mni_transform_action")
         self._toolbar.addAction(self._load_t1_action)
         self._toolbar.addAction(self._load_ct_action)
         self._toolbar.addAction(self._load_ieeg_action)
@@ -334,6 +336,7 @@ class Ui_MainWindow(object):
         self.menuPower_Spectral_Density.addAction(self._psd_multitaper_action)
         self.menuPower_Spectral_Density.addAction(self._psd_welch_action)
         self.menuAnalysis.addAction(self._get_anatomy_action)
+        self.menuAnalysis.addAction(self._mni_transform_action)
         self.menuAnalysis.addSeparator()
         self.menuAnalysis.addAction(self.menuPower_Spectral_Density.menuAction())
         self.menuAnalysis.addAction(self.actionCross_Spectral_Density)
@@ -482,6 +485,7 @@ class Ui_MainWindow(object):
         self._export_set_action.setText(_translate("MainWindow", "EEGLAB (.set)"))
         self._export_edf_action.setText(_translate("MainWindow", "EDF+ (.edf)"))
         self._export_fif_action.setText(_translate("MainWindow", "Neuromag (.fif)"))
+        self._mni_transform_action.setText(_translate("MainWindow", "MNI Transform"))
 
 
 if __name__ == "__main__":
