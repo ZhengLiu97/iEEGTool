@@ -15,6 +15,7 @@ from PyQt5.QtGui import QIntValidator, QDoubleValidator, QIcon, QFont, QPixmap
 
 from gui.compute_ei_ui import Ui_MainWindow
 from gui.list_win import ItemSelectionWin
+from gui.table_win import TableWin
 from utils.log_config import create_logger
 from utils.thread import ComputeEI
 from utils.process import get_chan_group
@@ -25,7 +26,7 @@ logger = create_logger(filename='iEEGTool.log')
 
 class EIWin(QMainWindow, Ui_MainWindow):
 
-    def __init__(self, ieeg):
+    def __init__(self, ieeg, anatomy=None):
         super(EIWin, self).__init__()
         self.setupUi(self)
         self._center_win()
@@ -33,6 +34,7 @@ class EIWin(QMainWindow, Ui_MainWindow):
         self._set_icon()
 
         self.ieeg = ieeg
+        self.anatomy = anatomy
         self.chans = ieeg.ch_names
         self.ei = None
 
@@ -179,7 +181,8 @@ class EIWin(QMainWindow, Ui_MainWindow):
                 fig.tight_layout()
                 plt.show()
 
-    @staticmethod
-    def _display_table():
+    def _display_table(self):
         logger.info("Display EI Table!")
-
+        if self.ei is not None:
+            self._ei_table_win = TableWin(self.ei)
+            self._ei_table_win.show()
