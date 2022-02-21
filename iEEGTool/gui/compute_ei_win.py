@@ -5,13 +5,20 @@
 @Author  ：Barry
 @Date    ：2022/2/20 1:53 
 '''
+import numpy as np
+import pandas as pd
+import seaborn as sns
+from matplotlib import pyplot as plt
 from PyQt5.QtWidgets import QMainWindow, QMessageBox, QDesktopWidget
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtGui import QIntValidator, QDoubleValidator, QIcon, QFont, QPixmap
 
 from gui.compute_ei_ui import Ui_MainWindow
+from gui.list_win import ItemSelectionWin
 from utils.log_config import create_logger
 from utils.thread import ComputeEI
+from utils.process import get_chan_group
+from utils.config import color
 
 logger = create_logger(filename='iEEGTool.log')
 
@@ -26,6 +33,8 @@ class EIWin(QMainWindow, Ui_MainWindow):
         self._set_icon()
 
         self.ieeg = ieeg
+        self.chans = ieeg.ch_names
+        self.ei = None
 
         int_validator = QIntValidator()
         self._lfreq_low_le.setValidator(int_validator)
@@ -44,6 +53,8 @@ class EIWin(QMainWindow, Ui_MainWindow):
 
         # self._viz_ieeg_action.triggered.connect(self._viz_ieeg)
 
+        self._bar_chart_action.triggered.connect(self._plot_ei_barchart)
+        self._select_chan_btn.clicked.connect(self._select_chans)
         self._compute_btn.clicked.connect(self._compute_ei)
         self._display_table_btn.clicked.connect(self._display_table)
 
@@ -78,6 +89,15 @@ class EIWin(QMainWindow, Ui_MainWindow):
         help_icon.addPixmap(QPixmap("icon/help.svg"), QIcon.Normal, QIcon.Off)
         self._help_action.setIcon(help_icon)
 
+    def _select_chans(self):
+        self._select_chans_win = ItemSelectionWin(self.ieeg.ch_names)
+        self._select_chans_win.SELECTION_SIGNAL.connect(self._get_selected_chans)
+        self._select_chans_win.show()
+
+    def _get_selected_chans(self, chans):
+        self.chans = chans
+        logger.info(f"Selected channels are {chans}")
+
     def _compute_ei(self):
         window = float(self._win_le.text())
         step = float(self._step_le.text())
@@ -94,15 +114,70 @@ class EIWin(QMainWindow, Ui_MainWindow):
         logger.info("Start computing EI")
         logger.info(f"Epileptogenicity Index params are {params}")
 
-        self._compute_ei_thread = ComputeEI(self.ieeg, params)
+        if len(self.chans) != len(self.ieeg.ch_names):
+            ieeg = self.ieeg.copy().pick_channels(self.chans)
+        else:
+            ieeg = self.ieeg
+        self._compute_ei_thread = ComputeEI(ieeg, params)
         self._compute_ei_thread.EI_SIGNAL.connect(self._get_ei)
         self._compute_ei_thread.start()
 
     def _get_ei(self, result):
         logger.info("Finish computing EI")
-        ei = result[0]
-        U_n = result[1]
+        self.ei = result[0]
+        self.U_n = result[1]
 
+        onset = self.ei.detection_time.min()
+
+        sz_ch_num = 0
+        for i in range(len(self.ei)):
+            if not np.isnan(self.ei.iloc[i].detection_time):
+                sz_ch_num += 1
+        if sz_ch_num == 0:
+            QMessageBox.information(self, 'EI calculation', f'No Seizure detected!')
+        else:
+            sz_ch = self.chans[np.argmin(self.ei.detection_time)]
+            QMessageBox.information(self, 'EI calculation', f'Finish calculating EI\n'
+                                                            f'Onset at {onset} second in {sz_ch} \n'
+                                                            f'{sz_ch_num} Channels detected')
+
+    def _plot_ei_barchart(self):
+        if self.ei is not None:
+            ch_names = self.chans
+            group_chans = get_chan_group(chans=ch_names)
+            if len(self.ei):
+                min_ei = float(self._ez_threshold_le.text())
+                if min_ei > 0.99:
+                    min_ei = 1
+                    self._ez_threshold_le.setText(str(0.99))
+                ch_color = {}
+                for idx, gp in enumerate(group_chans):
+                    for ch in group_chans[gp]:
+                        ch_color[ch] = color[idx]
+
+                fig, ax = plt.subplots(2, 1, figsize=(20, 8), sharex=True)
+                sns.barplot(data=self.ei, x='Channel', y='norm_ER', ci=None, palette=ch_color, ax=ax[0])
+                plt.setp(ax[1].get_xticklabels(), rotation=45, ha="right", rotation_mode="anchor")
+                ax[0].set_title('Energy Ratio')
+
+                sns.barplot(data=self.ei, x='Channel', y='norm_EI', ci=None, palette=ch_color, ax=ax[1])
+                ax[1].hlines(min_ei, xmin=-.5, xmax=len(ch_names), colors='r', linestyles='--')
+                ax[1].hlines(1., xmin=-.5, xmax=len(ch_names), colors='r', linestyles='--')
+                ax[1].set_xlim(-.5, len(ch_names))
+                ax[1].set_ylim(0, 1.2)
+                plt.setp(ax[0].get_xticklabels(), rotation=45, ha="right", rotation_mode="anchor")
+
+                for index, p in enumerate(ax[1].patches):
+                    _x = p.get_x() + p.get_width() / 2
+                    _y = p.get_y() + p.get_height() + 0.01
+                    ei = round(self.ei.iloc[index].norm_EI, 3)
+                    if ei > 0.3:
+                        ax[1].text(_x, _y, ei, ha="center")
+
+                ax[1].set_title('Epileptogenicity Index')
+
+                fig.tight_layout()
+                plt.show()
 
     @staticmethod
     def _display_table():
