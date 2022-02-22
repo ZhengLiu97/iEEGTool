@@ -57,7 +57,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         super(MainWindow, self).__init__()
         self.setupUi(self)
         self.setWindowTitle('iEEG Tool')
-        self.setWindowIcon(QIcon('icon/iEEGTool.png'))
+        self.setWindowIcon(QIcon('icon/iEEGTool.ico'))
 
         self._center_win()
         self._slot_connection()
