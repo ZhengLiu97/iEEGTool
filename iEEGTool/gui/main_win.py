@@ -117,6 +117,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self._crop_ieeg_action.triggered.connect(self._crop_ieeg)
         self._resample_ieeg_action.triggered.connect(self._resample_ieeg)
         self._fir_filter_action.triggered.connect(self._fir_filter_ieeg)
+        self._drop_annotations_action.triggered.connect(self._drop_bad_from_annotations)
 
         # Analysis Menu
         self._epileptogenic_index_action.triggered.connect(self._compute_ei)
@@ -253,11 +254,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 z = coords_df['z'].to_numpy()
                 ch_pos = pd.DataFrame()
                 ch_pos['Channel'] = ch_names
+                ch_df = get_chan_group(chans=ch_names, return_df=True)
+                group = ch_df['Group'].to_list()
+                ch_pos['Group'] = group
                 ch_pos['x'] = x
                 ch_pos['y'] = y
                 ch_pos['z'] = z
                 self.subject.set_electrodes(ch_pos)
                 logger.info("Importing channels' coordinates finished!")
+                QMessageBox.information(self, 'Coordinates', "Importing channels' coordinates finished!")
             except:
                 QMessageBox.warning(self, 'Coordinates', 'Wrong file format!')
 
@@ -566,6 +571,24 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         QMessageBox.information(self, 'iEEG', 'Filtering finished!')
         self.subject.set_ieeg(ieeg)
         self._update_fig()
+
+    def _drop_bad_from_annotations(self):
+
+        ieeg = self.subject.get_ieeg()
+        if ieeg is not None:
+            fig = self._ieeg_viz_stack.widget(0)
+            fig.close() # You'll have to close the fig to get the bad channels
+            bad = ieeg.info['bads']
+            if len(bad):
+                self.subject.get_ieeg().drop_channels(bad)
+                self.subject.get_ieeg().info['bads'] = []
+                logger.info(f'Dropping bad channels: {bad} finished!')
+                self._update_fig()
+                QMessageBox.information(self, 'iEEG', f'Finish dropping bad channels {bad}')
+            else:
+                logger.info('No bad channels in annotations!')
+                self._update_fig()
+                QMessageBox.information(self, 'iEEG', 'No bad channels in annotations')
 
     # Analysis Menu
     def _compute_ei(self):

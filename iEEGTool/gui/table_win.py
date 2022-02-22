@@ -36,7 +36,7 @@ class TableWin(QMainWindow, Ui_MainWindow):
         self._table_widget.setRowCount(index_len)
         self._table_widget.horizontalHeader().setSectionResizeMode(QHeaderView.Interactive)
         self._table_widget.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
-        self._table_widget.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        # self._table_widget.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self._table_widget.setSelectionBehavior(QAbstractItemView.SelectRows)
         self._table_widget.setHorizontalHeaderLabels(columns)
         table_npy = table.to_numpy()

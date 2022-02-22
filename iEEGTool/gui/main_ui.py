@@ -87,7 +87,7 @@ class Ui_MainWindow(object):
         self._coherence_action.setObjectName("_coherence_action")
         self._resample_ieeg_action = QtWidgets.QAction(MainWindow)
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap("../../icon/resize-image.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon.addPixmap(QtGui.QPixmap("../../icon/resample.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self._resample_ieeg_action.setIcon(icon)
         self._resample_ieeg_action.setObjectName("_resample_ieeg_action")
         self.actionCrop = QtWidgets.QAction(MainWindow)
@@ -270,6 +270,10 @@ class Ui_MainWindow(object):
         self._export_fif_action.setObjectName("_export_fif_action")
         self._mni_transform_action = QtWidgets.QAction(MainWindow)
         self._mni_transform_action.setObjectName("_mni_transform_action")
+        self._load_anatomy_action = QtWidgets.QAction(MainWindow)
+        self._load_anatomy_action.setObjectName("_load_anatomy_action")
+        self.actionExport_Anatomy = QtWidgets.QAction(MainWindow)
+        self.actionExport_Anatomy.setObjectName("actionExport_Anatomy")
         self._toolbar.addAction(self._load_t1_action)
         self._toolbar.addAction(self._load_ct_action)
         self._toolbar.addAction(self._load_ieeg_action)
@@ -302,6 +306,7 @@ class Ui_MainWindow(object):
         self.menuFile.addAction(self._load_coordinates_action)
         self.menuFile.addAction(self._export_coordinates_action)
         self.menuFile.addSeparator()
+        self.menuFile.addAction(self._load_anatomy_action)
         self.menuFile.addAction(self._export_anatomy_action)
         self.menuFile.addSeparator()
         self.menuFile.addAction(self.menuClear_Workbench.menuAction())
@@ -486,6 +491,8 @@ class Ui_MainWindow(object):
         self._export_edf_action.setText(_translate("MainWindow", "EDF+ (.edf)"))
         self._export_fif_action.setText(_translate("MainWindow", "Neuromag (.fif)"))
         self._mni_transform_action.setText(_translate("MainWindow", "MNI Transform"))
+        self._load_anatomy_action.setText(_translate("MainWindow", "Load Anatomy"))
+        self.actionExport_Anatomy.setText(_translate("MainWindow", "Export Anatomy"))
 
 
 if __name__ == "__main__":

@@ -96,7 +96,7 @@ class PageHinkley(BaseDriftDetector):
             self.in_concept_change = True
 
 def calc_psd_welch(raw, freqs, window=1, step=0.25):
-    '''Calculating PSD using welch morlet
+    """Calculating PSD using welch morlet
     Parameters
     ----------
     raw : mne.io.Raw
@@ -110,7 +110,7 @@ def calc_psd_welch(raw, freqs, window=1, step=0.25):
     Returns
     -------
     psds : ndarray, shape (n_channels, n_freqs, n_segments).
-    '''
+    """
 
     samples_per_seg = int(raw.info['sfreq'] * window)
     fmin = freqs[0]
@@ -124,12 +124,18 @@ def calc_psd_welch(raw, freqs, window=1, step=0.25):
     psd, freqs = mne.time_frequency.psd_welch(raw, fmin=fmin, fmax=fmax, n_fft=samples_per_seg,
                                               n_per_seg=samples_per_seg,
                                               n_overlap=overlap, average=None, window='hamming')
+    # psd_hann, freqs = mne.time_frequency.psd_welch(raw, fmin=fmin, fmax=fmax, n_fft=samples_per_seg,
+    #                                                n_per_seg=samples_per_seg,
+    #                                                n_overlap=overlap, average=None, window='hann')
+    # psd += psd_hann
+    # psd /= 2
+
     print(f'PSD shape = {psd.shape}')
     return psd, freqs
 
 
 def calc_ER(raw, low=(4, 12), high=(12, 127), window=1, step=0.25):
-    '''Calculating energy ratio
+    """Calculating energy ratio
     Parameters
     ----------
     raw : mne.io.Raw
@@ -145,7 +151,7 @@ def calc_ER(raw, low=(4, 12), high=(12, 127), window=1, step=0.25):
     Returns
     -------
     Energy ratio  shape (n_channels, n_segments)
-    '''
+    """
     lpsd, lfreqs = calc_psd_welch(raw, low, window, step)
     hpsd, hfreqs = calc_psd_welch(raw, high, window, step)
 
@@ -159,7 +165,7 @@ def calc_ER(raw, low=(4, 12), high=(12, 127), window=1, step=0.25):
 
 
 def page_hinkley(ch_names, ER, start, step, threshold=1, bias=1):
-    '''Calculating detection time and alarm time using Page-Hinkley algorithm
+    """Calculating detection time and alarm time using Page-Hinkley algorithm
     Parameters
     ----------
     ch_names : list
@@ -182,7 +188,7 @@ def page_hinkley(ch_names, ER, start, step, threshold=1, bias=1):
         alarm_time, ER, norm_ER, EI and norm_EI
     U_n : np.array shape (n_channels, step)
         cusum of ER in each step of channels
-    '''
+    """
     from scipy.signal import argrelextrema
 
     ei_df = pd.DataFrame(columns=['Channel', 'detection_idx', 'detection_time', 'alarm_idx',
@@ -224,7 +230,7 @@ def page_hinkley(ch_names, ER, start, step, threshold=1, bias=1):
 
 def calc_EI(raw, low=(4, 12), high=(12, 127), window=1, step=0.25,
             bias=0.1, threshold=1, tau=1, H=5):
-    '''
+    """
     Parameters
     ----------
     raw
@@ -248,7 +254,7 @@ def calc_EI(raw, low=(4, 12), high=(12, 127), window=1, step=0.25,
     alpha  α  7-12 Hz
     beta   β  12-30 Hz
     gamma  γ  > 30 Hz
-    '''
+    """
     ch_names = raw.ch_names
     EI_window = int(H / step)
     ER = calc_ER(raw, low=low, high=high, window=window, step=step)

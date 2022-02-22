@@ -302,7 +302,7 @@
   <action name="_resample_ieeg_action">
    <property name="icon">
     <iconset>
-     <normaloff>../../icon/resize-image.svg</normaloff>../../icon/resize-image.svg</iconset>
+     <normaloff>../../icon/resample.svg</normaloff>../../icon/resample.svg</iconset>
    </property>
    <property name="text">
     <string>Resample</string>

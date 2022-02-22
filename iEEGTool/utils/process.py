@@ -16,7 +16,7 @@ from mne.transforms import apply_trans, invert_transform
 from mne._freesurfer import _read_mri_info
 
 
-def get_chan_group(chans, exclude=['E']):
+def get_chan_group(chans, exclude=['E'], return_df=False):
     '''Group iEEG channel
     Parameters
     ----------
@@ -63,7 +63,10 @@ def get_chan_group(chans, exclude=['E']):
             else:
                 chan_group[group].sort(key=lambda ch: (ch[0:len(group)],
                                                        int(ch[len(group):ch.index('-')])))
-    return chan_group
+    if return_df:
+        return chan_df
+    else:
+        return chan_group
 
 
 def clean_chans(ieeg):
