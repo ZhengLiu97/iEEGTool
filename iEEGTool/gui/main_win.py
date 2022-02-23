@@ -32,6 +32,7 @@ from gui.crop_win import CropWin
 from gui.info_win import InfoWin
 from gui.fir_filter_win import FIRFilterWin
 from gui.compute_ei_win import EIWin
+from gui.compute_hfo_win import RMSHFOWin
 from gui.table_win import TableWin
 from gui.tfr_morlet_win import TFRMorletWin
 from utils.subject import Subject
@@ -81,6 +82,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self._tfr_morlet_win = None
 
         self._ei_win = None
+        self._hfo_win = None
 
     def _center_win(self):
         qr = self.frameGeometry()
@@ -124,6 +126,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # Analysis Menu
         self._tfr_morlet_action.triggered.connect(self._tfr_morlet)
         self._epileptogenic_index_action.triggered.connect(self._compute_ei)
+        self._high_frequency_action.triggered.connect(self._compute_hfo)
 
         # Help Menu
         self._github_action.triggered.connect(self._open_github)
@@ -601,10 +604,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self._tfr_morlet_win.show()
 
     def _compute_ei(self):
-        raw = self.subject.get_ieeg()
-        if raw is not None:
-            self._ei_win = EIWin(raw)
+        ieeg = self.subject.get_ieeg()
+        if ieeg is not None:
+            self._ei_win = EIWin(ieeg)
             self._ei_win.show()
+
+    def _compute_hfo(self):
+        ieeg = self.subject.get_ieeg()
+        if ieeg is not None:
+            self._hfo_win = RMSHFOWin(ieeg)
+            self._hfo_win.show()
 
     # Toolbar
     def _take_screenshot(self):
@@ -638,5 +647,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self._fir_filter_win.close()
         if self._ei_win is not None:
             self._ei_win.close()
+        if self._hfo_win is not None:
+            self._hfo_win.close()
         if self._tfr_morlet_win is not None:
             self._tfr_morlet_win.close()

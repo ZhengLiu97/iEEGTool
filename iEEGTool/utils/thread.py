@@ -353,16 +353,16 @@ class ComputeSpectralConnectivity(QThread):
 
 
 class ComputeHFOsRate(QThread):
-    _HFO_SIGNAL = pyqtSignal(object)
+    HFO_SIGNAL = pyqtSignal(object)
 
-    def __init__(self, raw, detector):
+    def __init__(self, ieeg, detector):
         super(ComputeHFOsRate, self).__init__()
-        self._raw = raw
-        self._detector = detector
+        self.ieeg = ieeg
+        self.detector = detector
 
     def run(self) -> None:
-        detector = self._detector.fit(self._raw)
-        self._HFO_SIGNAL.emit(detector)
+        detector = self.detector.fit(self.ieeg)
+        self.HFO_SIGNAL.emit(detector)
 
 
 class ComputeEI(QThread):

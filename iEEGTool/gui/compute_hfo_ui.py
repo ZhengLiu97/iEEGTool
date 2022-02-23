@@ -234,8 +234,14 @@ class Ui_MainWindow(object):
         font.setFamily("Ubuntu")
         self._help_action.setFont(font)
         self._help_action.setObjectName("_help_action")
+        self._plot_barchart_action = QtWidgets.QAction(MainWindow)
+        icon3 = QtGui.QIcon()
+        icon3.addPixmap(QtGui.QPixmap("../../icon/bar-chart.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self._plot_barchart_action.setIcon(icon3)
+        self._plot_barchart_action.setObjectName("_plot_barchart_action")
         self.toolBar.addAction(self._save_hfo_rates_action)
         self.toolBar.addAction(self._viz_ieeg_action)
+        self.toolBar.addAction(self._plot_barchart_action)
         self.toolBar.addSeparator()
         self.toolBar.addAction(self._help_action)
 
@@ -255,7 +261,7 @@ class Ui_MainWindow(object):
         self._freq_band_le.setText(_translate("MainWindow", "80 500"))
         self._win_size_le.setText(_translate("MainWindow", "100"))
         self._overlap_le.setText(_translate("MainWindow", "0.25"))
-        self._threshold_le.setText(_translate("MainWindow", "3"))
+        self._threshold_le.setText(_translate("MainWindow", "5"))
         self.groupBox_2.setTitle(_translate("MainWindow", "HFOs Detection"))
         self._compute_btn.setText(_translate("MainWindow", "Compute"))
         self._compute_btn.setShortcut(_translate("MainWindow", "Return"))
@@ -264,6 +270,7 @@ class Ui_MainWindow(object):
         self._save_hfo_rates_action.setText(_translate("MainWindow", "Save HFOs Rate"))
         self._viz_ieeg_action.setText(_translate("MainWindow", "Vis in SEEG"))
         self._help_action.setText(_translate("MainWindow", "Help"))
+        self._plot_barchart_action.setText(_translate("MainWindow", "Plot barchart"))
 
 
 if __name__ == "__main__":

@@ -373,7 +373,7 @@
               <enum>Qt::ClickFocus</enum>
              </property>
              <property name="text">
-              <string>3</string>
+              <string>5</string>
              </property>
              <property name="alignment">
               <set>Qt::AlignCenter</set>
@@ -498,6 +498,7 @@
    </attribute>
    <addaction name="_save_hfo_rates_action"/>
    <addaction name="_viz_ieeg_action"/>
+   <addaction name="_plot_barchart_action"/>
    <addaction name="separator"/>
    <addaction name="_help_action"/>
   </widget>
@@ -541,6 +542,15 @@
     <font>
      <family>Ubuntu</family>
     </font>
+   </property>
+  </action>
+  <action name="_plot_barchart_action">
+   <property name="icon">
+    <iconset>
+     <normaloff>../../icon/bar-chart.svg</normaloff>../../icon/bar-chart.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Plot barchart</string>
    </property>
   </action>
  </widget>
