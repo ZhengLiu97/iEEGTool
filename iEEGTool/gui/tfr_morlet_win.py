@@ -8,6 +8,7 @@
 import mne
 import numpy as np
 
+from mne.io import BaseRaw
 from PyQt5.QtWidgets import QMainWindow, QDesktopWidget, QButtonGroup, QMessageBox
 from PyQt5.QtCore import pyqtSignal
 
@@ -26,14 +27,15 @@ class TFRMorletWin(QMainWindow, Ui_MainWindow):
         self.setupUi(self)
         self._center_win()
         self.setWindowTitle('Time-Frequency Response')
-
-        self.ieeg = mne.make_fixed_length_epochs(ieeg, duration=ieeg._last_time,
-                                                 preload=True)
+        if isinstance(ieeg, BaseRaw):
+            self.ieeg = mne.make_fixed_length_epochs(ieeg, duration=ieeg.times[-1],
+                                                     preload=True)
         self._compute_chans = ieeg.ch_names
         self._fig_chans = None
         self._compute_params = dict()
         self._fig_params = dict()
         self._tfr = None
+        self.mode = 'zscore'
 
         fmin = str(int(ieeg.info['highpass']))
         fmax = str(int(ieeg.info['lowpass']))
