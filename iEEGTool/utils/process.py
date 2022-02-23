@@ -146,7 +146,6 @@ def set_bipolar(ieeg):
     return bipolar_ieeg
 
 def get_bipolar_pair(ch_names):
-    from utils._process import get_chan_group
     group = get_chan_group(chans=ch_names)
     group_pair = {name: [group[name][:-1], group[name][1:]] for name in group}
     return group_pair

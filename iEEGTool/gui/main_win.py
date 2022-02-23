@@ -41,7 +41,7 @@ from utils.log_config import create_logger
 from utils.decorator import safe_event
 from utils.locate_ieeg import locate_ieeg
 from utils.contacts import calc_ch_pos
-from utils.process import get_chan_group, set_montage, clean_chans, get_montage
+from utils.process import get_chan_group, set_montage, clean_chans, get_montage, mne_bipolar
 
 matplotlib.use('Qt5Agg')
 mne.viz.set_browser_backend('pyqtgraph')
@@ -121,9 +121,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self._crop_ieeg_action.triggered.connect(self._crop_ieeg)
         self._resample_ieeg_action.triggered.connect(self._resample_ieeg)
         self._fir_filter_action.triggered.connect(self._fir_filter_ieeg)
+        self._bipolar_action.triggered.connect(self._bipolar_ieeg)
         self._drop_annotations_action.triggered.connect(self._drop_bad_from_annotations)
 
         # Analysis Menu
+        self._get_anatomy_action.triggered.connect(self._get_anatomy)
         self._tfr_morlet_action.triggered.connect(self._tfr_morlet)
         self._epileptogenic_index_action.triggered.connect(self._compute_ei)
         self._high_frequency_action.triggered.connect(self._compute_hfo)
@@ -578,6 +580,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.subject.set_ieeg(ieeg)
         self._update_fig()
 
+    def _bipolar_ieeg(self):
+        ieeg = mne_bipolar(self.subject.get_ieeg())
+        self.subject.set_ieeg(ieeg)
+        self._update_fig()
+
     def _drop_bad_from_annotations(self):
 
         ieeg = self.subject.get_ieeg()
@@ -597,6 +604,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 QMessageBox.information(self, 'iEEG', 'No bad channels in annotations')
 
     # Analysis Menu
+    def _get_anatomy(self):
+        ch_pos_df = self.subject.get_electrodes()
+        if ch_pos_df is None:
+            QMessageBox.warning(self, 'Coordinates', 'Please Load Coordinates first!')
+            return
+
     def _tfr_morlet(self):
         ieeg = self.subject.get_ieeg()
         if ieeg is not None:
