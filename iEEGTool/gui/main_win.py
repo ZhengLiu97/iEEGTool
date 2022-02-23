@@ -542,7 +542,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def _crop_ieeg(self):
         if self.subject.get_ieeg() is not None:
             raw = self.subject.get_ieeg()
-            self._crop_win = CropWin(raw.times[0], raw.times[-1])
+            self._crop_win = CropWin(raw.times[0], round(raw.times[-1]))
             self._crop_win.CROP_SIGNAL.connect(self._get_cropped_ieeg)
             self._crop_win.show()
 
