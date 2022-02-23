@@ -1,10 +1,10 @@
 # -*- coding: UTF-8 -*-
-'''
-@Project ：iEEGTool 
+"""
+@Project ：iEEGTool
 @File    ：crop_win.py
 @Author  ：Barry
-@Date    ：2022/2/18 21:00 
-'''
+@Date    ：2022/2/18 21:00
+"""
 from PyQt5.QtWidgets import QMainWindow, QMessageBox, QDesktopWidget
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtGui import QDoubleValidator

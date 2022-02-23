@@ -1,10 +1,10 @@
 # -*- coding: UTF-8 -*-
-'''
-@Project ：EpiLock 
+"""
+@Project ：EpiLock
 @File    ：_config.py
 @Author  ：Barry
-@Date    ：2021/11/15 21:20 
-'''
+@Date    ：2021/11/15 21:20
+"""
 
 # 20 colors generated to be evenly spaced in a cube, worked better than
 # matplotlib color cycle

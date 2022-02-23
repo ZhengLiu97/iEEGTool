@@ -1,10 +1,10 @@
 # -*- coding: UTF-8 -*-
-'''
+"""
 @Project ：iEEGTool 
 @File    ：main_win.py
 @Author  ：Barry
 @Date    ：2022/2/18 1:39 
-'''
+"""
 import os
 import gc
 import glob
@@ -33,6 +33,7 @@ from gui.info_win import InfoWin
 from gui.fir_filter_win import FIRFilterWin
 from gui.compute_ei_win import EIWin
 from gui.table_win import TableWin
+from gui.tfr_morlet_win import TFRMorletWin
 from utils.subject import Subject
 from utils.thread import *
 from utils.log_config import create_logger
@@ -77,6 +78,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self._resample_win = None
         self._fir_filter_win = None
         self._iir_filter_win = None
+        self._tfr_morlet_win = None
 
         self._ei_win = None
 
@@ -120,6 +122,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self._drop_annotations_action.triggered.connect(self._drop_bad_from_annotations)
 
         # Analysis Menu
+        self._tfr_morlet_action.triggered.connect(self._tfr_morlet)
         self._epileptogenic_index_action.triggered.connect(self._compute_ei)
 
         # Help Menu
@@ -591,6 +594,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 QMessageBox.information(self, 'iEEG', 'No bad channels in annotations')
 
     # Analysis Menu
+    def _tfr_morlet(self):
+        ieeg = self.subject.get_ieeg()
+        if ieeg is not None:
+            self._tfr_morlet_win = TFRMorletWin(ieeg)
+            self._tfr_morlet_win.show()
+
     def _compute_ei(self):
         raw = self.subject.get_ieeg()
         if raw is not None:
@@ -629,3 +638,5 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self._fir_filter_win.close()
         if self._ei_win is not None:
             self._ei_win.close()
+        if self._tfr_morlet_win is not None:
+            self._tfr_morlet_win.close()

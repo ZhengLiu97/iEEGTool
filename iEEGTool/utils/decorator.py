@@ -1,10 +1,10 @@
 # -*- coding: UTF-8 -*-
-'''
+"""
 @Project ：EpiLocker 
 @File    ：_decorator.py
 @Author  ：Barry
 @Date    ：2022/1/20 8:03 
-'''
+"""
 import sys
 from decorator import decorator
 import traceback

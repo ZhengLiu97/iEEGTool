@@ -1,10 +1,10 @@
 # -*- coding: UTF-8 -*-
-'''
+"""
 @Project ：EpiLock 
 @File    ：_mne_marching_cubes.py
 @Author  ：Barry
 @Date    ：2021/11/16 22:24 
-'''
+"""
 
 
 def _marching_cubes(image, level, smooth=0):

@@ -1,10 +1,10 @@
 # -*- coding: UTF-8 -*-
-'''
+"""
 @Project ：iEEGTool 
 @File    ：resample_win.py
 @Author  ：Barry
 @Date    ：2022/2/18 20:29 
-'''
+"""
 from PyQt5.QtWidgets import QMainWindow, QDesktopWidget
 from PyQt5.QtCore import pyqtSignal
 

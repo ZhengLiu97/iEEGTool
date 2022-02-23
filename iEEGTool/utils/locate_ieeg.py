@@ -1,10 +1,10 @@
 # -*- coding: UTF-8 -*-
-'''
+"""
 @Project ：EpiLocker 
 @File    ：_locate_ieeg.py
 @Author  ：Barry
 @Date    ：2022/1/20 0:32 
-'''
+"""
 from PyQt5.QtGui import QFont
 from PyQt5.QtCore import pyqtSignal
 

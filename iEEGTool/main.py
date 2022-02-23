@@ -1,10 +1,10 @@
 # -*- coding: UTF-8 -*-
-'''
+"""
 @Project ：iEEGTool 
 @File    ：main.py
 @Author  ：Barry
 @Date    ：2022/2/18 2:21 
-'''
+"""
 
 if __name__ == '__main__':
     import sys

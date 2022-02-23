@@ -1,10 +1,10 @@
 # -*- coding: UTF-8 -*-
-'''
+"""
 @Project ：iEEGTool 
 @File    ：subject.py
 @Author  ：Barry
 @Date    ：2022/2/18 1:52 
-'''
+"""
 class Subject(object):
 
     def __init__(self, name=None):

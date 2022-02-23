@@ -1,15 +1,16 @@
 # -*- coding: UTF-8 -*-
-'''
+"""
 @Project ：iEEGTool 
 @File    ：thread.py
 @Author  ：Barry
 @Date    ：2022/2/18 2:07 
-'''
+"""
 import mne
 import numpy as np
 import pandas as pd
 
 from mne.io import BaseRaw
+from mne.time_frequency import AverageTFR
 from PyQt5.QtCore import QThread, pyqtSignal
 
 from utils.log_config import create_logger
@@ -308,32 +309,33 @@ class ComputePSD(QThread):
 
 
 class ComputeTFR(QThread):
-    from mne.time_frequency import _BaseTFR
-    _COMPUTE_SIGNAL = pyqtSignal(_BaseTFR)
+
+    COMPUTE_SIGNAL = pyqtSignal(AverageTFR)
 
     def __init__(self, epoch, compute_method, params):
         super(ComputeTFR, self).__init__()
-        self._epoch = epoch
-        self._compute_method = compute_method
-        self._params = params
+        self.epoch = epoch
+        self.compute_method = compute_method
+        self.params = params
 
     def run(self) -> None:
         from mne.time_frequency import tfr_multitaper, tfr_morlet, tfr_stockwell
-        if self._compute_method == 'multitaper':
-            print('Start Calculating Multitaper Time-Frequency Response')
-            power = tfr_multitaper(self._epoch, return_itc=False, **self._params)
-            print('Finish Calculating Multitaper Time-Frequency Response')
-            self._COMPUTE_SIGNAL.emit(power)
-        elif self._compute_method == 'morlet':
-            print('Start Calculating Welch Time-Frequency Response')
-            power = tfr_morlet(self._epoch, return_itc=False, **self._params)
-            print('Finish Calculating Welch Time-Frequency Response')
-            self._COMPUTE_SIGNAL.emit(power)
-        elif self._compute_method == 'stockwell':
-            print('Start Calculating Stockwell Time-Frequency Response')
-            power = tfr_stockwell(self._epoch, return_itc=False, **self._params)
-            print('Finish Calculating Stockwell Time-Frequency Response')
-            self._COMPUTE_SIGNAL.emit(power)
+
+        if self.compute_method == 'multitaper':
+            logger.info('Start Calculating Multitaper Time-Frequency Response')
+            power = tfr_multitaper(self.epoch, return_itc=False, **self.params)
+            logger.info('Finish Calculating Multitaper Time-Frequency Response')
+            self.COMPUTE_SIGNAL.emit(power)
+        elif self.compute_method == 'morlet':
+            logger.info('Start Calculating Morlet Time-Frequency Response')
+            power = tfr_morlet(self.epoch, return_itc=False, **self.params)
+            logger.info('Finish Calculating Morlet Time-Frequency Response')
+            self.COMPUTE_SIGNAL.emit(power)
+        elif self.compute_method == 'stockwell':
+            logger.info('Start Calculating Stockwell Time-Frequency Response')
+            power = tfr_stockwell(self.epoch, return_itc=False, **self.params)
+            logger.info('Finish Calculating Stockwell Time-Frequency Response')
+            self.COMPUTE_SIGNAL.emit(power)
 
 
 class ComputeSpectralConnectivity(QThread):

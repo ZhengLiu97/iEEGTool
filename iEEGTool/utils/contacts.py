@@ -1,10 +1,10 @@
 # -*- coding: UTF-8 -*-
-'''
+"""
 @Project ：EpiLocker 
 @File    ：_calculate_contact_pos.py
 @Author  ：Barry
 @Date    ：2022/1/20 1:52 
-'''
+"""
 import numpy as np
 
 def calc_ch_pos(tip, tail, ch_num, dist=3.5, extra_interval=None):

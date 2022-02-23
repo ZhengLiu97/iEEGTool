@@ -1,10 +1,10 @@
 # -*- coding: UTF-8 -*-
-'''
+"""
 @Project ：iEEGTool 
 @File    ：numeric.py
 @Author  ：Barry
 @Date    ：2022/2/18 21:04 
-'''
+"""
 
 def isfloat(num):
     if isinstance(num, str):

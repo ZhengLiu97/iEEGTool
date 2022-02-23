@@ -1,10 +1,10 @@
 # -*- coding: UTF-8 -*-
-'''
+"""
 @Project ：iEEGTool 
 @File    ：compute_ei_win.py
 @Author  ：Barry
 @Date    ：2022/2/20 1:53 
-'''
+"""
 import numpy as np
 import pandas as pd
 import seaborn as sns

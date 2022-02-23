@@ -1,10 +1,10 @@
 # -*- coding: UTF-8 -*-
-'''
+"""
 @Project ：EpiLocker 
 @File    ：_epi_index.py
 @Author  ：Barry
 @Date    ：2022/1/11 22:55 
-'''
+"""
 import mne
 import numpy as np
 import pandas as pd

@@ -1,10 +1,10 @@
 # -*- coding: UTF-8 -*-
-'''
+"""
 @Project ：SEEG_Process 
 @File    ：log_config.py
 @Author  ：Barry
 @Date    ：2021/8/10 20:20 
-'''
+"""
 import logging
 import logging.handlers
 
