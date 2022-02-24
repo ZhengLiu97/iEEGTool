@@ -17,7 +17,7 @@ from mne._freesurfer import _read_mri_info
 
 
 def get_chan_group(chans, exclude=['E'], return_df=False):
-    '''Group iEEG channel
+    """Group iEEG channel
     Parameters
     ----------
     chans: list
@@ -28,7 +28,7 @@ def get_chan_group(chans, exclude=['E'], return_df=False):
     -------
     chan_group: dict  group: channels
         channels belong to each group
-    '''
+    """
     import re
     import pandas as pd
     try:
@@ -97,14 +97,13 @@ def clean_chans(ieeg):
     return ieeg
 
 def set_bipolar(ieeg):
-    '''
-    Reference SEEG data using Bipolar Reference
-    :param ieeg: instance of BaseRaw or BaseEpochs
-                SEEG data
+    """Reference SEEG data using Bipolar Reference
+    ieeg: instance of BaseRaw or BaseEpochs
+          SEEG data
 
-    :return: instance of raw
-             data and raw data of the first contact in each shafts
-    '''
+    return: instance of raw
+            data and raw data of the first contact in each shafts
+    """
     group_chan = get_chan_group(ieeg)
     ieeg.load_data()
     if 'EKG' in list(group_chan.keys()):
@@ -116,7 +115,8 @@ def set_bipolar(ieeg):
                           for group in group_chan}
 
     for group in group_ieeg:
-        group_ieeg[group].drop_channels(group_chan[group][-1])._data = group_ieeg_bipolar[group]
+        group_ieeg[group].drop_channels(group_chan[group][-1])._data = \
+            group_ieeg_bipolar[group]
 
     first_group = list(group_chan.keys())[0]
     bipolar_ieeg = group_ieeg[first_group]
@@ -164,7 +164,7 @@ def mne_bipolar(raw):
     return raw_bipolar
 
 def get_montage(ch_pos, subject, subjects_dir):
-    '''Get montage given Surface RAS
+    """Get montage given Surface RAS
     Parameters
     ----------
     ch_pos : dict
@@ -175,7 +175,7 @@ def get_montage(ch_pos, subject, subjects_dir):
     Returns
     -------
 
-    '''
+    """
     subj_trans = mne.coreg.estimate_head_mri_t(subject, subjects_dir)
     mri_to_head_trans = mne.transforms.invert_transform(subj_trans)
     print('Start transforming mri to head')

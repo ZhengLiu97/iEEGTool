@@ -32,7 +32,7 @@ from gui.crop_win import CropWin
 from gui.info_win import InfoWin
 from gui.fir_filter_win import FIRFilterWin
 from gui.compute_ei_win import EIWin
-from gui.compute_hfo_win import RMSHFOWin
+# from gui.compute_hfo_win import RMSHFOWin
 from gui.table_win import TableWin
 from gui.tfr_morlet_win import TFRMorletWin
 from utils.subject import Subject

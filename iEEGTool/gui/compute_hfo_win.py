@@ -92,7 +92,7 @@ class RMSHFOWin(QMainWindow, Ui_MainWindow):
             return
         filter_band = (float(filter_band[0]), float(filter_band[1]))
         threshold = float(self._threshold_le.text())
-        win_size = int(self._win_size_le.text())
+        win_size = int(float(self._win_size_le.text()) * self.ieeg.info['sfreq'] * 1e-3)
         overlap = float(self._overlap_le.text())
         sfreq = self.ieeg.info['sfreq']
         self.params = {
