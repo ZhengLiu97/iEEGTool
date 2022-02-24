@@ -30,6 +30,7 @@ from gui.main_ui import Ui_MainWindow
 from gui.resample_win import ResampleWin
 from gui.crop_win import CropWin
 from gui.info_win import InfoWin
+from gui.list_win import ItemSelectionWin
 from gui.fir_filter_win import FIRFilterWin
 from gui.compute_ei_win import EIWin
 # from gui.compute_hfo_win import RMSHFOWin
@@ -121,7 +122,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self._crop_ieeg_action.triggered.connect(self._crop_ieeg)
         self._resample_ieeg_action.triggered.connect(self._resample_ieeg)
         self._fir_filter_action.triggered.connect(self._fir_filter_ieeg)
+        self._monopolar_action.triggered.connect(self._monopolar_reference)
         self._bipolar_action.triggered.connect(self._bipolar_ieeg)
+        self._average_action.triggered.connect(self._average_reference)
         self._drop_annotations_action.triggered.connect(self._drop_bad_from_annotations)
 
         # Analysis Menu
@@ -580,10 +583,27 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.subject.set_ieeg(ieeg)
         self._update_fig()
 
+    def _monopolar_reference(self):
+        self._monopolar_win = ItemSelectionWin(self.subject.get_ieeg().ch_names)
+        self._monopolar_win.SELECTION_SIGNAL.connect(self._get_monopolar_chans)
+        self._monopolar_win.show()
+
+    def _get_monopolar_chans(self, chans):
+        ieeg, _ = mne.set_eeg_reference(self.subject.get_ieeg(), ref_channels=chans, copy=False)
+        self.subject.set_ieeg(ieeg)
+        self._update_fig()
+        QMessageBox.warning(self, 'iEEG', f'Reference iEEG based on {chans} finished!')
+
     def _bipolar_ieeg(self):
         ieeg = mne_bipolar(self.subject.get_ieeg())
         self.subject.set_ieeg(ieeg)
         self._update_fig()
+
+    def _average_reference(self):
+        ieeg, _ = mne.set_eeg_reference(self.subject.get_ieeg(), ref_channels='average', copy=False)
+        self.subject.set_ieeg(ieeg)
+        self._update_fig()
+        QMessageBox.warning(self, 'iEEG', f'Common average reference iEEG finished!')
 
     def _drop_bad_from_annotations(self):
 
