@@ -164,15 +164,19 @@ def mne_bipolar(raw):
     return raw_bipolar
 
 def get_montage(ch_pos, subject, subjects_dir):
-    """Get montage given Surface RAS
+    """Get montage given Surface RAS (aka mri coordinates in MNE)
     Parameters
     ----------
     ch_pos : dict
-        Surface RAS (mri)
-    subject
-    subjects_dir
+        Dictionary of channel positions. Keys are channel names and values
+        are 3D coordinates - array of shape (3,) - in native digitizer space
+        in m.
+    subject ： str
+        the name of subject in FreeSurfer
+    subjects_dir : str
+        the directory of your FreeSurfer subject directory
 
-    Returns
+    Returns : head montage
     -------
 
     """

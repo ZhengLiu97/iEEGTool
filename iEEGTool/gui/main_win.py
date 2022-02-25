@@ -20,6 +20,7 @@ import nibabel as nib
 from mne.transforms import apply_trans
 from matplotlib import pyplot as plt
 from dipy.align import resample
+from collections import OrderedDict
 from nibabel.viewers import OrthoSlicer3D
 from PyQt5.QtWidgets import QMainWindow, QApplication, QStyleFactory, QDesktopWidget, \
                             QFileDialog, QMessageBox, QShortcut, QAction
