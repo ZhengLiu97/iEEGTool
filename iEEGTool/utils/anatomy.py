@@ -21,3 +21,8 @@ class Anatomy(object):
 
     def get_roi_df(self):
         return self.roi_df
+
+
+class ROI(object):
+    def __init__(self):
+        pass
