@@ -136,7 +136,7 @@
               </font>
              </property>
              <property name="text">
-              <string>Window size (points)</string>
+              <string>Window size (ms)</string>
              </property>
             </widget>
            </item>
@@ -305,7 +305,7 @@
               <enum>Qt::ClickFocus</enum>
              </property>
              <property name="text">
-              <string>100</string>
+              <string>10</string>
              </property>
              <property name="alignment">
               <set>Qt::AlignCenter</set>

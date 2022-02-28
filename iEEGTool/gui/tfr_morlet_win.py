@@ -39,6 +39,7 @@ class TFRMorletWin(QMainWindow, Ui_MainWindow):
 
         fmin = str(int(ieeg.info['highpass']))
         fmax = str(int(ieeg.info['lowpass']))
+        fmin = '0.1' if fmin == '0' else fmin
         self._freq_band_le.setText(fmin + ' ' + fmax)
 
         tmin = str(0)
@@ -177,6 +178,10 @@ class TFRMorletWin(QMainWindow, Ui_MainWindow):
         if self._tfr is not None:
             logger.info("Plotting TFR")
             self.get_fig_params()
-            index = [self._fig_chans.index(chan) for chan in self._fig_chans]
-            if len(index):
-                self._tfr.plot(index, title='auto', **self._fig_params)
+            if self._fig_chans is not None:
+                index = [self._compute_chans.index(chan) for chan in self._fig_chans]
+                if len(index):
+                    print(index)
+                    self._tfr.plot(index, title='auto', **self._fig_params)
+            else:
+                QMessageBox.warning(self, 'Channel', 'Please select channels!')
