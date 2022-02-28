@@ -32,9 +32,6 @@ class Subject(object):
     def set_ieeg(self, ieeg):
         self._ieeg = ieeg
 
-    def set_anatomy(self, anatomy):
-        self._anatomy = anatomy
-
     def set_electrodes(self, electrodes):
         self._electrodes = electrodes
 
@@ -59,9 +56,6 @@ class Subject(object):
     def get_electrodes(self):
         return self._electrodes
 
-    def get_anatomy(self):
-        return self._anatomy
-
     def get_anatomy_electrodes(self):
         return self._anatomy_electrodes
 
@@ -79,9 +73,6 @@ class Subject(object):
 
     def remove_ieeg(self):
         self._ieeg = None
-
-    def remove_anatomy(self):
-        self._anatomy = None
 
     def remove_electrodes(self):
         self._electrodes = None

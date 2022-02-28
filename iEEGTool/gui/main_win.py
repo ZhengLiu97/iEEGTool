@@ -44,6 +44,7 @@ from utils.thread import *
 from utils.log_config import create_logger
 from utils.decorator import safe_event
 from utils.locate_ieeg import locate_ieeg
+from utils.electrodes import Electrodes
 from utils.contacts import calc_ch_pos
 from utils.process import get_chan_group, set_montage, clean_chans, get_montage, mne_bipolar
 
@@ -78,6 +79,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.subject = Subject('')
         self._info = {'subject_name': '', 'age': '', 'gender': ''}
         self.subjects_dir = op.join(default_path, 'freesurfer')
+
+        self.electrodes = Electrodes()
 
         self._crop_win = None
         self._resample_win = None
@@ -266,15 +269,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 x = coords_df['x'].to_numpy()
                 y = coords_df['y'].to_numpy()
                 z = coords_df['z'].to_numpy()
-                ch_pos = pd.DataFrame()
-                ch_pos['Channel'] = ch_names
-                ch_df = get_chan_group(chans=ch_names, return_df=True)
-                group = ch_df['Group'].to_list()
-                ch_pos['Group'] = group
-                ch_pos['x'] = x
-                ch_pos['y'] = y
-                ch_pos['z'] = z
-                self.subject.set_electrodes(ch_pos)
+
+                self.electrodes.set_ch_names(ch_names)
+                self.electrodes.set_ch_xyz([x, y, z])
+                self.subject.set_electrodes(self.electrodes.get_info())
                 logger.info("Importing channels' coordinates finished!")
                 QMessageBox.information(self, 'Coordinates', "Importing channels' coordinates finished!")
             except:
@@ -388,9 +386,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             QMessageBox.warning(self, 'iEEG', 'Please load iEEG first!')
 
     def _view_chs_info(self):
-        ch_pos = self.subject.get_electrodes()
-        if ch_pos is not None:
-            self._table_win = TableWin(ch_pos)
+        info = self.electrodes.get_info()
+        if len(info):
+            self._table_win = TableWin(info)
             self._table_win.show()
 
     # Localization Menu
