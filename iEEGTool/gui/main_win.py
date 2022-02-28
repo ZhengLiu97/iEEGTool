@@ -81,6 +81,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.subjects_dir = op.join(default_path, 'freesurfer')
 
         self.electrodes = Electrodes()
+        self.wm_chs = list()
+        self.gm_chs = list()
 
         self._crop_win = None
         self._resample_win = None
