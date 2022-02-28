@@ -18,6 +18,7 @@ import pandas as pd
 import nibabel as nib
 
 from mne.transforms import apply_trans
+from mne.io import BaseRaw
 from matplotlib import pyplot as plt
 from dipy.align import resample
 from collections import OrderedDict
@@ -30,11 +31,12 @@ from PyQt5.QtGui import QIcon, QDesktopServices, QKeySequence, QFont, QPixmap
 from gui.main_ui import Ui_MainWindow
 from gui.resample_win import ResampleWin
 from gui.crop_win import CropWin
+from gui.ieeg_info_win import iEEGInfoWin
 from gui.info_win import InfoWin
 from gui.list_win import ItemSelectionWin
 from gui.fir_filter_win import FIRFilterWin
 from gui.compute_ei_win import EIWin
-# from gui.compute_hfo_win import RMSHFOWin
+from gui.compute_hfo_win import RMSHFOWin
 from gui.table_win import TableWin
 from gui.tfr_morlet_win import TFRMorletWin
 from utils.subject import Subject
@@ -110,6 +112,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self._setting_action.triggered.connect(self._write_info)
 
         # View Menu
+        self._ieeg_info_action.triggered.connect(self._view_ieeg_info)
         self._channels_info_action.triggered.connect(self._view_chs_info)
 
         # Localization Menu
@@ -183,7 +186,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         filter_icon = QIcon()
         filter_icon.addPixmap(QPixmap("icon/filter.svg"), QIcon.Normal, QIcon.Off)
         self._fir_filter_action.setIcon(filter_icon)
-
 
         elec_icon = QIcon()
         elec_icon.addPixmap(QPixmap("icon/electrodes.svg"), QIcon.Normal, QIcon.Off)
@@ -367,6 +369,24 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         logger.info(f"Update subject's info to {info}")
 
     # View Menu
+    def _view_ieeg_info(self):
+        ieeg = self.subject.get_ieeg()
+        if ieeg is not None:
+            info = dict()
+            if isinstance(ieeg, BaseRaw):
+                info['epoch_num'] = 1
+            info['ch_num'] = len(ieeg.ch_names)
+            info['ch_group'] = len(get_chan_group(ieeg.ch_names))
+            info['time'] = round(ieeg.times[-1])
+            info['sfreq'] = int(ieeg.info['sfreq'])
+            info['fmin'] = ieeg.info['highpass']
+            info['fmax'] = int(ieeg.info['lowpass'])
+            info['data_size'] = round(ieeg._size / (1024 ** 2), 2)
+            self._ieeg_info_win = iEEGInfoWin(info)
+            self._ieeg_info_win.show()
+        else:
+            QMessageBox.warning(self, 'iEEG', 'Please load iEEG first!')
+
     def _view_chs_info(self):
         ch_pos = self.subject.get_electrodes()
         if ch_pos is not None:

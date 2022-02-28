@@ -118,7 +118,7 @@ class RMSHFOWin(QMainWindow, Ui_MainWindow):
             self.hfo_rate_df = pd.DataFrame()
             self.hfo_rate_dict = compute_chs_hfo_rates(annot_df=self.hfo_df, rate='s')
             self.hfo_rate_df['Channel'] = list(self.hfo_rate_dict.keys())
-            self.hfo_rate_df['HFO_Rate (sec)'] = list(self.hfo_rate_dict.values())
+            self.hfo_rate_df['HFO_Rate (s)'] = list(self.hfo_rate_dict.values())
             QMessageBox.information(self, 'HFO', f'HFOs Detected!\n'
                                                  f'{len(self.hfo_rate_df)} Channels have HFOs')
         else:
@@ -135,7 +135,7 @@ class RMSHFOWin(QMainWindow, Ui_MainWindow):
                     ch_color[ch] = color[idx]
 
             fig, ax = plt.subplots(figsize=(20, 3))
-            sns.barplot(data=self.hfo_rate_df, x='Channel', y='HFO_Rate (sec)',
+            sns.barplot(data=self.hfo_rate_df, x='Channel', y='HFO_Rate (s)',
                         palette=ch_color, ax=ax)
             ax.set_title('High Frequency Oscillations Rate')
             plt.setp(ax.get_xticklabels(), rotation=45, ha="right", rotation_mode="anchor")
