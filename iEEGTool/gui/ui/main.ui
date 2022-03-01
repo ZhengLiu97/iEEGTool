@@ -159,6 +159,7 @@
      <addaction name="_iir_filter_action"/>
     </widget>
     <addaction name="_set_montage_action"/>
+    <addaction name="_set_anatomy_action"/>
     <addaction name="separator"/>
     <addaction name="_crop_ieeg_action"/>
     <addaction name="_resample_ieeg_action"/>
@@ -255,6 +256,7 @@
     <addaction name="_plot_overlay_action"/>
     <addaction name="separator"/>
     <addaction name="menuReconstruction"/>
+    <addaction name="_compute_vep_atlas_action"/>
     <addaction name="separator"/>
     <addaction name="_edit_channels_action"/>
     <addaction name="_ieeg_locator_action"/>
@@ -477,7 +479,7 @@
   </action>
   <action name="_get_anatomy_action">
    <property name="text">
-    <string>Anatomy</string>
+    <string>Anatomical labels</string>
    </property>
   </action>
   <action name="_display_mri_action">
@@ -742,6 +744,16 @@
   <action name="actionExport_Anatomy">
    <property name="text">
     <string>Export Anatomy</string>
+   </property>
+  </action>
+  <action name="_set_anatomy_action">
+   <property name="text">
+    <string>Set Anatomy</string>
+   </property>
+  </action>
+  <action name="_compute_vep_atlas_action">
+   <property name="text">
+    <string>Compute VEP atlas</string>
    </property>
   </action>
  </widget>

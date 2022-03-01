@@ -135,6 +135,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self._bipolar_action.triggered.connect(self._bipolar_ieeg)
         self._average_action.triggered.connect(self._average_reference)
         self._drop_annotations_action.triggered.connect(self._drop_bad_from_annotations)
+        self._drop_white_matters_action.triggered.connect(self._drop_wm_chs)
+        self._drop_gray_matters_action.triggered.connect(self._drop_gm_chs)
 
         # Analysis Menu
         self._get_anatomy_action.triggered.connect(self._get_anatomy)
@@ -627,7 +629,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         QMessageBox.warning(self, 'iEEG', f'Common average reference iEEG finished!')
 
     def _drop_bad_from_annotations(self):
-
         ieeg = self.subject.get_ieeg()
         if ieeg is not None:
             fig = self._ieeg_viz_stack.widget(0)
@@ -643,6 +644,20 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 logger.info('No bad channels in annotations!')
                 self._update_fig()
                 QMessageBox.information(self, 'iEEG', 'No bad channels in annotations')
+
+    def _drop_wm_chs(self):
+        ieeg = self.subject.get_ieeg()
+        if ieeg is None:
+            return
+        if len(self.wm_chs):
+            ieeg.drop_channels(self.wm_chs)
+
+    def _drop_gm_chs(self):
+        ieeg = self.subject.get_ieeg()
+        if ieeg is None:
+            return
+        if len(self.gm_chs):
+            ieeg.drop_channels(self.gm_chs)
 
     # Analysis Menu
     def _get_anatomy(self):
