@@ -378,7 +378,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             if isinstance(ieeg, BaseRaw):
                 info['epoch_num'] = 1
             info['ch_num'] = len(ieeg.ch_names)
-            info['ch_group'] = len(get_chan_group(ieeg.ch_names))
+            try:
+                info['ch_group'] = len(get_chan_group(ieeg.ch_names))
+            except:
+                info['ch_group'] = len(ieeg.ch_names)
             info['time'] = round(ieeg.times[-1])
             info['sfreq'] = int(ieeg.info['sfreq'])
             info['fmin'] = ieeg.info['highpass']

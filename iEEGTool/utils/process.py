@@ -88,6 +88,8 @@ def clean_chans(ieeg):
         chan_num = re.findall("\d+", chan)
         if len(chan_num):
             chan_num = int(chan_num[0])
+        else:
+            chan_num = 1
         if ('DC' in chan) or ('EKG' in chan) or ('BP' in chan) \
                 or ('E' == chan) or chan[0].isdigit() or (chan_num > 16):
             drop_chans.append(chan)
