@@ -12,8 +12,8 @@ if __name__ == '__main__':
     from PyQt5.QtCore import Qt, QCoreApplication
     from gui.main_win import MainWindow
 
-    QCoreApplication.setAttribute(Qt.AA_X11InitThreads)
     QApplication.setAttribute(Qt.AA_EnableHighDpiScaling)
+    QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps)
     app = QApplication(sys.argv)
     Window = MainWindow()
     # Window.showMaximized()

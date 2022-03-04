@@ -427,7 +427,7 @@ class Ui_MainWindow(object):
         self._load_ieeg_action.setText(_translate("MainWindow", "Load SEEG"))
         self._load_ieeg_action.setShortcut(_translate("MainWindow", "Ctrl+O"))
         self._load_coordinates_action.setText(_translate("MainWindow", "Load Coordinates"))
-        self._load_coordinates_action.setShortcut(_translate("MainWindow", "Ctrl+D"))
+        self._load_coordinates_action.setShortcut(_translate("MainWindow", "Ctrl+L"))
         self._clear_seeg_action.setText(_translate("MainWindow", "Clear SEEG"))
         self._setting_action.setText(_translate("MainWindow", "Setting..."))
         self._parcellation_action.setText(_translate("MainWindow", "Parcellation"))

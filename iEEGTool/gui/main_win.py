@@ -55,7 +55,7 @@ SYSTEM = platform.system()
 
 logger = create_logger(filename='iEEGTool.log')
 
-default_path = 'data'
+default_path = 'H:/SZ'
 
 
 class MainWindow(QMainWindow, Ui_MainWindow):
@@ -166,7 +166,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self._ieeg_viz_stack.addWidget(fig)
 
     def _short_cut(self):
-        # QShortcut(QKeySequence(self.tr("Ctrl+O")), self, self._import_ieeg)
+        QShortcut(QKeySequence(self.tr("Ctrl+F")), self, self.showMaximized)
+        QShortcut(QKeySequence(self.tr("Ctrl+G")), self, self.showNormal)
         QShortcut(QKeySequence(self.tr("Ctrl+Q")), self, self.close)
 
     def _set_icon(self):

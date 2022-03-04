@@ -354,7 +354,7 @@
     <string>Load Coordinates</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+D</string>
+    <string>Ctrl+L</string>
    </property>
   </action>
   <action name="_clear_seeg_action">

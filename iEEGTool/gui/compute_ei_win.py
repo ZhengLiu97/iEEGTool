@@ -149,16 +149,21 @@ class EIWin(QMainWindow, Ui_MainWindow):
     def _plot_ei_barchart(self):
         if self.ei is not None:
             ch_names = self.chans
-            group_chans = get_chan_group(chans=ch_names)
             if len(self.ei):
+                ch_color = {}
                 min_ei = float(self._ez_threshold_le.text())
                 if min_ei > 0.99:
                     min_ei = 1
                     self._ez_threshold_le.setText(str(0.99))
-                ch_color = {}
-                for idx, gp in enumerate(group_chans):
-                    for ch in group_chans[gp]:
-                        ch_color[ch] = color[idx]
+                try:
+                    group_chans = get_chan_group(chans=ch_names)
+
+                    for idx, gp in enumerate(group_chans):
+                        for ch in group_chans[gp]:
+                            ch_color[ch] = color[idx]
+                except:
+                    for ch in ch_names:
+                        ch_color[ch] = 'g'
 
                 fig, ax = plt.subplots(2, 1, figsize=(20, 8), sharex=True)
                 sns.barplot(data=self.ei, x='Channel', y='norm_ER', ci=None, palette=ch_color, ax=ax[0])

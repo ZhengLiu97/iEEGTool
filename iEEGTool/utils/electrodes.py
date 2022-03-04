@@ -12,7 +12,7 @@ class Electrodes(object):
 
     def __init__(self):
         self.seg_name = []
-        self.init_order = ['Channel', 'Group', 'x', 'y', 'z']
+        self.init_order = ['Channel', 'Group', 'x', 'y', 'z', 'issues']
         self.order = self.init_order
         self.electrodes_df = pd.DataFrame()
 
