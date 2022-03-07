@@ -56,6 +56,7 @@ SYSTEM = platform.system()
 logger = create_logger(filename='iEEGTool.log')
 
 default_path = 'H:/SZ'
+freesurfer_path = 'data/freesurfer'
 
 
 class MainWindow(QMainWindow, Ui_MainWindow):
@@ -78,7 +79,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # self.subject = Subject('sample')
         self.subject = Subject('')
         self._info = {'subject_name': '', 'age': '', 'gender': ''}
-        self.subjects_dir = op.join(default_path, 'freesurfer')
+        self.subjects_dir = freesurfer_path
 
         self.electrodes = Electrodes()
         self.wm_chs = list()
@@ -543,10 +544,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     # Signal Menu
     def _set_ieeg_montage(self):
-        ch_pos = self.subject.get_electrodes()
+        ch_info = self.electrodes.get_info()
         ieeg = self.subject.get_ieeg()
         subject = self.subject.get_name()
-        if ch_pos is None:
+        if ch_info is None:
             QMessageBox.warning(self, 'Coordinates', 'Please load Coordinates first!')
             return
         if ieeg is None:
@@ -555,22 +556,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if subject is None:
             QMessageBox.warning(self, 'Subject', "Please set Subject's name first!")
             return
-        ch_names = ch_pos['Channel'].to_list()
-        xyz = ch_pos[['x', 'y', 'z']].to_numpy() / 1000.
+        ch_names = ch_info['Channel'].to_list()
+        xyz = ch_info[['x', 'y', 'z']].to_numpy() / 1000.
         ch_pos = dict(zip(ch_names, xyz))
-
-        # subj_trans = mne.coreg.estimate_head_mri_t(subject, self.subjects_dir)
-        # mri_to_head_trans = mne.transforms.invert_transform(subj_trans)
-        # print('Start transforming mri to head')
-        # print(mri_to_head_trans)
-        #
-        # montage = mne.channels.make_dig_montage(ch_pos, coord_frame='mri')
-        # montage.add_estimated_fiducials(subject, subjects_dir)
-        # montage.apply_trans(mri_to_head_trans)
-        # self.subject.get_ieeg()._montage(montage, on_missing='ignore')
 
         ieeg = set_montage(ieeg, ch_pos, subject, self.subjects_dir)
         self.subject.set_ieeg(ieeg)
+        self.subject.set_electrodes(self.electrodes.get_info())
         logger.info('Set iEEG montage finished!')
         QMessageBox.information(self, 'Montage', 'Set iEEG montage finished!')
 

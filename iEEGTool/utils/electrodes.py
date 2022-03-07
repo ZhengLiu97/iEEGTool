@@ -50,6 +50,6 @@ class Electrodes(object):
         return self.electrodes_df
 
 
-class ROI(object):
+class BrainRegions(object):
     def __init__(self):
         pass
