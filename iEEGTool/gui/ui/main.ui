@@ -150,6 +150,7 @@
      <addaction name="_drop_annotations_action"/>
      <addaction name="_drop_white_matters_action"/>
      <addaction name="_drop_gray_matters_action"/>
+     <addaction name="_drop_unknown_matters_action"/>
     </widget>
     <widget class="QMenu" name="menuFilter">
      <property name="title">
@@ -789,6 +790,11 @@
   <action name="_1xn_coherency_action">
    <property name="text">
     <string>Coherency</string>
+   </property>
+  </action>
+  <action name="_drop_unknown_matters_action">
+   <property name="text">
+    <string>Unknown</string>
    </property>
   </action>
  </widget>

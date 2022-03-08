@@ -290,6 +290,8 @@ class Ui_MainWindow(object):
         self._1xn_coherence_action.setObjectName("_1xn_coherence_action")
         self._1xn_coherency_action = QtWidgets.QAction(MainWindow)
         self._1xn_coherency_action.setObjectName("_1xn_coherency_action")
+        self._drop_unknown_matters_action = QtWidgets.QAction(MainWindow)
+        self._drop_unknown_matters_action.setObjectName("_drop_unknown_matters_action")
         self._toolbar.addAction(self._load_t1_action)
         self._toolbar.addAction(self._load_ct_action)
         self._toolbar.addAction(self._load_ieeg_action)
@@ -334,6 +336,7 @@ class Ui_MainWindow(object):
         self.menuDrop_bad.addAction(self._drop_annotations_action)
         self.menuDrop_bad.addAction(self._drop_white_matters_action)
         self.menuDrop_bad.addAction(self._drop_gray_matters_action)
+        self.menuDrop_bad.addAction(self._drop_unknown_matters_action)
         self.menuFilter.addAction(self._fir_filter_action)
         self.menuFilter.addAction(self._iir_filter_action)
         self.menuProcess.addAction(self._set_montage_action)
@@ -524,6 +527,7 @@ class Ui_MainWindow(object):
         self._custom_action.setText(_translate("MainWindow", "Custom..."))
         self._1xn_coherence_action.setText(_translate("MainWindow", "Coherence"))
         self._1xn_coherency_action.setText(_translate("MainWindow", "Coherency"))
+        self._drop_unknown_matters_action.setText(_translate("MainWindow", "Unknown"))
 
 
 if __name__ == "__main__":

@@ -7,12 +7,13 @@
 """
 import pandas as pd
 from utils.process import get_chan_group
+from utils.contacts import is_wm, is_gm, is_unknown
 
 class Electrodes(object):
 
     def __init__(self):
         self.seg_name = []
-        self.init_order = ['Channel', 'Group', 'x', 'y', 'z', 'issues']
+        self.init_order = ['Channel', 'Group', 'x', 'y', 'z', 'issue']
         self.order = self.init_order
         self.electrodes_df = pd.DataFrame()
 
@@ -26,11 +27,22 @@ class Electrodes(object):
         self.electrodes_df['y'] = xyz[1]
         self.electrodes_df['z'] = xyz[2]
 
-    def set_anatomy(self, seg_name, roi):
+    def set_issues(self, rois):
+        issues = []
+        for roi in rois:
+            if is_wm(roi):
+                issues.append('White')
+            elif is_gm(roi):
+                issues.append('Gray')
+            else:
+                issues.append('Unknown')
+        self.electrodes_df['issue'] = issues
+
+    def set_anatomy(self, seg_name, rois):
         self.seg_name.append(seg_name)
         self.seg_name.sort()
         self.order = self.init_order + self.seg_name
-        self.electrodes_df[seg_name] = roi
+        self.electrodes_df[seg_name] = rois
         self.electrodes_df = self.electrodes_df[self.order]
 
     def rm_anatomy(self, seg_name):
@@ -45,6 +57,9 @@ class Electrodes(object):
             index = elec_df[elec_df['Channel'].isin(chs)].index
             if len(index):
                 self.electrodes_df = elec_df.drop(index)
+
+    def get_issue(self):
+        return self.electrodes_df['issue'].to_numpy()
 
     def get_info(self):
         return self.electrodes_df

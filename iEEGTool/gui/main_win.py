@@ -47,6 +47,7 @@ from utils.locate_ieeg import locate_ieeg
 from utils.electrodes import Electrodes
 from utils.contacts import calc_ch_pos
 from utils.process import get_chan_group, set_montage, clean_chans, get_montage, mne_bipolar
+from utils.get_anatomical_labels import labelling_contacts_vol_fs_mgz
 
 matplotlib.use('Qt5Agg')
 mne.viz.set_browser_backend('pyqtgraph')
@@ -55,7 +56,7 @@ SYSTEM = platform.system()
 
 logger = create_logger(filename='iEEGTool.log')
 
-default_path = 'H:/SZ'
+default_path = 'data'
 freesurfer_path = 'data/freesurfer'
 
 
@@ -84,6 +85,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.electrodes = Electrodes()
         self.wm_chs = list()
         self.gm_chs = list()
+        self.unknown_chs = list()
+        self.parcellation = 'aparc+aseg.vep'
+        self.seg_name = {'aparc+aseg.vep': 'VEP', }
 
         self._crop_win = None
         self._resample_win = None
@@ -138,6 +142,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self._drop_annotations_action.triggered.connect(self._drop_bad_from_annotations)
         self._drop_white_matters_action.triggered.connect(self._drop_wm_chs)
         self._drop_gray_matters_action.triggered.connect(self._drop_gm_chs)
+        self._drop_unknown_matters_action.triggered.connect(self._drop_unknown_chs)
 
         # Analysis Menu
         self._get_anatomy_action.triggered.connect(self._get_anatomy)
@@ -395,9 +400,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             QMessageBox.warning(self, 'iEEG', 'Please load iEEG first!')
 
     def _view_chs_info(self):
-        info = self.electrodes.get_info()
-        if len(info):
-            self._table_win = TableWin(info)
+        ch_info = self.electrodes.get_info()
+        if len(ch_info):
+            self._table_win = TableWin(ch_info)
             self._table_win.show()
 
     # Localization Menu
@@ -646,21 +651,58 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if ieeg is None:
             return
         if len(self.wm_chs):
+            logger.info(f'Drop white matter channels: {self.wm_chs}')
             ieeg.drop_channels(self.wm_chs)
+            self._update_fig()
 
     def _drop_gm_chs(self):
         ieeg = self.subject.get_ieeg()
         if ieeg is None:
             return
         if len(self.gm_chs):
+            logger.info(f'Drop gray matter channels: {self.gm_chs}')
             ieeg.drop_channels(self.gm_chs)
+            self._update_fig()
+
+    def _drop_unknown_chs(self):
+        ieeg = self.subject.get_ieeg()
+        if ieeg is None:
+            return
+        if len(self.unknown_chs):
+            logger.info(f'Drop unknown channels: {self.unknown_chs}')
+            ieeg.drop_channels(self.unknown_chs)
+            self._update_fig()
 
     # Analysis Menu
     def _get_anatomy(self):
-        ch_pos_df = self.subject.get_electrodes()
-        if ch_pos_df is None:
+        ch_info = self.electrodes.get_info()
+        if not len(ch_info):
             QMessageBox.warning(self, 'Coordinates', 'Please Load Coordinates first!')
             return
+        if 'x' not in ch_info.columns:
+            QMessageBox.warning(self, 'Coordinates', 'Please Load Coordinates first!')
+            return
+        xyz = ch_info[['x', 'y', 'z']].to_numpy()
+        ch_names = ch_info['Channel'].to_numpy()
+        if self.subject.get_name() is None:
+            QMessageBox.warning(self, 'Subject', 'Please Set Subject name first!')
+            return
+        else:
+            subject = self.subject.get_name()
+        if 'vep' in self.parcellation:
+            lut_path = 'utils/VepFreeSurferColorLut.txt'
+        else:
+            lut_path = 'utils/FreeSurferColorLUT.txt'
+        parcellation = self.parcellation
+        anatomical_labels = labelling_contacts_vol_fs_mgz(subject, self.subjects_dir, xyz,
+                                                          radius=2, file=parcellation,
+                                                          lut_path=lut_path)
+        self.electrodes.set_issues(anatomical_labels)
+        self.electrodes.set_anatomy(self.seg_name[parcellation], anatomical_labels)
+        issue = self.electrodes.get_issue()
+        self.wm_chs = ch_names[issue == 'White']
+        self.unknown_chs = ch_names[issue == 'Unknown']
+        self.gm_chs = ch_names[issue == 'Gray']
 
     def _tfr_morlet(self):
         ieeg = self.subject.get_ieeg()
