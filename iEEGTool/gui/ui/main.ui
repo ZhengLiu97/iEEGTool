@@ -66,6 +66,7 @@
    <addaction name="_load_t1_action"/>
    <addaction name="_load_ct_action"/>
    <addaction name="_load_ieeg_action"/>
+   <addaction name="_load_coordinates_action"/>
    <addaction name="separator"/>
    <addaction name="_crop_ieeg_action"/>
    <addaction name="_resample_ieeg_action"/>
@@ -361,7 +362,7 @@
   <action name="_load_coordinates_action">
    <property name="icon">
     <iconset>
-     <normaloff>../../icon/electrodes.svg</normaloff>../../icon/electrodes.svg</iconset>
+     <normaloff>../../icon/coordinate.svg</normaloff>../../icon/coordinate.svg</iconset>
    </property>
    <property name="text">
     <string>Load Coordinates</string>

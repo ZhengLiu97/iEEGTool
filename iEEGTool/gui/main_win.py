@@ -194,6 +194,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         ieeg_icon.addPixmap(QPixmap("icon/ieeg.svg"), QIcon.Normal, QIcon.Off)
         self._load_ieeg_action.setIcon(ieeg_icon)
 
+        coord_icon = QIcon()
+        coord_icon.addPixmap(QPixmap("icon/coordinate.svg"), QIcon.Normal, QIcon.Off)
+        self._load_coordinates_action.setIcon(coord_icon)
+
         crop_icon = QIcon()
         crop_icon.addPixmap(QPixmap("icon/scissor.svg"), QIcon.Normal, QIcon.Off)
         self._crop_ieeg_action.setIcon(crop_icon)
@@ -764,11 +768,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def _compute_ei(self):
         ieeg = self.subject.get_ieeg()
         ch_info = self.subject.get_electrodes()
-        if 'issue' in ch_info.columns:
-            anatomy = ch_info[['Channel', 'x', 'y', 'z', self.seg_name[self.parcellation]]]
-        else:
-            anatomy=None
-        print(anatomy)
+        anatomy = None
+        if ch_info is not None:
+            if 'issue' in ch_info.columns:
+                anatomy = ch_info[['Channel', 'x', 'y', 'z', self.seg_name[self.parcellation]]]
         if ieeg is not None:
             self._ei_win = EIWin(ieeg, anatomy, self.seg_name[self.parcellation])
             self._ei_win.show()
@@ -776,10 +779,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def _compute_hfo(self):
         ieeg = self.subject.get_ieeg()
         ch_info = self.subject.get_electrodes()
-        if 'issue' in ch_info.columns:
-            anatomy = ch_info[['Channel', 'x', 'y', 'z', self.seg_name[self.parcellation]]]
-        else:
-            anatomy=None
+        anatomy = None
+        if ch_info is not None:
+            if 'issue' in ch_info.columns:
+                anatomy = ch_info[['Channel', 'x', 'y', 'z', self.seg_name[self.parcellation]]]
         if ieeg is not None:
             self._hfo_win = RMSHFOWin(ieeg, anatomy)
             self._hfo_win.show()

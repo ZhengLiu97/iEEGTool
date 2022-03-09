@@ -136,7 +136,6 @@ class EIWin(QMainWindow, Ui_MainWindow):
         self.U_n = result[1]
         ch_names = self.ei['Channel'].to_list()
         if self.anatomy is not None:
-
             anatomy = self.anatomy[self.anatomy['Channel'].isin(ch_names)]
             self.ei[self.seg_name] = anatomy[self.seg_name].to_list()
             self.ei_anatomy['Channel'] = ch_names
