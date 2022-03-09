@@ -124,9 +124,6 @@
     <addaction name="_load_coordinates_action"/>
     <addaction name="_export_coordinates_action"/>
     <addaction name="separator"/>
-    <addaction name="_load_anatomy_action"/>
-    <addaction name="_export_anatomy_action"/>
-    <addaction name="separator"/>
     <addaction name="menuClear_Workbench"/>
     <addaction name="separator"/>
     <addaction name="_setting_action"/>

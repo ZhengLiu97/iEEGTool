@@ -78,7 +78,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.ct_title = ''
 
         # self.subject = Subject('sample')
-        self.subject = Subject('')
+        self.subject = Subject()
         self._info = {'subject_name': '', 'age': '', 'gender': ''}
         self.subjects_dir = freesurfer_path
 
@@ -86,15 +86,19 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.wm_chs = list()
         self.gm_chs = list()
         self.unknown_chs = list()
+        self.set_montage = False
         self.parcellation = 'aparc+aseg.vep'
-        self.seg_name = {'aparc+aseg.vep': 'VEP', }
+        self.seg_name = {'aparc+aseg': 'ASEG', 'aparc.DKTatlas+aseg': 'DKT',
+                         'aparc.a2009s+aseg': 'Destrieux', 'aparc+aseg.vep': 'VEP'}
 
+        # Signal window
         self._crop_win = None
         self._resample_win = None
         self._fir_filter_win = None
         self._iir_filter_win = None
-        self._tfr_morlet_win = None
 
+        # Analysis window
+        self._tfr_morlet_win = None
         self._ei_win = None
         self._hfo_win = None
 
@@ -113,6 +117,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self._export_fif_action.triggered.connect(self._export_ieeg_fif)
         self._export_edf_action.triggered.connect(self._export_ieeg_edf)
         self._export_set_action.triggered.connect(self._export_ieeg_set)
+        self._export_coordinates_action.triggered.connect(self._export_coords)
 
         self._clear_mri_action.triggered.connect(self._clear_mri)
         self._clear_ct_action.triggered.connect(self._clear_ct)
@@ -283,7 +288,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
                 self.electrodes.set_ch_names(ch_names)
                 self.electrodes.set_ch_xyz([x, y, z])
-                self.subject.set_electrodes(self.electrodes.get_info())
+                self.set_montage = False
                 logger.info("Importing channels' coordinates finished!")
                 QMessageBox.information(self, 'Coordinates', "Importing channels' coordinates finished!")
             except:
@@ -335,6 +340,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         else:
             logger.info('Stop exporting iEEG')
 
+    def _export_coords(self):
+        ch_info = self.subject.get_electrodes()
+        if ch_info is not None:
+            fname, _ = QFileDialog.getSaveFileName(self, 'Coordinates', default_path, filter="Coordinates (*.txt)")
+            if len(fname):
+                if 'txt' not in fname:
+                    fname += '.txt'
+                ch_info.to_csv(fname, index=None, sep='\t')
+
     def _clear_mri(self):
         self.subject.remove_t1()
         self.mri_title = ''
@@ -351,8 +365,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def _clear_coordinates(self):
         self.subject.remove_electrodes()
-        self.subject.remove_anatomy()
-        self.subject.remove_anatomy_electrodes()
+
+        self.electrodes = Electrodes()
+        self.wm_chs = list()
+        self.gm_chs = list()
+        self.unknown_chs = list()
+        self.set_montage = False
+        self.parcellation = 'aparc+aseg.vep'
+
         logger.info('clear Coordinates')
 
     def _clear_ieeg(self):
@@ -552,22 +572,33 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         ch_info = self.electrodes.get_info()
         ieeg = self.subject.get_ieeg()
         subject = self.subject.get_name()
+        print(subject)
         if ch_info is None:
             QMessageBox.warning(self, 'Coordinates', 'Please load Coordinates first!')
             return
         if ieeg is None:
             QMessageBox.warning(self, 'iEEG', 'Please load iEEG first!')
             return
-        if subject is None:
-            QMessageBox.warning(self, 'Subject', "Please set Subject's name first!")
-            return
-        ch_names = ch_info['Channel'].to_list()
-        xyz = ch_info[['x', 'y', 'z']].to_numpy() / 1000.
-        ch_pos = dict(zip(ch_names, xyz))
 
-        ieeg = set_montage(ieeg, ch_pos, subject, self.subjects_dir)
-        self.subject.set_ieeg(ieeg)
+        ch_names = ch_info['Channel'].to_list()
+
+        if subject is not None:
+            xyz = ch_info[['x', 'y', 'z']].to_numpy() / 1000.
+            ch_pos = dict(zip(ch_names, xyz))
+            ieeg = set_montage(ieeg, ch_pos, subject, self.subjects_dir)
+            self.subject.set_ieeg(ieeg)
         self.subject.set_electrodes(self.electrodes.get_info())
+
+        # This happens when loading coordinates with anatomy or
+        # getting the anatomy before setting the montage
+        if 'issue' in ch_info.columns:
+            issue = self.electrodes.get_issue()
+            ch_names = np.array(ch_names)
+            self.wm_chs = ch_names[issue == 'White']
+            self.unknown_chs = ch_names[issue == 'Unknown']
+            self.gm_chs = ch_names[issue == 'Gray']
+
+        self.set_montage = True
         logger.info('Set iEEG montage finished!')
         QMessageBox.information(self, 'Montage', 'Set iEEG montage finished!')
 
@@ -636,11 +667,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             fig.close() # You'll have to close the fig to get the bad channels
             bad = ieeg.info['bads']
             if len(bad):
-                self.subject.get_ieeg().drop_channels(bad)
-                self.subject.get_ieeg().info['bads'] = []
-                logger.info(f'Dropping bad channels: {bad} finished!')
-                self._update_fig()
-                QMessageBox.information(self, 'iEEG', f'Finish dropping bad channels {bad}')
+                try:
+                    self.subject.get_ieeg().drop_channels(bad)
+                    self.subject.get_ieeg().info['bads'] = []
+                    logger.info(f'Dropping bad channels: {bad} finished!')
+                    self._update_fig()
+                    QMessageBox.information(self, 'iEEG', f'Finish dropping bad channels {bad}')
+                except:
+                    logger.warning('No channels will be left, so dropping channels is stopped')
             else:
                 logger.info('No bad channels in annotations!')
                 self._update_fig()
@@ -652,8 +686,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             return
         if len(self.wm_chs):
             logger.info(f'Drop white matter channels: {self.wm_chs}')
-            ieeg.drop_channels(self.wm_chs)
-            self._update_fig()
+            try:
+                ieeg.drop_channels(self.wm_chs)
+                self._update_fig()
+            except:
+                logger.warning('No channels will be left, so dropping channels is stopped')
 
     def _drop_gm_chs(self):
         ieeg = self.subject.get_ieeg()
@@ -661,8 +698,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             return
         if len(self.gm_chs):
             logger.info(f'Drop gray matter channels: {self.gm_chs}')
-            ieeg.drop_channels(self.gm_chs)
-            self._update_fig()
+            try:
+                ieeg.drop_channels(self.gm_chs)
+                self._update_fig()
+            except:
+                logger.warning('No channels will be left, so dropping channels is stopped')
 
     def _drop_unknown_chs(self):
         ieeg = self.subject.get_ieeg()
@@ -670,8 +710,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             return
         if len(self.unknown_chs):
             logger.info(f'Drop unknown channels: {self.unknown_chs}')
-            ieeg.drop_channels(self.unknown_chs)
-            self._update_fig()
+            try:
+                ieeg.drop_channels(self.unknown_chs)
+                self._update_fig()
+            except:
+                logger.warning('No channels will be left, so dropping channels is stopped')
 
     # Analysis Menu
     def _get_anatomy(self):
@@ -694,15 +737,23 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         else:
             lut_path = 'utils/FreeSurferColorLUT.txt'
         parcellation = self.parcellation
+        if parcellation not in self.seg_name.keys():
+            self.seg_name[parcellation] = 'Custom'
         anatomical_labels = labelling_contacts_vol_fs_mgz(subject, self.subjects_dir, xyz,
                                                           radius=2, file=parcellation,
                                                           lut_path=lut_path)
         self.electrodes.set_issues(anatomical_labels)
         self.electrodes.set_anatomy(self.seg_name[parcellation], anatomical_labels)
-        issue = self.electrodes.get_issue()
-        self.wm_chs = ch_names[issue == 'White']
-        self.unknown_chs = ch_names[issue == 'Unknown']
-        self.gm_chs = ch_names[issue == 'Gray']
+
+        # if set_montage is True, replace the electrodes info in subject
+        # This happens when loading coordinates without anatomy and setting the montage
+        # before getting the anatomy
+        if self.set_montage:
+            self.subject.set_electrodes(self.electrodes.get_info())
+            issue = self.electrodes.get_issue()
+            self.wm_chs = ch_names[issue == 'White']
+            self.unknown_chs = ch_names[issue == 'Unknown']
+            self.gm_chs = ch_names[issue == 'Gray']
 
     def _tfr_morlet(self):
         ieeg = self.subject.get_ieeg()
@@ -712,14 +763,25 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def _compute_ei(self):
         ieeg = self.subject.get_ieeg()
+        ch_info = self.subject.get_electrodes()
+        if 'issue' in ch_info.columns:
+            anatomy = ch_info[['Channel', 'x', 'y', 'z', self.seg_name[self.parcellation]]]
+        else:
+            anatomy=None
+        print(anatomy)
         if ieeg is not None:
-            self._ei_win = EIWin(ieeg)
+            self._ei_win = EIWin(ieeg, anatomy, self.seg_name[self.parcellation])
             self._ei_win.show()
 
     def _compute_hfo(self):
         ieeg = self.subject.get_ieeg()
+        ch_info = self.subject.get_electrodes()
+        if 'issue' in ch_info.columns:
+            anatomy = ch_info[['Channel', 'x', 'y', 'z', self.seg_name[self.parcellation]]]
+        else:
+            anatomy=None
         if ieeg is not None:
-            self._hfo_win = RMSHFOWin(ieeg)
+            self._hfo_win = RMSHFOWin(ieeg, anatomy)
             self._hfo_win.show()
 
     # Toolbar

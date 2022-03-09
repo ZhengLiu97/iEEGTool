@@ -13,9 +13,7 @@ class Subject(object):
         self._ct = None
         self._align_ct = None
         self._ieeg = None
-        self._anatomy = None
         self._electrodes = None
-        self._anatomy_electrodes = None
 
     def set_name(self, name):
         self._name = name
@@ -35,9 +33,6 @@ class Subject(object):
     def set_electrodes(self, electrodes):
         self._electrodes = electrodes
 
-    def set_anatomy_electrodes(self, anatomy_electrodes):
-        self._anatomy_electrodes = anatomy_electrodes
-
     def get_name(self):
         return self._name
 
@@ -55,9 +50,6 @@ class Subject(object):
 
     def get_electrodes(self):
         return self._electrodes
-
-    def get_anatomy_electrodes(self):
-        return self._anatomy_electrodes
 
     def remove_name(self):
         self._name = None
@@ -77,7 +69,5 @@ class Subject(object):
     def remove_electrodes(self):
         self._electrodes = None
 
-    def remove_anatomy_electrodes(self):
-        self._anatomy_electrodes = None
 
 a = Subject()

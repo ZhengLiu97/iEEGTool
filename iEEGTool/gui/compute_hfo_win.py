@@ -28,7 +28,7 @@ logger = create_logger(filename='iEEGTool.log')
 
 class RMSHFOWin(QMainWindow, Ui_MainWindow):
 
-    def __init__(self, ieeg):
+    def __init__(self, ieeg, anatomy=None):
         super(RMSHFOWin, self).__init__()
         self.setupUi(self)
         self._center_win()
@@ -36,6 +36,7 @@ class RMSHFOWin(QMainWindow, Ui_MainWindow):
         self._set_icon()
 
         self.ieeg = ieeg
+        self.anatomy = anatomy
         self.chans = ieeg.ch_names
         self.params = None
         self.detector = None

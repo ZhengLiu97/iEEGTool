@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 from matplotlib import pyplot as plt
-from PyQt5.QtWidgets import QMainWindow, QMessageBox, QDesktopWidget
+from PyQt5.QtWidgets import QMainWindow, QMessageBox, QDesktopWidget, QFileDialog
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtGui import QIntValidator, QDoubleValidator, QIcon, QFont, QPixmap
 
@@ -27,7 +27,7 @@ logger = create_logger(filename='iEEGTool.log')
 
 class EIWin(QMainWindow, Ui_MainWindow):
 
-    def __init__(self, ieeg, anatomy=None):
+    def __init__(self, ieeg, anatomy=None, seg_name=None):
         super(EIWin, self).__init__()
         self.setupUi(self)
         self._center_win()
@@ -36,8 +36,10 @@ class EIWin(QMainWindow, Ui_MainWindow):
 
         self.ieeg = ieeg
         self.anatomy = anatomy
+        self.seg_name = seg_name
         self.chans = ieeg.ch_names
         self.ei = None
+        self.ei_anatomy = pd.DataFrame()
 
         self._ei_table_win = None
 
@@ -62,6 +64,7 @@ class EIWin(QMainWindow, Ui_MainWindow):
         self._select_chan_btn.clicked.connect(self._select_chans)
         self._compute_btn.clicked.connect(self._compute_ei)
         self._display_table_btn.clicked.connect(self._display_table)
+        self._save_excel_action.triggered.connect(self._save_excel)
 
     def _center_win(self):
         qr = self.frameGeometry()
@@ -131,6 +134,16 @@ class EIWin(QMainWindow, Ui_MainWindow):
         logger.info("Finish computing EI")
         self.ei = result[0]
         self.U_n = result[1]
+        ch_names = self.ei['Channel'].to_list()
+        if self.anatomy is not None:
+
+            anatomy = self.anatomy[self.anatomy['Channel'].isin(ch_names)]
+            self.ei[self.seg_name] = anatomy[self.seg_name].to_list()
+            self.ei_anatomy['Channel'] = ch_names
+            self.ei_anatomy['x'] = anatomy['x']
+            self.ei_anatomy['y'] = anatomy['y']
+            self.ei_anatomy['z'] = anatomy['z']
+            self.ei_anatomy[self.seg_name] = anatomy[self.seg_name].to_list()
 
         onset = self.ei.detection_time.min()
 
@@ -208,8 +221,21 @@ class EIWin(QMainWindow, Ui_MainWindow):
     def _display_table(self):
         logger.info("Display EI Table!")
         if self.ei is not None:
-            self._ei_table_win = TableWin(self.ei)
+            columns = ['Channel', 'detection_time', 'alarm_time', 'ER', 'norm_EI']
+            if self.seg_name is not None:
+                columns.append(self.seg_name)
+            ei = self.ei[columns]
+            ei = ei.sort_values(by='norm_EI', ascending=False)
+            self._ei_table_win = TableWin(ei)
             self._ei_table_win.show()
+
+    def _save_excel(self):
+        fname, _ = QFileDialog.getSaveFileName(self, 'Export', filter="EI (*.xlsx)")
+        if len(fname):
+            if 'xlsx' not in fname:
+                fname += '.xlsx'
+            self.ei.to_excel(fname, index=None)
+            QMessageBox.information(self, 'Export', 'Finish exporting EI!')
 
     @safe_event
     def closeEvent(self, event):
