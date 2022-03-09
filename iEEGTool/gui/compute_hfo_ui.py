@@ -239,6 +239,12 @@ class Ui_MainWindow(object):
         icon3.addPixmap(QtGui.QPixmap("../../icon/bar-chart.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self._plot_barchart_action.setIcon(icon3)
         self._plot_barchart_action.setObjectName("_plot_barchart_action")
+        self._load_anatomy_action = QtWidgets.QAction(MainWindow)
+        icon4 = QtGui.QIcon()
+        icon4.addPixmap(QtGui.QPixmap("../../icon/coordinate.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self._load_anatomy_action.setIcon(icon4)
+        self._load_anatomy_action.setObjectName("_load_anatomy_action")
+        self.toolBar.addAction(self._load_anatomy_action)
         self.toolBar.addAction(self._save_hfo_rates_action)
         self.toolBar.addAction(self._viz_ieeg_action)
         self.toolBar.addAction(self._plot_barchart_action)
@@ -271,6 +277,7 @@ class Ui_MainWindow(object):
         self._viz_ieeg_action.setText(_translate("MainWindow", "Vis in SEEG"))
         self._help_action.setText(_translate("MainWindow", "Help"))
         self._plot_barchart_action.setText(_translate("MainWindow", "Plot barchart"))
+        self._load_anatomy_action.setText(_translate("MainWindow", "Load Anatomy"))
 
 
 if __name__ == "__main__":

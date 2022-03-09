@@ -10,7 +10,9 @@ import numpy as np
 import seaborn as sns
 import pandas as pd
 
+from collections import OrderedDict
 from PyQt5.QtWidgets import QMainWindow, QDesktopWidget, QMessageBox, QFileDialog
+from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtGui import QIcon, QPixmap
 from matplotlib import pyplot as plt
 from mne_hfo import RMSDetector, events_to_annotations, compute_chs_hfo_rates
@@ -22,13 +24,15 @@ from utils.log_config import create_logger
 from utils.thread import ComputeHFOsRate
 from utils.process import get_chan_group
 from utils.config import color
+from utils.contacts import reorder_chs_df
 
 logger = create_logger(filename='iEEGTool.log')
 
 
 class RMSHFOWin(QMainWindow, Ui_MainWindow):
+    ANATOMY_SIGNAL = pyqtSignal(str)
 
-    def __init__(self, ieeg, anatomy=None):
+    def __init__(self, ieeg, anatomy=None, seg_name=None):
         super(RMSHFOWin, self).__init__()
         self.setupUi(self)
         self._center_win()
@@ -37,6 +41,7 @@ class RMSHFOWin(QMainWindow, Ui_MainWindow):
 
         self.ieeg = ieeg
         self.anatomy = anatomy
+        self.seg_name = seg_name
         self.chans = ieeg.ch_names
         self.params = None
         self.detector = None
@@ -51,6 +56,10 @@ class RMSHFOWin(QMainWindow, Ui_MainWindow):
         self.move(qr.topLeft())
 
     def _set_icon(self):
+        anatomy_icon = QIcon()
+        anatomy_icon.addPixmap(QPixmap("icon/coordinate.svg"), QIcon.Normal, QIcon.Off)
+        self._load_anatomy_action.setIcon(anatomy_icon)
+
         save_icon = QIcon()
         save_icon.addPixmap(QPixmap("icon/save.svg"), QIcon.Normal, QIcon.Off)
         self._save_hfo_rates_action.setIcon(save_icon)
@@ -68,6 +77,7 @@ class RMSHFOWin(QMainWindow, Ui_MainWindow):
         self._help_action.setIcon(help_icon)
 
     def _slot_connection(self):
+        self._load_anatomy_action.triggered.connect(self._load_anatomy)
         self._save_hfo_rates_action.triggered.connect(self._save_hfo)
         self._viz_ieeg_action.triggered.connect(self._viz_ieeg)
         self._plot_barchart_action.triggered.connect(self._plot_hfo_rate)
@@ -75,6 +85,20 @@ class RMSHFOWin(QMainWindow, Ui_MainWindow):
         self._select_chan_btn.clicked.connect(self._select_chan)
         self._compute_btn.clicked.connect(self._compute_hfo)
         self._display_table_btn.clicked.connect(self._display_hfo_table)
+
+    def _load_anatomy(self):
+        self.ANATOMY_SIGNAL.emit('HFO')
+
+    def set_anatomy(self, anatomy):
+        ch_names = self.hfo_rate_df['Channel'].to_list()
+        anatomy = anatomy[anatomy['Channel'].isin(ch_names)]
+        # reorder the anatomy df using hfo_rate_df
+        anatomy['Channel'] = anatomy['Channel'].astype('category').cat.set_categories(ch_names)
+        anatomy = anatomy.sort_values(by=['Channel'], ascending=True)
+
+        rois = anatomy[self.seg_name].to_list()
+
+        self.hfo_rate_df[self.seg_name] = rois
 
     def _select_chan(self):
         self._select_chan_win = ItemSelectionWin(self.ieeg.ch_names)
@@ -117,9 +141,16 @@ class RMSHFOWin(QMainWindow, Ui_MainWindow):
         self.hfo_df = self.detector.df_
         if len(self.hfo_df):
             self.hfo_rate_df = pd.DataFrame()
-            self.hfo_rate_dict = compute_chs_hfo_rates(annot_df=self.hfo_df, rate='s')
-            self.hfo_rate_df['Channel'] = list(self.hfo_rate_dict.keys())
+            self.hfo_rate_dict = OrderedDict(compute_chs_hfo_rates(annot_df=self.hfo_df, rate='s'))
+            ch_names = list(self.hfo_rate_dict.keys())
+            self.hfo_rate_df['Channel'] = ch_names
             self.hfo_rate_df['HFO_Rate (s)'] = list(self.hfo_rate_dict.values())
+
+            self.hfo_rate_df = reorder_chs_df(self.hfo_rate_df)
+
+            if self.anatomy is not None:
+                self.set_anatomy(self.anatomy)
+
             QMessageBox.information(self, 'HFO', f'HFOs Detected!\n'
                                                  f'{len(self.hfo_rate_df)} Channels have HFOs')
         else:

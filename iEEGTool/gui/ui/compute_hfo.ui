@@ -496,6 +496,7 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
+   <addaction name="_load_anatomy_action"/>
    <addaction name="_save_hfo_rates_action"/>
    <addaction name="_viz_ieeg_action"/>
    <addaction name="_plot_barchart_action"/>
@@ -551,6 +552,15 @@
    </property>
    <property name="text">
     <string>Plot barchart</string>
+   </property>
+  </action>
+  <action name="_load_anatomy_action">
+   <property name="icon">
+    <iconset>
+     <normaloff>../../icon/coordinate.svg</normaloff>../../icon/coordinate.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Load Anatomy</string>
    </property>
   </action>
  </widget>

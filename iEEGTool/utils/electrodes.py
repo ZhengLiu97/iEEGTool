@@ -8,11 +8,14 @@
 import pandas as pd
 from utils.process import get_chan_group
 from utils.contacts import is_wm, is_gm, is_unknown
+from utils.log_config import create_logger
+
+logger = create_logger(filename='iEEGTool.log')
+
 
 class Electrodes(object):
 
     def __init__(self):
-        self.seg_name = []
         self.init_order = ['Channel', 'Group', 'x', 'y', 'z', 'issue']
         self.order = self.init_order
         self.electrodes_df = pd.DataFrame()
@@ -28,6 +31,7 @@ class Electrodes(object):
         self.electrodes_df['z'] = xyz[2]
 
     def set_issues(self, rois):
+        logger.info('Setting issues')
         issues = []
         for roi in rois:
             if is_wm(roi):
@@ -39,17 +43,18 @@ class Electrodes(object):
         self.electrodes_df['issue'] = issues
 
     def set_anatomy(self, seg_name, rois):
-        self.seg_name.append(seg_name)
-        self.seg_name.sort()
-        self.order = self.init_order + self.seg_name
+        logger.info('Setting ROIs')
+
         self.electrodes_df[seg_name] = rois
+        seg_name = [seg_name]
+        self.order = self.init_order + seg_name
         self.electrodes_df = self.electrodes_df[self.order]
 
     def rm_anatomy(self, seg_name):
         if seg_name in self.electrodes_df.columns:
             self.electrodes_df.drop(columns=seg_name)
-            self.seg_name.remove(seg_name)
-            self.order = self.init_order + self.seg_name
+            self.electrodes_df.drop(columns='issue')
+            self.order = self.init_order
 
     def rm_chs(self, chs):
         if len(chs):

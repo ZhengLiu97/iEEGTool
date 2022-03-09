@@ -500,6 +500,12 @@ class Ui_MainWindow(object):
         icon5.addPixmap(QtGui.QPixmap("../../icon/brain.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self._3d_vis_action.setIcon(icon5)
         self._3d_vis_action.setObjectName("_3d_vis_action")
+        self._load_anatomy_action = QtWidgets.QAction(MainWindow)
+        icon6 = QtGui.QIcon()
+        icon6.addPixmap(QtGui.QPixmap("../../icon/coordinate.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self._load_anatomy_action.setIcon(icon6)
+        self._load_anatomy_action.setObjectName("_load_anatomy_action")
+        self.toolBar.addAction(self._load_anatomy_action)
         self.toolBar.addAction(self._import_ei_action)
         self.toolBar.addAction(self._save_excel_action)
         self.toolBar.addSeparator()
@@ -552,6 +558,7 @@ class Ui_MainWindow(object):
         self._help_action.setText(_translate("MainWindow", "Help"))
         self._bar_chart_action.setText(_translate("MainWindow", "BarChart"))
         self._3d_vis_action.setText(_translate("MainWindow", "3D visualization"))
+        self._load_anatomy_action.setText(_translate("MainWindow", "Load Anatomy"))
 
 
 if __name__ == "__main__":

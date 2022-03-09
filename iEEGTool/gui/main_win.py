@@ -45,7 +45,7 @@ from utils.log_config import create_logger
 from utils.decorator import safe_event
 from utils.locate_ieeg import locate_ieeg
 from utils.electrodes import Electrodes
-from utils.contacts import calc_ch_pos
+from utils.contacts import calc_ch_pos, reorder_chs, reorder_chs_df
 from utils.process import get_chan_group, set_montage, clean_chans, get_montage, mne_bipolar
 from utils.get_anatomical_labels import labelling_contacts_vol_fs_mgz
 
@@ -88,8 +88,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.unknown_chs = list()
         self.set_montage = False
         self.parcellation = 'aparc+aseg.vep'
-        self.seg_name = {'aparc+aseg': 'ASEG', 'aparc.DKTatlas+aseg': 'DKT',
-                         'aparc.a2009s+aseg': 'Destrieux', 'aparc+aseg.vep': 'VEP'}
+        self.seg_name = OrderedDict({
+            'aparc+aseg': 'ASEG',
+            'aparc.DKTatlas+aseg': 'DKT',
+            'aparc.a2009s+aseg': 'Destrieux',
+            'aparc+aseg.vep': 'VEP',
+        })
 
         # Signal window
         self._crop_win = None
@@ -273,6 +277,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def _get_ieeg(self, ieeg):
         ieeg = clean_chans(ieeg)
         logger.info(f'Cleaning channels finished!')
+        chs = reorder_chs(ieeg.ch_names)
+        if chs is not None:
+            ieeg.reorder_channels(chs)
         self.subject.set_ieeg(ieeg)
         self._update_fig()
         self.setWindowTitle(f'iEEG Tool      {self.ieeg_title}   {self.mri_title}   '
@@ -283,20 +290,41 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         fname, _ = QFileDialog.getOpenFileName(self, 'Coordinates', default_path,
                                                filter='Coordinates (*.txt *.tsv)')
         if len(fname):
-            try:
-                coords_df = pd.read_table(fname)
-                ch_names = coords_df['Channel'].to_list()
-                x = coords_df['x'].to_numpy()
-                y = coords_df['y'].to_numpy()
-                z = coords_df['z'].to_numpy()
+            # try:
+            coords_df = pd.read_table(fname)
+            df = reorder_chs_df(coords_df)
+            if df is not None:
+                coords_df = df
+            ch_names = coords_df['Channel'].to_list()
+            x = coords_df['x'].to_numpy()
+            y = coords_df['y'].to_numpy()
+            z = coords_df['z'].to_numpy()
 
-                self.electrodes.set_ch_names(ch_names)
-                self.electrodes.set_ch_xyz([x, y, z])
-                self.set_montage = False
-                logger.info("Importing channels' coordinates finished!")
-                QMessageBox.information(self, 'Coordinates', "Importing channels' coordinates finished!")
-            except:
-                QMessageBox.warning(self, 'Coordinates', 'Wrong file format!')
+            self.electrodes.set_ch_names(ch_names)
+            self.electrodes.set_ch_xyz([x, y, z])
+
+            if 'issue' in coords_df.columns and len(coords_df.columns) >= 6:
+                seg_name = coords_df.columns[-1]
+                if seg_name not in self.seg_name.values():
+                    self.parcellation = 'Custom'
+                    self.seg_name[self.parcellation] = 'Custom'
+                else:
+                    key_list = list(self.seg_name.keys())
+                    value_list = list(self.seg_name.values())
+
+                    position = value_list.index(seg_name)
+                    self.parcellation = key_list[position]
+                    print(self.parcellation)
+                    print(seg_name)
+                rois = coords_df[seg_name].to_list()
+                print(rois)
+                self.electrodes.set_issues(rois)
+                self.electrodes.set_anatomy(seg_name, rois)
+            self.set_montage = False
+            logger.info("Importing channels' coordinates finished!")
+            QMessageBox.information(self, 'Coordinates', "Importing channels' coordinates finished!")
+            # except:
+            #     QMessageBox.warning(self, 'Coordinates', 'Wrong file format!')
 
     def _export_ieeg_fif(self):
         ieeg_format = '.fif'
@@ -603,6 +631,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.gm_chs = ch_names[issue == 'Gray']
 
         self.set_montage = True
+
         logger.info('Set iEEG montage finished!')
         QMessageBox.information(self, 'Montage', 'Set iEEG montage finished!')
 
@@ -765,26 +794,45 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self._tfr_morlet_win = TFRMorletWin(ieeg)
             self._tfr_morlet_win.show()
 
+    def _transfer_anatomy(self, win_type):
+        windows = {
+            'EI': self._ei_win,
+            'HFO': self._hfo_win,
+        }
+        win = windows[win_type]
+        ch_info = self.subject.get_electrodes()
+        if ch_info is not None:
+            print('Transfer anatomy to sub window')
+            if 'issue' in ch_info.columns:
+                win.seg_name = self.seg_name[self.parcellation]
+                win.set_anatomy(ch_info)
+
     def _compute_ei(self):
         ieeg = self.subject.get_ieeg()
         ch_info = self.subject.get_electrodes()
         anatomy = None
+        seg_name = None
         if ch_info is not None:
             if 'issue' in ch_info.columns:
                 anatomy = ch_info[['Channel', 'x', 'y', 'z', self.seg_name[self.parcellation]]]
+                seg_name = self.seg_name[self.parcellation]
         if ieeg is not None:
-            self._ei_win = EIWin(ieeg, anatomy, self.seg_name[self.parcellation])
+            self._ei_win = EIWin(ieeg, anatomy, seg_name)
+            self._ei_win.ANATOMY_SIGNAL.connect(self._transfer_anatomy)
             self._ei_win.show()
 
     def _compute_hfo(self):
         ieeg = self.subject.get_ieeg()
         ch_info = self.subject.get_electrodes()
         anatomy = None
+        seg_name = None
         if ch_info is not None:
             if 'issue' in ch_info.columns:
                 anatomy = ch_info[['Channel', 'x', 'y', 'z', self.seg_name[self.parcellation]]]
+                seg_name = self.seg_name[self.parcellation]
         if ieeg is not None:
-            self._hfo_win = RMSHFOWin(ieeg, anatomy)
+            self._hfo_win = RMSHFOWin(ieeg, anatomy, seg_name)
+            self._hfo_win.ANATOMY_SIGNAL.connect(self._transfer_anatomy)
             self._hfo_win.show()
 
     # Toolbar

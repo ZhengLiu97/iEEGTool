@@ -20,12 +20,14 @@ from utils.log_config import create_logger
 from utils.thread import ComputeEI
 from utils.process import get_chan_group
 from utils.config import color
+from utils.contacts import reorder_chs_df
 from utils.decorator import safe_event
 
 logger = create_logger(filename='iEEGTool.log')
 
 
 class EIWin(QMainWindow, Ui_MainWindow):
+    ANATOMY_SIGNAL = pyqtSignal(str)
 
     def __init__(self, ieeg, anatomy=None, seg_name=None):
         super(EIWin, self).__init__()
@@ -58,6 +60,7 @@ class EIWin(QMainWindow, Ui_MainWindow):
         self._threshold_le.setValidator(float_validator)
         self._ez_threshold_le.setValidator(float_validator)
 
+        self._load_anatomy_action.triggered.connect(self._load_anatomy)
         self._viz_ieeg_action.triggered.connect(self._viz_ieeg)
         self._bar_chart_action.triggered.connect(self._plot_ei_barchart)
 
@@ -73,6 +76,10 @@ class EIWin(QMainWindow, Ui_MainWindow):
         self.move(qr.topLeft())
 
     def _set_icon(self):
+        anatomy_icon = QIcon()
+        anatomy_icon.addPixmap(QPixmap("icon/coordinate.svg"), QIcon.Normal, QIcon.Off)
+        self._load_anatomy_action.setIcon(anatomy_icon)
+
         import_icon = QIcon()
         import_icon.addPixmap(QPixmap("icon/folder.svg"), QIcon.Normal, QIcon.Off)
         self._import_ei_action.setIcon(import_icon)
@@ -96,6 +103,23 @@ class EIWin(QMainWindow, Ui_MainWindow):
         help_icon = QIcon()
         help_icon.addPixmap(QPixmap("icon/help.svg"), QIcon.Normal, QIcon.Off)
         self._help_action.setIcon(help_icon)
+
+    def _load_anatomy(self):
+        self.ANATOMY_SIGNAL.emit('EI')
+
+    def set_anatomy(self, anatomy):
+        ch_names = self.ei['Channel'].to_list()
+        anatomy = anatomy[anatomy['Channel'].isin(ch_names)]
+        # reorder the anatomy df using hfo_rate_df
+        anatomy['Channel'] = anatomy['Channel'].astype('category').cat.set_categories(ch_names)
+        anatomy = anatomy.sort_values(by=['Channel'], ascending=True)
+
+        self.ei[self.seg_name] = anatomy[self.seg_name].to_list()
+        self.ei_anatomy['Channel'] = ch_names
+        self.ei_anatomy['x'] = anatomy['x']
+        self.ei_anatomy['y'] = anatomy['y']
+        self.ei_anatomy['z'] = anatomy['z']
+        self.ei_anatomy[self.seg_name] = anatomy[self.seg_name].to_list()
 
     def _select_chans(self):
         self._select_chans_win = ItemSelectionWin(self.ieeg.ch_names)
@@ -134,15 +158,13 @@ class EIWin(QMainWindow, Ui_MainWindow):
         logger.info("Finish computing EI")
         self.ei = result[0]
         self.U_n = result[1]
-        ch_names = self.ei['Channel'].to_list()
+
+        df = reorder_chs_df(self.ei)
+        if df is not None:
+            self.ei = df
+
         if self.anatomy is not None:
-            anatomy = self.anatomy[self.anatomy['Channel'].isin(ch_names)]
-            self.ei[self.seg_name] = anatomy[self.seg_name].to_list()
-            self.ei_anatomy['Channel'] = ch_names
-            self.ei_anatomy['x'] = anatomy['x']
-            self.ei_anatomy['y'] = anatomy['y']
-            self.ei_anatomy['z'] = anatomy['z']
-            self.ei_anatomy[self.seg_name] = anatomy[self.seg_name].to_list()
+            self.set_anatomy(self.anatomy)
 
         onset = self.ei.detection_time.min()
 

@@ -6,6 +6,11 @@
 @Date    ：2022/1/20 1:52 
 """
 import numpy as np
+import re
+
+from collections import OrderedDict
+
+from utils.process import get_chan_group
 
 def calc_ch_pos(tip, tail, ch_num, dist=3.5, extra_interval=None):
     """Calculate channels' position in the same shaft
@@ -113,6 +118,32 @@ def is_gm(roi_name):
     if is_unknown(roi_name):
         return False
     return True
+
+def reorder_chs(chs):
+    try:
+        ch_group = OrderedDict(get_chan_group(chs))
+        ch_names = []
+        items = list(ch_group.values())
+        for item in items:
+            ch_names += item
+        return ch_names
+    except:
+        print('This is not iEEG')
+        return None
+
+def reorder_chs_df(df):
+    ch_names = df['Channel'].to_list()
+    try:
+        ch_group = OrderedDict(get_chan_group(ch_names))
+        ch_names = []
+        items = list(ch_group.values())
+        for item in items:
+            ch_names += item
+        df['Channel'] = df['Channel'].astype('category').cat.set_categories(ch_names)
+        return df.sort_values(by=['Channel'], ascending=True)
+    except:
+        print('This is not iEEG')
+        return None
 
 
 if __name__ == '__main__':
