@@ -672,9 +672,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self._update_fig()
 
     def _monopolar_reference(self):
-        self._monopolar_win = ItemSelectionWin(self.subject.get_ieeg().ch_names)
-        self._monopolar_win.SELECTION_SIGNAL.connect(self._get_monopolar_chans)
-        self._monopolar_win.show()
+        ieeg = self.subject.get_ieeg()
+        if ieeg is not None:
+            self._monopolar_win = ItemSelectionWin(ieeg.ch_names)
+            self._monopolar_win.SELECTION_SIGNAL.connect(self._get_monopolar_chans)
+            self._monopolar_win.show()
 
     def _get_monopolar_chans(self, chans):
         ieeg, _ = mne.set_eeg_reference(self.subject.get_ieeg(), ref_channels=chans, copy=False)
@@ -683,15 +685,19 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         QMessageBox.warning(self, 'iEEG', f'Reference iEEG based on {chans} finished!')
 
     def _bipolar_ieeg(self):
-        ieeg = mne_bipolar(self.subject.get_ieeg())
-        self.subject.set_ieeg(ieeg)
-        self._update_fig()
+        ieeg = self.subject.get_ieeg()
+        if ieeg is not None:
+            ieeg = mne_bipolar(ieeg)
+            self.subject.set_ieeg(ieeg)
+            self._update_fig()
 
     def _average_reference(self):
-        ieeg, _ = mne.set_eeg_reference(self.subject.get_ieeg(), ref_channels='average', copy=False)
-        self.subject.set_ieeg(ieeg)
-        self._update_fig()
-        QMessageBox.warning(self, 'iEEG', f'Common average reference iEEG finished!')
+        ieeg = self.subject.get_ieeg()
+        if ieeg is not None:
+            ieeg, _ = mne.set_eeg_reference(ieeg, ref_channels='average', copy=False)
+            self.subject.set_ieeg(ieeg)
+            self._update_fig()
+            QMessageBox.warning(self, 'iEEG', f'Common average reference iEEG finished!')
 
     def _drop_bad_from_annotations(self):
         ieeg = self.subject.get_ieeg()
