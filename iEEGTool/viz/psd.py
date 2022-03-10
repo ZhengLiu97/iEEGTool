@@ -13,18 +13,6 @@ from functools import partial
 from mne.viz.utils import _convert_psds
 
 
-def butterfly_on_button_press(event, params):
-    """Only draw once for picking."""
-    print(params)
-    if params['need_draw']:
-        event.canvas.draw()
-    else:
-        text = params['texts'][0]
-        text.set_alpha(0.)
-        text.set_path_effects([])
-        event.canvas.draw()
-    params['need_draw'] = False
-
 def plot_psd(info, psds, freqs, dB, average, method):
     fig, ax = plt.subplots(figsize=(12, 6))
     estimate = 'power' if dB else 'amplitude'
