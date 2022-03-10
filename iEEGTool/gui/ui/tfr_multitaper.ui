@@ -232,7 +232,7 @@
                 </font>
                </property>
                <property name="text">
-                <string>n_cycles for each freq</string>
+                <string>Denominator of n_cycles for each freq</string>
                </property>
               </widget>
              </item>
@@ -378,7 +378,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QLineEdit" name="_n_cycles_le">
+              <widget class="QLineEdit" name="_denom_ncycles_le">
                <property name="minimumSize">
                 <size>
                  <width>100</width>
@@ -401,7 +401,7 @@
                 <enum>Qt::ClickFocus</enum>
                </property>
                <property name="text">
-                <string>2</string>
+                <string>6</string>
                </property>
                <property name="alignment">
                 <set>Qt::AlignCenter</set>
@@ -432,7 +432,7 @@
                 <enum>Qt::ClickFocus</enum>
                </property>
                <property name="text">
-                <string>4</string>
+                <string>2</string>
                </property>
                <property name="alignment">
                 <set>Qt::AlignCenter</set>

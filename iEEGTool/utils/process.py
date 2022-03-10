@@ -68,7 +68,6 @@ def get_chan_group(chans, exclude=['E'], return_df=False):
     else:
         return chan_group
 
-
 def clean_chans(ieeg):
     import re
 
@@ -220,7 +219,6 @@ def ras_to_tkras(ras, subject, subjects_dir):
     print(ras_to_tkras)
     return apply_trans(ras_to_tkras, ras)
 
-
 def tkras_to_ras(tkras, subject, subjects_dir):
     if not isinstance(tkras, np.ndarray):
         tkras = np.asarray(tkras)
@@ -228,3 +226,7 @@ def tkras_to_ras(tkras, subject, subjects_dir):
     _, _, tkras_to_ras, _, _ = _read_mri_info(t1_path)
     print(tkras_to_ras)
     return apply_trans(tkras_to_ras, tkras)
+
+def make_epoch(ieeg):
+    return mne.make_fixed_length_epochs(ieeg, duration=ieeg.times[-1],
+                                        preload=True)

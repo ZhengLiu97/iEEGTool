@@ -10,7 +10,6 @@ import numpy as np
 
 from mne.io import BaseRaw
 from PyQt5.QtWidgets import QMainWindow, QDesktopWidget, QButtonGroup, QMessageBox
-from PyQt5.QtCore import pyqtSignal
 
 from gui.tfr_morlet_ui import Ui_MainWindow
 from gui.list_win import ItemSelectionWin

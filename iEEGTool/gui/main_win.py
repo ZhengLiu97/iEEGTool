@@ -38,6 +38,7 @@ from gui.fir_filter_win import FIRFilterWin
 from gui.compute_ei_win import EIWin
 from gui.compute_hfo_win import RMSHFOWin
 from gui.table_win import TableWin
+from gui.tfr_multitaper_win import TFRMultitaperWin
 from gui.tfr_morlet_win import TFRMorletWin
 from utils.subject import Subject
 from utils.thread import *
@@ -102,6 +103,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self._iir_filter_win = None
 
         # Analysis window
+        self._tfr_multitaper_win = None
         self._tfr_morlet_win = None
         self._ei_win = None
         self._hfo_win = None
@@ -157,7 +159,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self._get_anatomy_action.triggered.connect(self._get_anatomy)
 
         self._psd_multitaper_action.triggered.connect(self._psd_multitaper)
-        self._psd_welch_action.triggered.connect(self._psd_welch)
+        # self._psd_welch_action.triggered.connect(self._psd_welch)
+        self._tfr_multitaper_action.triggered.connect(self._tfr_multitaper)
         self._tfr_morlet_action.triggered.connect(self._tfr_morlet)
         self._epileptogenic_index_action.triggered.connect(self._compute_ei)
         self._high_frequency_action.triggered.connect(self._compute_hfo)
@@ -801,6 +804,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if ieeg is not None:
             pass
 
+    def _tfr_multitaper(self):
+        ieeg = self.subject.get_ieeg()
+        if ieeg is not None:
+            self._tfr_multitaper_win = TFRMultitaperWin(ieeg)
+            self._tfr_multitaper_win.show()
+
     def _tfr_morlet(self):
         ieeg = self.subject.get_ieeg()
         if ieeg is not None:
@@ -884,3 +893,5 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self._hfo_win.close()
         if self._tfr_morlet_win is not None:
             self._tfr_morlet_win.close()
+        if self._tfr_multitaper_win is not None:
+            self._tfr_multitaper_win.close()
