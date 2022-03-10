@@ -6,20 +6,20 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>324</width>
-    <height>409</height>
+    <width>334</width>
+    <height>499</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
-    <width>324</width>
-    <height>409</height>
+    <width>334</width>
+    <height>499</height>
    </size>
   </property>
   <property name="maximumSize">
    <size>
-    <width>324</width>
-    <height>409</height>
+    <width>334</width>
+    <height>499</height>
    </size>
   </property>
   <property name="font">
@@ -31,7 +31,7 @@
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QVBoxLayout" name="verticalLayout_7">
+   <layout class="QVBoxLayout" name="verticalLayout_6">
     <item>
      <widget class="QGroupBox" name="groupBox">
       <property name="font">
@@ -44,20 +44,8 @@
        <string>Calculation Parameters</string>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_3">
-       <property name="leftMargin">
-        <number>8</number>
-       </property>
-       <property name="topMargin">
-        <number>8</number>
-       </property>
-       <property name="rightMargin">
-        <number>8</number>
-       </property>
-       <property name="bottomMargin">
-        <number>8</number>
-       </property>
        <item>
-        <layout class="QHBoxLayout" name="horizontalLayout">
+        <layout class="QHBoxLayout" name="horizontalLayout_5">
          <item>
           <widget class="QLabel" name="Multitaper_method_lb">
            <property name="minimumSize">
@@ -134,7 +122,7 @@
         </widget>
        </item>
        <item>
-        <layout class="QHBoxLayout" name="horizontalLayout_2">
+        <layout class="QHBoxLayout" name="horizontalLayout">
          <property name="spacing">
           <number>35</number>
          </property>
@@ -225,27 +213,30 @@
             </widget>
            </item>
            <item>
-            <widget class="QLabel" name="_n_jobs_lb">
+            <widget class="QLabel" name="_chan_lb_2">
              <property name="minimumSize">
               <size>
-               <width>0</width>
+               <width>100</width>
                <height>25</height>
               </size>
              </property>
              <property name="maximumSize">
               <size>
-               <width>16777215</width>
+               <width>2000</width>
                <height>25</height>
               </size>
              </property>
              <property name="font">
               <font>
+               <family>Ubuntu</family>
+               <pointsize>9</pointsize>
                <weight>50</weight>
+               <italic>false</italic>
                <bold>false</bold>
               </font>
              </property>
              <property name="text">
-              <string>Number of jobs</string>
+              <string>Connections at once</string>
              </property>
             </widget>
            </item>
@@ -341,7 +332,7 @@
             </widget>
            </item>
            <item>
-            <widget class="QLineEdit" name="_n_jobs_le">
+            <widget class="QLineEdit" name="_njobs_le_2">
              <property name="minimumSize">
               <size>
                <width>100</width>
@@ -387,159 +378,73 @@
        </font>
       </property>
       <property name="title">
-       <string>Figure Configuration</string>
+       <string>2D Heatmap Configuration</string>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_4">
-       <property name="leftMargin">
-        <number>8</number>
-       </property>
-       <property name="topMargin">
-        <number>8</number>
-       </property>
-       <property name="rightMargin">
-        <number>8</number>
-       </property>
-       <property name="bottomMargin">
-        <number>8</number>
-       </property>
        <item>
-        <layout class="QHBoxLayout" name="horizontalLayout_3">
+        <layout class="QHBoxLayout" name="horizontalLayout_2">
          <property name="spacing">
           <number>35</number>
          </property>
          <item>
-          <layout class="QVBoxLayout" name="verticalLayout_6">
-           <property name="spacing">
-            <number>15</number>
+          <widget class="QLabel" name="_chan_lb_3">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>25</height>
+            </size>
            </property>
-           <item>
-            <widget class="QLabel" name="_average_chs_lb">
-             <property name="minimumSize">
-              <size>
-               <width>100</width>
-               <height>25</height>
-              </size>
-             </property>
-             <property name="maximumSize">
-              <size>
-               <width>200</width>
-               <height>25</height>
-              </size>
-             </property>
-             <property name="font">
-              <font>
-               <family>Ubuntu</family>
-               <pointsize>9</pointsize>
-               <weight>50</weight>
-               <italic>false</italic>
-               <bold>false</bold>
-              </font>
-             </property>
-             <property name="text">
-              <string>Average channels</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QLabel" name="_log_trans_lb">
-             <property name="minimumSize">
-              <size>
-               <width>100</width>
-               <height>25</height>
-              </size>
-             </property>
-             <property name="maximumSize">
-              <size>
-               <width>200</width>
-               <height>25</height>
-              </size>
-             </property>
-             <property name="font">
-              <font>
-               <family>Ubuntu</family>
-               <pointsize>9</pointsize>
-               <weight>50</weight>
-               <italic>false</italic>
-               <bold>false</bold>
-              </font>
-             </property>
-             <property name="text">
-              <string>Log transformation</string>
-             </property>
-            </widget>
-           </item>
-          </layout>
+           <property name="maximumSize">
+            <size>
+             <width>300</width>
+             <height>25</height>
+            </size>
+           </property>
+           <property name="font">
+            <font>
+             <family>Ubuntu</family>
+             <pointsize>9</pointsize>
+             <weight>50</weight>
+             <italic>false</italic>
+             <bold>false</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>Average for each freq</string>
+           </property>
+          </widget>
          </item>
          <item>
-          <layout class="QVBoxLayout" name="verticalLayout_5">
-           <property name="spacing">
-            <number>15</number>
+          <widget class="QComboBox" name="_fig_log_cbx">
+           <property name="minimumSize">
+            <size>
+             <width>100</width>
+             <height>25</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>100</width>
+             <height>25</height>
+            </size>
+           </property>
+           <property name="font">
+            <font>
+             <weight>50</weight>
+             <bold>false</bold>
+            </font>
            </property>
            <item>
-            <widget class="QComboBox" name="_average_chs_cbx">
-             <property name="minimumSize">
-              <size>
-               <width>100</width>
-               <height>25</height>
-              </size>
-             </property>
-             <property name="maximumSize">
-              <size>
-               <width>100</width>
-               <height>25</height>
-              </size>
-             </property>
-             <property name="font">
-              <font>
-               <weight>50</weight>
-               <bold>false</bold>
-              </font>
-             </property>
-             <item>
-              <property name="text">
-               <string>True</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>False</string>
-              </property>
-             </item>
-            </widget>
+            <property name="text">
+             <string>True</string>
+            </property>
            </item>
            <item>
-            <widget class="QComboBox" name="_log_trans_cbx">
-             <property name="minimumSize">
-              <size>
-               <width>100</width>
-               <height>25</height>
-              </size>
-             </property>
-             <property name="maximumSize">
-              <size>
-               <width>100</width>
-               <height>25</height>
-              </size>
-             </property>
-             <property name="font">
-              <font>
-               <weight>50</weight>
-               <bold>false</bold>
-              </font>
-             </property>
-             <item>
-              <property name="text">
-               <string>True</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>False</string>
-              </property>
-             </item>
-            </widget>
+            <property name="text">
+             <string>False</string>
+            </property>
            </item>
-          </layout>
+          </widget>
          </item>
         </layout>
        </item>
@@ -551,7 +456,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QPushButton" name="_plot_btn">
+        <widget class="QPushButton" name="_plot_2d_btn">
          <property name="minimumSize">
           <size>
            <width>120</width>
@@ -560,7 +465,120 @@
          </property>
          <property name="maximumSize">
           <size>
-           <width>300</width>
+           <width>500</width>
+           <height>25</height>
+          </size>
+         </property>
+         <property name="font">
+          <font>
+           <weight>50</weight>
+           <bold>false</bold>
+          </font>
+         </property>
+         <property name="text">
+          <string>Plot</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item>
+     <widget class="QGroupBox" name="groupBox_3">
+      <property name="font">
+       <font>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
+      </property>
+      <property name="title">
+       <string>3D Figure Configuration</string>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout_5">
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_3">
+         <property name="spacing">
+          <number>35</number>
+         </property>
+         <item>
+          <widget class="QLabel" name="_chan_lb_4">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>25</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>300</width>
+             <height>25</height>
+            </size>
+           </property>
+           <property name="font">
+            <font>
+             <family>Ubuntu</family>
+             <pointsize>9</pointsize>
+             <weight>50</weight>
+             <italic>false</italic>
+             <bold>false</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>Threshold</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="_freq_band_le_2">
+           <property name="minimumSize">
+            <size>
+             <width>100</width>
+             <height>25</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>100</width>
+             <height>25</height>
+            </size>
+           </property>
+           <property name="font">
+            <font>
+             <weight>50</weight>
+             <bold>false</bold>
+            </font>
+           </property>
+           <property name="focusPolicy">
+            <enum>Qt::ClickFocus</enum>
+           </property>
+           <property name="text">
+            <string>0.5</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <widget class="Line" name="line_3">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="_plot_3d_btn">
+         <property name="minimumSize">
+          <size>
+           <width>120</width>
+           <height>25</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>500</width>
            <height>25</height>
           </size>
          </property>

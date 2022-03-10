@@ -14,6 +14,7 @@ from PyQt5.QtCore import pyqtSignal
 
 from gui.tfr_morlet_ui import Ui_MainWindow
 from gui.list_win import ItemSelectionWin
+from utils.process import make_epoch
 from utils.log_config import create_logger
 from utils.thread import ComputeTFR
 
@@ -28,8 +29,9 @@ class TFRMorletWin(QMainWindow, Ui_MainWindow):
         self._center_win()
         self.setWindowTitle('Time-Frequency Response')
         if isinstance(ieeg, BaseRaw):
-            self.ieeg = mne.make_fixed_length_epochs(ieeg, duration=ieeg.times[-1],
-                                                     preload=True)
+            self.ieeg = make_epoch(ieeg)
+        else:
+            self.ieeg = ieeg
         self._compute_chans = ieeg.ch_names
         self._fig_chans = None
         self._compute_params = dict()
