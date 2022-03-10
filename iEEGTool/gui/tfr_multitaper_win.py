@@ -23,7 +23,7 @@ logger = create_logger(filename='iEEGTool.log')
 class TFRMultitaperWin(QMainWindow, Ui_MainWindow):
 
     def __init__(self, ieeg):
-        super(TFRMultitaperWin, self).__init__()
+        super().__init__()
         self.setupUi(self)
         self._center_win()
         self.setWindowTitle('Time-Frequency Response')

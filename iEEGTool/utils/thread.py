@@ -282,30 +282,30 @@ class RoiMapping(QThread):
 
 
 class ComputePSD(QThread):
-    _COMPUTE_SIGNAL = pyqtSignal(dict)
+    PSD_SIGNAL = pyqtSignal(dict)
 
-    def __init__(self, raw, compute_method, params):
+    def __init__(self, ieeg, compute_method, params):
         super(ComputePSD, self).__init__()
-        self._raw = raw
-        self._compute_method = compute_method
-        self._params = params
+        self.ieeg = ieeg
+        self.compute_method = compute_method
+        self.params = params
 
     def run(self) -> None:
         from mne.time_frequency import psd_multitaper, psd_welch
-        if self._compute_method == 'multitaper':
+        if self.compute_method == 'multitaper':
             print('Start Calculating Multitaper PSD')
-            psds, freqs = psd_multitaper(self._raw, **self._params)
-            print(psds.shape)
+            psd, freqs = psd_multitaper(self.ieeg, **self.params)
+            print(psd.shape)
             print(freqs.shape)
             print('Finish Calculating Multitaper PSD')
-            result = {'psds': psds, 'freqs': freqs}
-            self._COMPUTE_SIGNAL.emit(result)
-        elif self._compute_method == 'welch':
+            result = {'psd': psd, 'freqs': freqs}
+            self.PSD_SIGNAL.emit(result)
+        elif self.compute_method == 'welch':
             print('Start Calculating Welch PSD')
-            psds, freqs = psd_welch(self._raw, **self._params)
+            psd, freqs = psd_welch(self.ieeg, **self.params)
             print('Finish Calculating Welch PSD')
-            result = {'psds': psds, 'freqs': freqs}
-            self._COMPUTE_SIGNAL.emit(result)
+            result = {'psd': psd, 'freqs': freqs}
+            self.PSD_SIGNAL.emit(result)
 
 
 class ComputeTFR(QThread):
