@@ -1,9 +1,9 @@
 # -*- coding: UTF-8 -*-
 """
 @Project ：iEEGTool 
-@File    ：tfr_morlet_win.py
+@File    ：tfr_multitaper_win.py
 @Author  ：Barry
-@Date    ：2022/2/23 11:55 
+@Date    ：2022/3/10 14:13 
 """
 import mne
 import numpy as np
@@ -11,7 +11,7 @@ import numpy as np
 from mne.io import BaseRaw
 from PyQt5.QtWidgets import QMainWindow, QDesktopWidget, QButtonGroup, QMessageBox
 
-from gui.tfr_morlet_ui import Ui_MainWindow
+from gui.tfr_multitaper_ui import Ui_MainWindow
 from gui.list_win import ItemSelectionWin
 from utils.process import make_epoch
 from utils.log_config import create_logger
@@ -20,10 +20,10 @@ from utils.thread import ComputeTFR
 logger = create_logger(filename='iEEGTool.log')
 
 
-class TFRMorletWin(QMainWindow, Ui_MainWindow):
+class TFRMultitaperWin(QMainWindow, Ui_MainWindow):
 
     def __init__(self, ieeg):
-        super(TFRMorletWin, self).__init__()
+        super().__init__()
         self.setupUi(self)
         self._center_win()
         self.setWindowTitle('Time-Frequency Response')
@@ -104,22 +104,17 @@ class TFRMorletWin(QMainWindow, Ui_MainWindow):
         fmin = float(freq_band[0])
         fmax = float(freq_band[1])
         step = float(self._freq_step_le.text())
+        freqs = np.arange(fmin, fmax, step)
         denom_ncycles = float(self._denom_ncycles_le.text())
+        n_cycles = freqs/ denom_ncycles
         n_jobs = int(self._njobs_le.text())
-        log_freq = self._log_freq_cbx.currentText()
-        log_freq = True if log_freq == 'True' else False
-        if log_freq:
-            num = (fmax - fmin) // step
-            freqs = np.logspace(*np.log10([fmin, fmax]), num=int(num))
-        else:
-            freqs = np.arange(fmin, fmax, step)
-        n_cycles = freqs / denom_ncycles
+        time_bandwidth = float(self._time_bandwidth_le.text())
         self._compute_params['freqs'] = freqs
         self._compute_params['n_cycles'] = n_cycles
+        self._compute_params['time_bandwidth'] = time_bandwidth
         self._compute_params['n_jobs'] = n_jobs
         self._compute_params['average'] = True
         self._compute_params['use_fft'] = True
-        self._compute_params['decim'] = 4 if log_freq else 1
 
     def _compute_tfr(self):
         ieeg = self.ieeg.copy()
@@ -127,15 +122,15 @@ class TFRMorletWin(QMainWindow, Ui_MainWindow):
             ieeg.pick_channels(self._compute_chans)
         self.get_compute_params()
         self._fig_freq_band_le.setText(self._freq_band_le.text())
-        self._compute_tfr_morlet_thread = ComputeTFR(ieeg, compute_method='morlet',
-                                                     params=self._compute_params)
-        self._compute_tfr_morlet_thread.COMPUTE_SIGNAL.connect(self._get_tfr)
-        self._compute_tfr_morlet_thread.start()
+        self._compute_tfr_multitaper_thread = ComputeTFR(ieeg, compute_method='multitaper',
+                                                         params=self._compute_params)
+        self._compute_tfr_multitaper_thread.COMPUTE_SIGNAL.connect(self._get_tfr)
+        self._compute_tfr_multitaper_thread.start()
 
     def _get_tfr(self, tfr):
         self._tfr = tfr
-        logger.info('Calculating TFR using Morlet finished!')
-        QMessageBox.information(self, 'TFR', 'Calculating TFR using Morlet finished!')
+        logger.info('Calculating TFR using Multitaper finished!')
+        QMessageBox.information(self, 'TFR', 'Calculating TFR using multitaper finished!')
 
     def get_fig_params(self):
         time = self._fig_time_le.text().split(' ')

@@ -66,6 +66,7 @@
    <addaction name="_load_t1_action"/>
    <addaction name="_load_ct_action"/>
    <addaction name="_load_ieeg_action"/>
+   <addaction name="_load_coordinates_action"/>
    <addaction name="separator"/>
    <addaction name="_crop_ieeg_action"/>
    <addaction name="_resample_ieeg_action"/>
@@ -124,9 +125,6 @@
     <addaction name="_load_coordinates_action"/>
     <addaction name="_export_coordinates_action"/>
     <addaction name="separator"/>
-    <addaction name="_load_anatomy_action"/>
-    <addaction name="_export_anatomy_action"/>
-    <addaction name="separator"/>
     <addaction name="menuClear_Workbench"/>
     <addaction name="separator"/>
     <addaction name="_setting_action"/>
@@ -150,6 +148,7 @@
      <addaction name="_drop_annotations_action"/>
      <addaction name="_drop_white_matters_action"/>
      <addaction name="_drop_gray_matters_action"/>
+     <addaction name="_drop_unknown_matters_action"/>
     </widget>
     <widget class="QMenu" name="menuFilter">
      <property name="title">
@@ -159,6 +158,7 @@
      <addaction name="_iir_filter_action"/>
     </widget>
     <addaction name="_set_montage_action"/>
+    <addaction name="_set_anatomy_action"/>
     <addaction name="separator"/>
     <addaction name="_crop_ieeg_action"/>
     <addaction name="_resample_ieeg_action"/>
@@ -183,10 +183,10 @@
     </widget>
     <widget class="QMenu" name="menuConnectivity">
      <property name="title">
-      <string>Connectivity</string>
+      <string>NxN Connectivity</string>
      </property>
-     <addaction name="_coherence_action"/>
-     <addaction name="_coherency_action"/>
+     <addaction name="_nxn_coherence_action"/>
+     <addaction name="_nxn_coherency_action"/>
     </widget>
     <widget class="QMenu" name="menuTime_Frequency_Response">
      <property name="title">
@@ -203,14 +203,29 @@
      <addaction name="_psd_multitaper_action"/>
      <addaction name="_psd_welch_action"/>
     </widget>
+    <widget class="QMenu" name="menuMNI_Transform">
+     <property name="title">
+      <string>MNI Transform</string>
+     </property>
+     <addaction name="_mni_fsaverage_action"/>
+     <addaction name="_mni152_action"/>
+    </widget>
+    <widget class="QMenu" name="menu1xN_Connectivity">
+     <property name="title">
+      <string>1xN Connectivity</string>
+     </property>
+     <addaction name="_1xn_coherence_action"/>
+     <addaction name="_1xn_coherency_action"/>
+    </widget>
     <addaction name="_get_anatomy_action"/>
-    <addaction name="_mni_transform_action"/>
+    <addaction name="menuMNI_Transform"/>
     <addaction name="separator"/>
     <addaction name="menuPower_Spectral_Density"/>
     <addaction name="actionCross_Spectral_Density"/>
     <addaction name="menuTime_Frequency_Response"/>
     <addaction name="separator"/>
     <addaction name="menuConnectivity"/>
+    <addaction name="menu1xN_Connectivity"/>
     <addaction name="separator"/>
     <addaction name="menuEpilepsy"/>
    </widget>
@@ -255,6 +270,7 @@
     <addaction name="_plot_overlay_action"/>
     <addaction name="separator"/>
     <addaction name="menuReconstruction"/>
+    <addaction name="_compute_vep_atlas_action"/>
     <addaction name="separator"/>
     <addaction name="_edit_channels_action"/>
     <addaction name="_ieeg_locator_action"/>
@@ -294,7 +310,7 @@
     <string>High Frequency Oscillations</string>
    </property>
   </action>
-  <action name="_coherence_action">
+  <action name="_nxn_coherence_action">
    <property name="text">
     <string>Coherence</string>
    </property>
@@ -346,13 +362,13 @@
   <action name="_load_coordinates_action">
    <property name="icon">
     <iconset>
-     <normaloff>../../icon/electrodes.svg</normaloff>../../icon/electrodes.svg</iconset>
+     <normaloff>../../icon/coordinate.svg</normaloff>../../icon/coordinate.svg</iconset>
    </property>
    <property name="text">
     <string>Load Coordinates</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+D</string>
+    <string>Ctrl+L</string>
    </property>
   </action>
   <action name="_clear_seeg_action">
@@ -477,7 +493,7 @@
   </action>
   <action name="_get_anatomy_action">
    <property name="text">
-    <string>Anatomy</string>
+    <string>Anatomical labels</string>
    </property>
   </action>
   <action name="_display_mri_action">
@@ -575,7 +591,7 @@
     <string>Stockwell</string>
    </property>
   </action>
-  <action name="_coherency_action">
+  <action name="_nxn_coherency_action">
    <property name="text">
     <string>Coherency</string>
    </property>
@@ -729,11 +745,6 @@
     <string>Neuromag (.fif)</string>
    </property>
   </action>
-  <action name="_mni_transform_action">
-   <property name="text">
-    <string>MNI Transform</string>
-   </property>
-  </action>
   <action name="_load_anatomy_action">
    <property name="text">
     <string>Load Anatomy</string>
@@ -742,6 +753,46 @@
   <action name="actionExport_Anatomy">
    <property name="text">
     <string>Export Anatomy</string>
+   </property>
+  </action>
+  <action name="_set_anatomy_action">
+   <property name="text">
+    <string>Set Anatomy</string>
+   </property>
+  </action>
+  <action name="_compute_vep_atlas_action">
+   <property name="text">
+    <string>Compute VEP atlas</string>
+   </property>
+  </action>
+  <action name="_mni_fsaverage_action">
+   <property name="text">
+    <string>MNI305 (fsaverage)</string>
+   </property>
+  </action>
+  <action name="_mni152_action">
+   <property name="text">
+    <string>MNI152</string>
+   </property>
+  </action>
+  <action name="_custom_action">
+   <property name="text">
+    <string>Custom...</string>
+   </property>
+  </action>
+  <action name="_1xn_coherence_action">
+   <property name="text">
+    <string>Coherence</string>
+   </property>
+  </action>
+  <action name="_1xn_coherency_action">
+   <property name="text">
+    <string>Coherency</string>
+   </property>
+  </action>
+  <action name="_drop_unknown_matters_action">
+   <property name="text">
+    <string>Unknown</string>
    </property>
   </action>
  </widget>

@@ -18,8 +18,10 @@ import pandas as pd
 import nibabel as nib
 
 from mne.transforms import apply_trans
+from mne.io import BaseRaw
 from matplotlib import pyplot as plt
 from dipy.align import resample
+from collections import OrderedDict
 from nibabel.viewers import OrthoSlicer3D
 from PyQt5.QtWidgets import QMainWindow, QApplication, QStyleFactory, QDesktopWidget, \
                             QFileDialog, QMessageBox, QShortcut, QAction
@@ -29,19 +31,26 @@ from PyQt5.QtGui import QIcon, QDesktopServices, QKeySequence, QFont, QPixmap
 from gui.main_ui import Ui_MainWindow
 from gui.resample_win import ResampleWin
 from gui.crop_win import CropWin
+from gui.ieeg_info_win import iEEGInfoWin
 from gui.info_win import InfoWin
+from gui.list_win import ItemSelectionWin
 from gui.fir_filter_win import FIRFilterWin
 from gui.compute_ei_win import EIWin
-# from gui.compute_hfo_win import RMSHFOWin
+from gui.compute_hfo_win import RMSHFOWin
 from gui.table_win import TableWin
+from gui.psd_multitaper_win import MultitaperPSDWin
+from gui.psd_welch_win import WelchPSDWin
+from gui.tfr_multitaper_win import TFRMultitaperWin
 from gui.tfr_morlet_win import TFRMorletWin
 from utils.subject import Subject
 from utils.thread import *
 from utils.log_config import create_logger
 from utils.decorator import safe_event
 from utils.locate_ieeg import locate_ieeg
-from utils.contacts import calc_ch_pos
+from utils.electrodes import Electrodes
+from utils.contacts import calc_ch_pos, reorder_chs, reorder_chs_df
 from utils.process import get_chan_group, set_montage, clean_chans, get_montage, mne_bipolar
+from utils.get_anatomical_labels import labelling_contacts_vol_fs_mgz
 
 matplotlib.use('Qt5Agg')
 mne.viz.set_browser_backend('pyqtgraph')
@@ -51,6 +60,7 @@ SYSTEM = platform.system()
 logger = create_logger(filename='iEEGTool.log')
 
 default_path = 'data'
+freesurfer_path = 'data/freesurfer'
 
 
 class MainWindow(QMainWindow, Ui_MainWindow):
@@ -71,16 +81,34 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.ct_title = ''
 
         # self.subject = Subject('sample')
-        self.subject = Subject('')
+        self.subject = Subject()
         self._info = {'subject_name': '', 'age': '', 'gender': ''}
-        self.subjects_dir = op.join(default_path, 'freesurfer')
+        self.subjects_dir = freesurfer_path
 
+        self.electrodes = Electrodes()
+        self.wm_chs = list()
+        self.gm_chs = list()
+        self.unknown_chs = list()
+        self.set_montage = False
+        self.parcellation = 'aparc+aseg.vep'
+        self.seg_name = OrderedDict({
+            'aparc+aseg': 'ASEG',
+            'aparc.DKTatlas+aseg': 'DKT',
+            'aparc.a2009s+aseg': 'Destrieux',
+            'aparc+aseg.vep': 'VEP',
+        })
+
+        # Signal window
         self._crop_win = None
         self._resample_win = None
         self._fir_filter_win = None
         self._iir_filter_win = None
-        self._tfr_morlet_win = None
 
+        # Analysis window
+        self._psd_multitaper_win = None
+        self._psd_welch_win = None
+        self._tfr_multitaper_win = None
+        self._tfr_morlet_win = None
         self._ei_win = None
         self._hfo_win = None
 
@@ -99,6 +127,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self._export_fif_action.triggered.connect(self._export_ieeg_fif)
         self._export_edf_action.triggered.connect(self._export_ieeg_edf)
         self._export_set_action.triggered.connect(self._export_ieeg_set)
+        self._export_coordinates_action.triggered.connect(self._export_coords)
 
         self._clear_mri_action.triggered.connect(self._clear_mri)
         self._clear_ct_action.triggered.connect(self._clear_ct)
@@ -108,6 +137,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self._setting_action.triggered.connect(self._write_info)
 
         # View Menu
+        self._ieeg_info_action.triggered.connect(self._view_ieeg_info)
         self._channels_info_action.triggered.connect(self._view_chs_info)
 
         # Localization Menu
@@ -121,11 +151,20 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self._crop_ieeg_action.triggered.connect(self._crop_ieeg)
         self._resample_ieeg_action.triggered.connect(self._resample_ieeg)
         self._fir_filter_action.triggered.connect(self._fir_filter_ieeg)
+        self._monopolar_action.triggered.connect(self._monopolar_reference)
         self._bipolar_action.triggered.connect(self._bipolar_ieeg)
+        self._average_action.triggered.connect(self._average_reference)
         self._drop_annotations_action.triggered.connect(self._drop_bad_from_annotations)
+        self._drop_white_matters_action.triggered.connect(self._drop_wm_chs)
+        self._drop_gray_matters_action.triggered.connect(self._drop_gm_chs)
+        self._drop_unknown_matters_action.triggered.connect(self._drop_unknown_chs)
 
         # Analysis Menu
         self._get_anatomy_action.triggered.connect(self._get_anatomy)
+
+        self._psd_multitaper_action.triggered.connect(self._psd_multitaper)
+        self._psd_welch_action.triggered.connect(self._psd_welch)
+        self._tfr_multitaper_action.triggered.connect(self._tfr_multitaper)
         self._tfr_morlet_action.triggered.connect(self._tfr_morlet)
         self._epileptogenic_index_action.triggered.connect(self._compute_ei)
         self._high_frequency_action.triggered.connect(self._compute_hfo)
@@ -152,7 +191,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self._ieeg_viz_stack.addWidget(fig)
 
     def _short_cut(self):
-        # QShortcut(QKeySequence(self.tr("Ctrl+O")), self, self._import_ieeg)
+        QShortcut(QKeySequence(self.tr("Ctrl+F")), self, self.showMaximized)
+        QShortcut(QKeySequence(self.tr("Ctrl+G")), self, self.showNormal)
         QShortcut(QKeySequence(self.tr("Ctrl+Q")), self, self.close)
 
     def _set_icon(self):
@@ -168,6 +208,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         ieeg_icon.addPixmap(QPixmap("icon/ieeg.svg"), QIcon.Normal, QIcon.Off)
         self._load_ieeg_action.setIcon(ieeg_icon)
 
+        coord_icon = QIcon()
+        coord_icon.addPixmap(QPixmap("icon/coordinate.svg"), QIcon.Normal, QIcon.Off)
+        self._load_coordinates_action.setIcon(coord_icon)
+
         crop_icon = QIcon()
         crop_icon.addPixmap(QPixmap("icon/scissor.svg"), QIcon.Normal, QIcon.Off)
         self._crop_ieeg_action.setIcon(crop_icon)
@@ -179,7 +223,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         filter_icon = QIcon()
         filter_icon.addPixmap(QPixmap("icon/filter.svg"), QIcon.Normal, QIcon.Off)
         self._fir_filter_action.setIcon(filter_icon)
-
 
         elec_icon = QIcon()
         elec_icon.addPixmap(QPixmap("icon/electrodes.svg"), QIcon.Normal, QIcon.Off)
@@ -244,6 +287,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def _get_ieeg(self, ieeg):
         ieeg = clean_chans(ieeg)
         logger.info(f'Cleaning channels finished!')
+        chs = reorder_chs(ieeg.ch_names)
+        if chs is not None:
+            ieeg.reorder_channels(chs)
         self.subject.set_ieeg(ieeg)
         self._update_fig()
         self.setWindowTitle(f'iEEG Tool      {self.ieeg_title}   {self.mri_title}   '
@@ -254,25 +300,41 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         fname, _ = QFileDialog.getOpenFileName(self, 'Coordinates', default_path,
                                                filter='Coordinates (*.txt *.tsv)')
         if len(fname):
-            try:
-                coords_df = pd.read_table(fname)
-                ch_names = coords_df['Channel'].to_list()
-                x = coords_df['x'].to_numpy()
-                y = coords_df['y'].to_numpy()
-                z = coords_df['z'].to_numpy()
-                ch_pos = pd.DataFrame()
-                ch_pos['Channel'] = ch_names
-                ch_df = get_chan_group(chans=ch_names, return_df=True)
-                group = ch_df['Group'].to_list()
-                ch_pos['Group'] = group
-                ch_pos['x'] = x
-                ch_pos['y'] = y
-                ch_pos['z'] = z
-                self.subject.set_electrodes(ch_pos)
-                logger.info("Importing channels' coordinates finished!")
-                QMessageBox.information(self, 'Coordinates', "Importing channels' coordinates finished!")
-            except:
-                QMessageBox.warning(self, 'Coordinates', 'Wrong file format!')
+            # try:
+            coords_df = pd.read_table(fname)
+            df = reorder_chs_df(coords_df)
+            if df is not None:
+                coords_df = df
+            ch_names = coords_df['Channel'].to_list()
+            x = coords_df['x'].to_numpy()
+            y = coords_df['y'].to_numpy()
+            z = coords_df['z'].to_numpy()
+
+            self.electrodes.set_ch_names(ch_names)
+            self.electrodes.set_ch_xyz([x, y, z])
+
+            if 'issue' in coords_df.columns and len(coords_df.columns) >= 6:
+                seg_name = coords_df.columns[-1]
+                if seg_name not in self.seg_name.values():
+                    self.parcellation = 'Custom'
+                    self.seg_name[self.parcellation] = 'Custom'
+                else:
+                    key_list = list(self.seg_name.keys())
+                    value_list = list(self.seg_name.values())
+
+                    position = value_list.index(seg_name)
+                    self.parcellation = key_list[position]
+                    print(self.parcellation)
+                    print(seg_name)
+                rois = coords_df[seg_name].to_list()
+                print(rois)
+                self.electrodes.set_issues(rois)
+                self.electrodes.set_anatomy(seg_name, rois)
+            self.set_montage = False
+            logger.info("Importing channels' coordinates finished!")
+            QMessageBox.information(self, 'Coordinates', "Importing channels' coordinates finished!")
+            # except:
+            #     QMessageBox.warning(self, 'Coordinates', 'Wrong file format!')
 
     def _export_ieeg_fif(self):
         ieeg_format = '.fif'
@@ -320,6 +382,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         else:
             logger.info('Stop exporting iEEG')
 
+    def _export_coords(self):
+        ch_info = self.subject.get_electrodes()
+        if ch_info is not None:
+            fname, _ = QFileDialog.getSaveFileName(self, 'Coordinates', default_path, filter="Coordinates (*.txt)")
+            if len(fname):
+                if 'txt' not in fname:
+                    fname += '.txt'
+                ch_info.to_csv(fname, index=None, sep='\t')
+
     def _clear_mri(self):
         self.subject.remove_t1()
         self.mri_title = ''
@@ -336,8 +407,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def _clear_coordinates(self):
         self.subject.remove_electrodes()
-        self.subject.remove_anatomy()
-        self.subject.remove_anatomy_electrodes()
+
+        self.electrodes = Electrodes()
+        self.wm_chs = list()
+        self.gm_chs = list()
+        self.unknown_chs = list()
+        self.set_montage = False
+        self.parcellation = 'aparc+aseg.vep'
+
         logger.info('clear Coordinates')
 
     def _clear_ieeg(self):
@@ -363,10 +440,31 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         logger.info(f"Update subject's info to {info}")
 
     # View Menu
+    def _view_ieeg_info(self):
+        ieeg = self.subject.get_ieeg()
+        if ieeg is not None:
+            info = dict()
+            if isinstance(ieeg, BaseRaw):
+                info['epoch_num'] = 1
+            info['ch_num'] = len(ieeg.ch_names)
+            try:
+                info['ch_group'] = len(get_chan_group(ieeg.ch_names))
+            except:
+                info['ch_group'] = len(ieeg.ch_names)
+            info['time'] = round(ieeg.times[-1])
+            info['sfreq'] = int(ieeg.info['sfreq'])
+            info['fmin'] = ieeg.info['highpass']
+            info['fmax'] = int(ieeg.info['lowpass'])
+            info['data_size'] = round(ieeg._size / (1024 ** 2), 2)
+            self._ieeg_info_win = iEEGInfoWin(info)
+            self._ieeg_info_win.show()
+        else:
+            QMessageBox.warning(self, 'iEEG', 'Please load iEEG first!')
+
     def _view_chs_info(self):
-        ch_pos = self.subject.get_electrodes()
-        if ch_pos is not None:
-            self._table_win = TableWin(ch_pos)
+        ch_info = self.electrodes.get_info()
+        if len(ch_info):
+            self._table_win = TableWin(ch_info)
             self._table_win.show()
 
     # Localization Menu
@@ -513,34 +611,36 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     # Signal Menu
     def _set_ieeg_montage(self):
-        ch_pos = self.subject.get_electrodes()
+        ch_info = self.electrodes.get_info()
         ieeg = self.subject.get_ieeg()
         subject = self.subject.get_name()
-        if ch_pos is None:
+        if not len(ch_info):
             QMessageBox.warning(self, 'Coordinates', 'Please load Coordinates first!')
             return
         if ieeg is None:
             QMessageBox.warning(self, 'iEEG', 'Please load iEEG first!')
             return
-        if subject is None:
-            QMessageBox.warning(self, 'Subject', "Please set Subject's name first!")
-            return
-        ch_names = ch_pos['Channel'].to_list()
-        xyz = ch_pos[['x', 'y', 'z']].to_numpy() / 1000.
-        ch_pos = dict(zip(ch_names, xyz))
 
-        # subj_trans = mne.coreg.estimate_head_mri_t(subject, self.subjects_dir)
-        # mri_to_head_trans = mne.transforms.invert_transform(subj_trans)
-        # print('Start transforming mri to head')
-        # print(mri_to_head_trans)
-        #
-        # montage = mne.channels.make_dig_montage(ch_pos, coord_frame='mri')
-        # montage.add_estimated_fiducials(subject, subjects_dir)
-        # montage.apply_trans(mri_to_head_trans)
-        # self.subject.get_ieeg()._montage(montage, on_missing='ignore')
+        ch_names = ch_info['Channel'].to_list()
 
-        ieeg = set_montage(ieeg, ch_pos, subject, self.subjects_dir)
-        self.subject.set_ieeg(ieeg)
+        if subject is not None:
+            xyz = ch_info[['x', 'y', 'z']].to_numpy() / 1000.
+            ch_pos = dict(zip(ch_names, xyz))
+            ieeg = set_montage(ieeg, ch_pos, subject, self.subjects_dir)
+            self.subject.set_ieeg(ieeg)
+        self.subject.set_electrodes(self.electrodes.get_info())
+
+        # This happens when loading coordinates with anatomy or
+        # getting the anatomy before setting the montage
+        if 'issue' in ch_info.columns:
+            issue = self.electrodes.get_issue()
+            ch_names = np.array(ch_names)
+            self.wm_chs = ch_names[issue == 'White']
+            self.unknown_chs = ch_names[issue == 'Unknown']
+            self.gm_chs = ch_names[issue == 'Gray']
+
+        self.set_montage = True
+
         logger.info('Set iEEG montage finished!')
         QMessageBox.information(self, 'Montage', 'Set iEEG montage finished!')
 
@@ -580,35 +680,146 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.subject.set_ieeg(ieeg)
         self._update_fig()
 
-    def _bipolar_ieeg(self):
-        ieeg = mne_bipolar(self.subject.get_ieeg())
+    def _monopolar_reference(self):
+        ieeg = self.subject.get_ieeg()
+        if ieeg is not None:
+            self._monopolar_win = ItemSelectionWin(ieeg.ch_names)
+            self._monopolar_win.SELECTION_SIGNAL.connect(self._get_monopolar_chans)
+            self._monopolar_win.show()
+
+    def _get_monopolar_chans(self, chans):
+        ieeg, _ = mne.set_eeg_reference(self.subject.get_ieeg(), ref_channels=chans, copy=False)
         self.subject.set_ieeg(ieeg)
         self._update_fig()
+        QMessageBox.warning(self, 'iEEG', f'Reference iEEG based on {chans} finished!')
+
+    def _bipolar_ieeg(self):
+        ieeg = self.subject.get_ieeg()
+        if ieeg is not None:
+            ieeg = mne_bipolar(ieeg)
+            self.subject.set_ieeg(ieeg)
+            self._update_fig()
+
+    def _average_reference(self):
+        ieeg = self.subject.get_ieeg()
+        if ieeg is not None:
+            ieeg, _ = mne.set_eeg_reference(ieeg, ref_channels='average', copy=False)
+            self.subject.set_ieeg(ieeg)
+            self._update_fig()
+            QMessageBox.warning(self, 'iEEG', f'Common average reference iEEG finished!')
 
     def _drop_bad_from_annotations(self):
-
         ieeg = self.subject.get_ieeg()
         if ieeg is not None:
             fig = self._ieeg_viz_stack.widget(0)
             fig.close() # You'll have to close the fig to get the bad channels
             bad = ieeg.info['bads']
             if len(bad):
-                self.subject.get_ieeg().drop_channels(bad)
-                self.subject.get_ieeg().info['bads'] = []
-                logger.info(f'Dropping bad channels: {bad} finished!')
-                self._update_fig()
-                QMessageBox.information(self, 'iEEG', f'Finish dropping bad channels {bad}')
+                try:
+                    self.subject.get_ieeg().drop_channels(bad)
+                    self.subject.get_ieeg().info['bads'] = []
+                    logger.info(f'Dropping bad channels: {bad} finished!')
+                    self._update_fig()
+                    QMessageBox.information(self, 'iEEG', f'Finish dropping bad channels {bad}')
+                except:
+                    logger.warning('No channels will be left, so dropping channels is stopped')
             else:
                 logger.info('No bad channels in annotations!')
                 self._update_fig()
                 QMessageBox.information(self, 'iEEG', 'No bad channels in annotations')
 
+    def _drop_wm_chs(self):
+        ieeg = self.subject.get_ieeg()
+        if ieeg is None:
+            return
+        if len(self.wm_chs):
+            logger.info(f'Drop white matter channels: {self.wm_chs}')
+            try:
+                ieeg.drop_channels(self.wm_chs)
+                self._update_fig()
+            except:
+                logger.warning('No channels will be left, so dropping channels is stopped')
+
+    def _drop_gm_chs(self):
+        ieeg = self.subject.get_ieeg()
+        if ieeg is None:
+            return
+        if len(self.gm_chs):
+            logger.info(f'Drop gray matter channels: {self.gm_chs}')
+            try:
+                ieeg.drop_channels(self.gm_chs)
+                self._update_fig()
+            except:
+                logger.warning('No channels will be left, so dropping channels is stopped')
+
+    def _drop_unknown_chs(self):
+        ieeg = self.subject.get_ieeg()
+        if ieeg is None:
+            return
+        if len(self.unknown_chs):
+            logger.info(f'Drop unknown channels: {self.unknown_chs}')
+            try:
+                ieeg.drop_channels(self.unknown_chs)
+                self._update_fig()
+            except:
+                logger.warning('No channels will be left, so dropping channels is stopped')
+
     # Analysis Menu
     def _get_anatomy(self):
-        ch_pos_df = self.subject.get_electrodes()
-        if ch_pos_df is None:
+        ch_info = self.electrodes.get_info()
+        if not len(ch_info):
             QMessageBox.warning(self, 'Coordinates', 'Please Load Coordinates first!')
             return
+        if 'x' not in ch_info.columns:
+            QMessageBox.warning(self, 'Coordinates', 'Please Load Coordinates first!')
+            return
+        xyz = ch_info[['x', 'y', 'z']].to_numpy()
+        ch_names = ch_info['Channel'].to_numpy()
+        if self.subject.get_name() is None:
+            QMessageBox.warning(self, 'Subject', 'Please Set Subject name first!')
+            return
+        else:
+            subject = self.subject.get_name()
+        if 'vep' in self.parcellation:
+            lut_path = 'utils/VepFreeSurferColorLut.txt'
+        else:
+            lut_path = 'utils/FreeSurferColorLUT.txt'
+        parcellation = self.parcellation
+        if parcellation not in self.seg_name.keys():
+            self.seg_name[parcellation] = 'Custom'
+        anatomical_labels = labelling_contacts_vol_fs_mgz(subject, self.subjects_dir, xyz,
+                                                          radius=2, file=parcellation,
+                                                          lut_path=lut_path)
+        self.electrodes.set_issues(anatomical_labels)
+        self.electrodes.set_anatomy(self.seg_name[parcellation], anatomical_labels)
+
+        # if set_montage is True, replace the electrodes info in subject
+        # This happens when loading coordinates without anatomy and setting the montage
+        # before getting the anatomy
+        if self.set_montage:
+            self.subject.set_electrodes(self.electrodes.get_info())
+            issue = self.electrodes.get_issue()
+            self.wm_chs = ch_names[issue == 'White']
+            self.unknown_chs = ch_names[issue == 'Unknown']
+            self.gm_chs = ch_names[issue == 'Gray']
+
+    def _psd_multitaper(self):
+        ieeg = self.subject.get_ieeg()
+        if ieeg is not None:
+            self._psd_multitaper_win = MultitaperPSDWin(ieeg)
+            self._psd_multitaper_win.show()
+
+    def _psd_welch(self):
+        ieeg = self.subject.get_ieeg()
+        if ieeg is not None:
+            self._psd_welch_win = WelchPSDWin(ieeg)
+            self._psd_welch_win.show()
+
+    def _tfr_multitaper(self):
+        ieeg = self.subject.get_ieeg()
+        if ieeg is not None:
+            self._tfr_multitaper_win = TFRMultitaperWin(ieeg)
+            self._tfr_multitaper_win.show()
 
     def _tfr_morlet(self):
         ieeg = self.subject.get_ieeg()
@@ -616,16 +827,45 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self._tfr_morlet_win = TFRMorletWin(ieeg)
             self._tfr_morlet_win.show()
 
+    def _transfer_anatomy(self, win_type):
+        windows = {
+            'EI': self._ei_win,
+            'HFO': self._hfo_win,
+        }
+        win = windows[win_type]
+        ch_info = self.subject.get_electrodes()
+        if ch_info is not None:
+            print('Transfer anatomy to sub window')
+            if 'issue' in ch_info.columns:
+                win.seg_name = self.seg_name[self.parcellation]
+                win.set_anatomy(ch_info)
+
     def _compute_ei(self):
         ieeg = self.subject.get_ieeg()
+        ch_info = self.subject.get_electrodes()
+        anatomy = None
+        seg_name = None
+        if ch_info is not None:
+            if 'issue' in ch_info.columns:
+                anatomy = ch_info[['Channel', 'x', 'y', 'z', self.seg_name[self.parcellation]]]
+                seg_name = self.seg_name[self.parcellation]
         if ieeg is not None:
-            self._ei_win = EIWin(ieeg)
+            self._ei_win = EIWin(ieeg, anatomy, seg_name)
+            self._ei_win.ANATOMY_SIGNAL.connect(self._transfer_anatomy)
             self._ei_win.show()
 
     def _compute_hfo(self):
         ieeg = self.subject.get_ieeg()
+        ch_info = self.subject.get_electrodes()
+        anatomy = None
+        seg_name = None
+        if ch_info is not None:
+            if 'issue' in ch_info.columns:
+                anatomy = ch_info[['Channel', 'x', 'y', 'z', self.seg_name[self.parcellation]]]
+                seg_name = self.seg_name[self.parcellation]
         if ieeg is not None:
-            self._hfo_win = RMSHFOWin(ieeg)
+            self._hfo_win = RMSHFOWin(ieeg, anatomy, seg_name)
+            self._hfo_win.ANATOMY_SIGNAL.connect(self._transfer_anatomy)
             self._hfo_win.show()
 
     # Toolbar
@@ -664,3 +904,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self._hfo_win.close()
         if self._tfr_morlet_win is not None:
             self._tfr_morlet_win.close()
+        if self._tfr_multitaper_win is not None:
+            self._tfr_multitaper_win.close()
+        if self._psd_multitaper_win is not None:
+            self._psd_multitaper_win.close()
+        if self._psd_welch_win is not None:
+            self._psd_welch_win.close()

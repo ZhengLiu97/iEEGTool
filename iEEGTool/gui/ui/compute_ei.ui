@@ -1133,6 +1133,7 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
+   <addaction name="_load_anatomy_action"/>
    <addaction name="_import_ei_action"/>
    <addaction name="_save_excel_action"/>
    <addaction name="separator"/>
@@ -1214,6 +1215,15 @@
    </property>
    <property name="text">
     <string>3D visualization</string>
+   </property>
+  </action>
+  <action name="_load_anatomy_action">
+   <property name="icon">
+    <iconset>
+     <normaloff>../../icon/coordinate.svg</normaloff>../../icon/coordinate.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Load Anatomy</string>
    </property>
   </action>
  </widget>

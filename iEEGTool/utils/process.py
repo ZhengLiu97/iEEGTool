@@ -68,7 +68,6 @@ def get_chan_group(chans, exclude=['E'], return_df=False):
     else:
         return chan_group
 
-
 def clean_chans(ieeg):
     import re
 
@@ -88,6 +87,8 @@ def clean_chans(ieeg):
         chan_num = re.findall("\d+", chan)
         if len(chan_num):
             chan_num = int(chan_num[0])
+        else:
+            chan_num = 1
         if ('DC' in chan) or ('EKG' in chan) or ('BP' in chan) \
                 or ('E' == chan) or chan[0].isdigit() or (chan_num > 16):
             drop_chans.append(chan)
@@ -164,15 +165,19 @@ def mne_bipolar(raw):
     return raw_bipolar
 
 def get_montage(ch_pos, subject, subjects_dir):
-    """Get montage given Surface RAS
+    """Get montage given Surface RAS (aka mri coordinates in MNE)
     Parameters
     ----------
     ch_pos : dict
-        Surface RAS (mri)
-    subject
-    subjects_dir
+        Dictionary of channel positions. Keys are channel names and values
+        are 3D coordinates - array of shape (3,) - in native digitizer space
+        in m.
+    subject ： str
+        the name of subject in FreeSurfer
+    subjects_dir : str
+        the directory of your FreeSurfer subject directory
 
-    Returns
+    Returns : head montage
     -------
 
     """
@@ -214,7 +219,6 @@ def ras_to_tkras(ras, subject, subjects_dir):
     print(ras_to_tkras)
     return apply_trans(ras_to_tkras, ras)
 
-
 def tkras_to_ras(tkras, subject, subjects_dir):
     if not isinstance(tkras, np.ndarray):
         tkras = np.asarray(tkras)
@@ -222,3 +226,7 @@ def tkras_to_ras(tkras, subject, subjects_dir):
     _, _, tkras_to_ras, _, _ = _read_mri_info(t1_path)
     print(tkras_to_ras)
     return apply_trans(tkras_to_ras, tkras)
+
+def make_epoch(ieeg):
+    return mne.make_fixed_length_epochs(ieeg, duration=ieeg.times[-1],
+                                        preload=True)

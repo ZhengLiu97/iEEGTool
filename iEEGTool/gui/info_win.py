@@ -5,9 +5,9 @@
 @Author  ：Barry
 @Date    ：2022/2/18 22:03
 """
-from PyQt5.QtWidgets import QMainWindow, QMessageBox, QDesktopWidget
+from PyQt5.QtWidgets import QMainWindow, QMessageBox, QDesktopWidget, QShortcut
 from PyQt5.QtCore import pyqtSignal
-from PyQt5.QtGui import QIntValidator
+from PyQt5.QtGui import QIntValidator, QKeySequence
 
 from gui.info_ui import Ui_MainWindow
 from utils.decorator import safe_event
@@ -21,6 +21,8 @@ class InfoWin(QMainWindow, Ui_MainWindow):
         self.setupUi(self)
         self._center_win()
         self.setWindowTitle('Subject Information')
+
+        QShortcut(QKeySequence(self.tr("Ctrl+Q")), self, self.close)
 
         subject_name = info['subject_name']
         age = info['age']

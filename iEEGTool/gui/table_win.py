@@ -31,7 +31,7 @@ class TableWin(QMainWindow, Ui_MainWindow):
     def _init_tables(self):
         table = self.table
         columns = list(table.columns)
-        index_len = table.index.stop
+        index_len = len(table.index)
         self._table_widget.setColumnCount(len(columns))
         self._table_widget.setRowCount(index_len)
         self._table_widget.horizontalHeader().setSectionResizeMode(QHeaderView.Interactive)

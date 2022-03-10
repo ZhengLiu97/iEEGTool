@@ -5,9 +5,13 @@
 @Author  ：Barry
 @Date    ：2021/11/16 22:24 
 """
+import numpy as np
+from vtk import (vtkImageData, vtkThreshold,
+                 vtkWindowedSincPolyDataFilter, vtkDiscreteFlyingEdges3D,
+                 vtkGeometryFilter, vtkDataSetAttributes, VTK_DOUBLE)
 
 
-def _marching_cubes(image, level, smooth=0):
+def marching_cubes(image, level, smooth=0):
     """
     Compute marching cubes on a 3D image.
     :param image: volumn
@@ -15,10 +19,6 @@ def _marching_cubes(image, level, smooth=0):
     :param smooth: smooth value
     :return:
     """
-    import numpy as np
-    from vtk import (vtkImageData, vtkThreshold,
-                     vtkWindowedSincPolyDataFilter, vtkDiscreteFlyingEdges3D,
-                     vtkGeometryFilter, vtkDataSetAttributes, VTK_DOUBLE)
     from vtk.util import numpy_support
     smooth = float(smooth)
     if not 0 <= smooth < 1:
