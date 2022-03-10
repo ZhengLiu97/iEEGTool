@@ -155,6 +155,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         # Analysis Menu
         self._get_anatomy_action.triggered.connect(self._get_anatomy)
+
+        self._psd_multitaper_action.triggered.connect(self._psd_multitaper)
+        self._psd_welch_action.triggered.connect(self._psd_welch)
         self._tfr_morlet_action.triggered.connect(self._tfr_morlet)
         self._epileptogenic_index_action.triggered.connect(self._compute_ei)
         self._high_frequency_action.triggered.connect(self._compute_hfo)
@@ -604,8 +607,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         ch_info = self.electrodes.get_info()
         ieeg = self.subject.get_ieeg()
         subject = self.subject.get_name()
-        print(subject)
-        if ch_info is None:
+        if not len(ch_info):
             QMessageBox.warning(self, 'Coordinates', 'Please load Coordinates first!')
             return
         if ieeg is None:
@@ -793,6 +795,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.wm_chs = ch_names[issue == 'White']
             self.unknown_chs = ch_names[issue == 'Unknown']
             self.gm_chs = ch_names[issue == 'Gray']
+
+    def _psd_multitaper(self):
+        ieeg = self.subject.get_ieeg()
+        if ieeg is not None:
+            pass
 
     def _tfr_morlet(self):
         ieeg = self.subject.get_ieeg()
