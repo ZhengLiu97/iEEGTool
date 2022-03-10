@@ -6,6 +6,7 @@
 @Date    ：2022/3/10 19:22 
 """
 import numpy as np
+import mplcursors
 from matplotlib import pyplot as plt
 from matplotlib import patheffects
 from functools import partial
@@ -35,29 +36,17 @@ def plot_psd(info, psds, freqs, dB, average, method):
         ax.fill_between(freqs, psds_mean - psds_std, psds_mean + psds_std,
                         color='k', alpha=.33)
     else:
-        texts = list()
-        idxs = [list(range(len(info.ch_names)))]
-        lines = list()
-
+        lines = []
         psds_mean = psds.mean(0)
-        for psd in psds_mean:
-            lines.append(ax.plot(freqs, psd, color='k')[0])
-
-        texts.append(ax.text(0, 0, '', zorder=3,
-                             verticalalignment='baseline',
-                             horizontalalignment='left',
-                             fontweight='bold', alpha=0,
-                             clip_on=True))
-
-        path_effects = [patheffects.withStroke(linewidth=2, foreground="w",
-                                               alpha=0.75)]
-        params = dict(axes=[ax], texts=texts, lines=lines,
-                      ch_names=info['ch_names'], idxs=idxs, need_draw=False,
-                      path_effects=path_effects)
-        plt.ion()
-        fig.canvas.mpl_connect('button_press_event',
-                               partial(butterfly_on_button_press,
-                                       params=params))
+        for idx, psd in enumerate(psds_mean):
+            line = ax.plot(freqs, psd, color='k', label=info.ch_names[idx])[0]
+            lines.append(line)
+        highlight_kwargs = dict(color="r")
+        # annotation_kwargs = dict(color='k', arrowprops=dict(arrowstyle="->", connectionstyle="arc3, rad=.2"))
+        mplcursors.cursor(lines, highlight=True, highlight_kwargs=highlight_kwargs, multiple=True).connect(
+            "add", lambda sel: sel.annotation.set(
+                text=sel.artist.get_label(),)
+        )
 
     ax.set(title=f'{method} PSD ({estimate.capitalize()})', xlabel='Frequency (Hz)',
            ylabel=ylabels)
