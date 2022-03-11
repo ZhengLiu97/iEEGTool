@@ -158,7 +158,6 @@
      <addaction name="_iir_filter_action"/>
     </widget>
     <addaction name="_set_montage_action"/>
-    <addaction name="_set_anatomy_action"/>
     <addaction name="separator"/>
     <addaction name="_crop_ieeg_action"/>
     <addaction name="_resample_ieeg_action"/>
@@ -183,9 +182,12 @@
     </widget>
     <widget class="QMenu" name="menuConnectivity">
      <property name="title">
-      <string>NxN Connectivity</string>
+      <string>Spectral Connectivity</string>
      </property>
+     <addaction name="_nx1_coherence_action"/>
      <addaction name="_nxn_coherence_action"/>
+     <addaction name="separator"/>
+     <addaction name="_nx1__coherency_action"/>
      <addaction name="_nxn_coherency_action"/>
     </widget>
     <widget class="QMenu" name="menuTime_Frequency_Response">
@@ -207,15 +209,16 @@
      <property name="title">
       <string>MNI Transform</string>
      </property>
-     <addaction name="_mni_fsaverage_action"/>
-     <addaction name="_mni152_action"/>
-    </widget>
-    <widget class="QMenu" name="menu1xN_Connectivity">
-     <property name="title">
-      <string>1xN Connectivity</string>
-     </property>
-     <addaction name="_1xn_coherence_action"/>
-     <addaction name="_1xn_coherency_action"/>
+     <widget class="QMenu" name="menuUnlinear">
+      <property name="title">
+       <string>Unlinear</string>
+      </property>
+      <addaction name="_mni_fsaverage_action"/>
+      <addaction name="_mni_152_action"/>
+      <addaction name="_custom_action_2"/>
+     </widget>
+     <addaction name="_linear_mni_action"/>
+     <addaction name="menuUnlinear"/>
     </widget>
     <addaction name="_get_anatomy_action"/>
     <addaction name="menuMNI_Transform"/>
@@ -225,7 +228,6 @@
     <addaction name="menuTime_Frequency_Response"/>
     <addaction name="separator"/>
     <addaction name="menuConnectivity"/>
-    <addaction name="menu1xN_Connectivity"/>
     <addaction name="separator"/>
     <addaction name="menuEpilepsy"/>
    </widget>
@@ -312,7 +314,7 @@
   </action>
   <action name="_nxn_coherence_action">
    <property name="text">
-    <string>Coherence</string>
+    <string>NxN Coherence</string>
    </property>
   </action>
   <action name="_resample_ieeg_action">
@@ -593,7 +595,7 @@
   </action>
   <action name="_nxn_coherency_action">
    <property name="text">
-    <string>Coherency</string>
+    <string>NxN Coherency</string>
    </property>
   </action>
   <action name="_github_action">
@@ -765,14 +767,9 @@
     <string>Compute VEP atlas</string>
    </property>
   </action>
-  <action name="_mni_fsaverage_action">
+  <action name="_linear_mni_action">
    <property name="text">
-    <string>MNI305 (fsaverage)</string>
-   </property>
-  </action>
-  <action name="_mni152_action">
-   <property name="text">
-    <string>MNI152</string>
+    <string>Linear</string>
    </property>
   </action>
   <action name="_custom_action">
@@ -793,6 +790,31 @@
   <action name="_drop_unknown_matters_action">
    <property name="text">
     <string>Unknown</string>
+   </property>
+  </action>
+  <action name="_mni_fsaverage_action">
+   <property name="text">
+    <string>MNI305 (fsaverage)</string>
+   </property>
+  </action>
+  <action name="_mni_152_action">
+   <property name="text">
+    <string>MNI152</string>
+   </property>
+  </action>
+  <action name="_custom_action_2">
+   <property name="text">
+    <string>Custom ...</string>
+   </property>
+  </action>
+  <action name="_nx1_coherence_action">
+   <property name="text">
+    <string>Nx1 Coherence</string>
+   </property>
+  </action>
+  <action name="_nx1__coherency_action">
+   <property name="text">
+    <string>Nx1 Coherency</string>
    </property>
   </action>
  </widget>

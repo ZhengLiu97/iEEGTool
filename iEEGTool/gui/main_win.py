@@ -46,11 +46,11 @@ from utils.subject import Subject
 from utils.thread import *
 from utils.log_config import create_logger
 from utils.decorator import safe_event
-from utils.locate_ieeg import locate_ieeg
 from utils.electrodes import Electrodes
 from utils.contacts import calc_ch_pos, reorder_chs, reorder_chs_df
 from utils.process import get_chan_group, set_montage, clean_chans, get_montage, mne_bipolar
 from utils.get_anatomical_labels import labelling_contacts_vol_fs_mgz
+from viz.locate_ieeg import locate_ieeg
 
 matplotlib.use('Qt5Agg')
 mne.viz.set_browser_backend('pyqtgraph')
