@@ -160,8 +160,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self._drop_unknown_matters_action.triggered.connect(self._drop_unknown_chs)
 
         # Analysis Menu
-        self._get_anatomy_action.triggered.connect(self._get_anatomy)
-
+        self._vep_action.triggered.connect(lambda: self._set_anatomy('aparc+aseg.vep'))
+        self._a2009s_action.triggered.connect(lambda: self._set_anatomy('aparc.a2009s+aseg'))
+        self._dkt_action.triggered.connect(lambda: self._set_anatomy('aparc.DKTatlas+aseg'))
+        self._aseg_action.triggered.connect(lambda: self._set_anatomy('aparc+aseg'))
         self._psd_multitaper_action.triggered.connect(self._psd_multitaper)
         self._psd_welch_action.triggered.connect(self._psd_welch)
         self._tfr_multitaper_action.triggered.connect(self._tfr_multitaper)
@@ -765,6 +767,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 logger.warning('No channels will be left, so dropping channels is stopped')
 
     # Analysis Menu
+    def _set_anatomy(self, parcellation):
+        print(f'Selected parcellation is {parcellation}')
+        self.parcellation = parcellation
+        self._get_anatomy()
+
     def _get_anatomy(self):
         ch_info = self.electrodes.get_info()
         if not len(ch_info):

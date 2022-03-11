@@ -180,7 +180,7 @@
               </font>
              </property>
              <property name="text">
-              <string>Frequency band (Hz)</string>
+              <string>Freq band (Hz)</string>
              </property>
             </widget>
            </item>

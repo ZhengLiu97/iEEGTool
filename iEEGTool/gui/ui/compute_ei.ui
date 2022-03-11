@@ -117,13 +117,13 @@
           <widget class="QLabel" name="_lfreq_lb">
            <property name="minimumSize">
             <size>
-             <width>100</width>
+             <width>105</width>
              <height>25</height>
             </size>
            </property>
            <property name="maximumSize">
             <size>
-             <width>100</width>
+             <width>200</width>
              <height>25</height>
             </size>
            </property>
@@ -137,7 +137,7 @@
             </font>
            </property>
            <property name="text">
-            <string>Low Freq (Hz)</string>
+            <string>Low Freqs (Hz)</string>
            </property>
           </widget>
          </item>
@@ -145,13 +145,13 @@
           <widget class="QLabel" name="_hfreq_lb">
            <property name="minimumSize">
             <size>
-             <width>100</width>
+             <width>105</width>
              <height>25</height>
             </size>
            </property>
            <property name="maximumSize">
             <size>
-             <width>100</width>
+             <width>200</width>
              <height>25</height>
             </size>
            </property>
@@ -165,7 +165,7 @@
             </font>
            </property>
            <property name="text">
-            <string>High Freq (Hz)</string>
+            <string>High Freqs (Hz)</string>
            </property>
           </widget>
          </item>

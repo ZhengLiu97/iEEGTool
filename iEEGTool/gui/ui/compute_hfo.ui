@@ -108,7 +108,7 @@
               </font>
              </property>
              <property name="text">
-              <string>Frequency Band (Hz)</string>
+              <string>Freq Band (Hz)</string>
              </property>
             </widget>
            </item>

@@ -6,20 +6,20 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>324</width>
-    <height>409</height>
+    <width>441</width>
+    <height>415</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
-    <width>324</width>
-    <height>409</height>
+    <width>441</width>
+    <height>415</height>
    </size>
   </property>
   <property name="maximumSize">
    <size>
-    <width>324</width>
-    <height>409</height>
+    <width>441</width>
+    <height>415</height>
    </size>
   </property>
   <property name="font">
@@ -57,7 +57,7 @@
         <number>8</number>
        </property>
        <item>
-        <layout class="QHBoxLayout" name="horizontalLayout">
+        <layout class="QHBoxLayout" name="horizontalLayout_5">
          <item>
           <widget class="QLabel" name="Multitaper_method_lb">
            <property name="minimumSize">
@@ -79,7 +79,7 @@
             </font>
            </property>
            <property name="text">
-            <string>Multitaper</string>
+            <string>Morlet</string>
            </property>
           </widget>
          </item>
@@ -134,7 +134,7 @@
         </widget>
        </item>
        <item>
-        <layout class="QHBoxLayout" name="horizontalLayout_2">
+        <layout class="QHBoxLayout" name="horizontalLayout">
          <property name="spacing">
           <number>35</number>
          </property>
@@ -197,30 +197,27 @@
             </widget>
            </item>
            <item>
-            <widget class="QLabel" name="_bandwidth_lb">
+            <widget class="QLabel" name="_denom_ncycles_lb">
              <property name="minimumSize">
               <size>
-               <width>100</width>
+               <width>0</width>
                <height>25</height>
               </size>
              </property>
              <property name="maximumSize">
               <size>
-               <width>200</width>
+               <width>16777215</width>
                <height>25</height>
               </size>
              </property>
              <property name="font">
               <font>
-               <family>Ubuntu</family>
-               <pointsize>9</pointsize>
                <weight>50</weight>
-               <italic>false</italic>
                <bold>false</bold>
               </font>
              </property>
              <property name="text">
-              <string>Bandwidth (Hz)</string>
+              <string>Denom of n_cycles for each freq</string>
              </property>
             </widget>
            </item>
@@ -250,6 +247,19 @@
             </widget>
            </item>
           </layout>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer_3">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
          </item>
          <item>
           <layout class="QVBoxLayout" name="verticalLayout">
@@ -310,7 +320,7 @@
             </widget>
            </item>
            <item>
-            <widget class="QLineEdit" name="_bandwidth_le">
+            <widget class="QLineEdit" name="_denom_ncycles_le">
              <property name="minimumSize">
               <size>
                <width>100</width>
@@ -333,7 +343,7 @@
               <enum>Qt::ClickFocus</enum>
              </property>
              <property name="text">
-              <string>8</string>
+              <string>2</string>
              </property>
              <property name="alignment">
               <set>Qt::AlignCenter</set>
@@ -390,20 +400,8 @@
        <string>Figure Configuration</string>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_4">
-       <property name="leftMargin">
-        <number>8</number>
-       </property>
-       <property name="topMargin">
-        <number>8</number>
-       </property>
-       <property name="rightMargin">
-        <number>8</number>
-       </property>
-       <property name="bottomMargin">
-        <number>8</number>
-       </property>
        <item>
-        <layout class="QHBoxLayout" name="horizontalLayout_3">
+        <layout class="QHBoxLayout" name="horizontalLayout_2">
          <property name="spacing">
           <number>35</number>
          </property>
@@ -413,62 +411,69 @@
             <number>15</number>
            </property>
            <item>
-            <widget class="QLabel" name="_average_chs_lb">
+            <widget class="QLabel" name="_mean_freqs_lb">
              <property name="minimumSize">
               <size>
-               <width>100</width>
+               <width>0</width>
                <height>25</height>
               </size>
              </property>
              <property name="maximumSize">
               <size>
-               <width>200</width>
+               <width>16777215</width>
                <height>25</height>
               </size>
              </property>
              <property name="font">
               <font>
-               <family>Ubuntu</family>
-               <pointsize>9</pointsize>
                <weight>50</weight>
-               <italic>false</italic>
                <bold>false</bold>
               </font>
              </property>
              <property name="text">
-              <string>Average channels</string>
+              <string>Mean across freqs</string>
              </property>
             </widget>
            </item>
            <item>
-            <widget class="QLabel" name="_log_trans_lb">
+            <widget class="QLabel" name="_mean_freq_band_lb">
              <property name="minimumSize">
               <size>
-               <width>100</width>
+               <width>0</width>
                <height>25</height>
               </size>
              </property>
              <property name="maximumSize">
               <size>
-               <width>200</width>
+               <width>16777215</width>
                <height>25</height>
               </size>
              </property>
              <property name="font">
               <font>
-               <family>Ubuntu</family>
-               <pointsize>9</pointsize>
                <weight>50</weight>
-               <italic>false</italic>
                <bold>false</bold>
               </font>
              </property>
              <property name="text">
-              <string>Log transformation</string>
+              <string>Freq band (Hz)</string>
              </property>
             </widget>
            </item>
           </layout>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
          </item>
          <item>
           <layout class="QVBoxLayout" name="verticalLayout_5">
@@ -476,7 +481,7 @@
             <number>15</number>
            </property>
            <item>
-            <widget class="QComboBox" name="_average_chs_cbx">
+            <widget class="QComboBox" name="_mean_freqs_cbx">
              <property name="minimumSize">
               <size>
                <width>100</width>
@@ -508,7 +513,7 @@
             </widget>
            </item>
            <item>
-            <widget class="QComboBox" name="_log_trans_cbx">
+            <widget class="QLineEdit" name="_mean_freq_band_le">
              <property name="minimumSize">
               <size>
                <width>100</width>
@@ -527,16 +532,12 @@
                <bold>false</bold>
               </font>
              </property>
-             <item>
-              <property name="text">
-               <string>True</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>False</string>
-              </property>
-             </item>
+             <property name="focusPolicy">
+              <enum>Qt::ClickFocus</enum>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
             </widget>
            </item>
           </layout>
@@ -560,7 +561,7 @@
          </property>
          <property name="maximumSize">
           <size>
-           <width>300</width>
+           <width>500</width>
            <height>25</height>
           </size>
          </property>

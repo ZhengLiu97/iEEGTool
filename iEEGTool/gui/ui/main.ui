@@ -220,11 +220,28 @@
      <addaction name="_linear_mni_action"/>
      <addaction name="menuUnlinear"/>
     </widget>
-    <addaction name="_get_anatomy_action"/>
+    <widget class="QMenu" name="menuCross_Spectral_Density">
+     <property name="title">
+      <string>Cross Spectral Density</string>
+     </property>
+     <addaction name="_csd_fourier_action"/>
+     <addaction name="_csd_morlet_action"/>
+     <addaction name="_csd_multitaper_action"/>
+    </widget>
+    <widget class="QMenu" name="menuAnatomical_labels">
+     <property name="title">
+      <string>Anatomical labels</string>
+     </property>
+     <addaction name="_vep_action"/>
+     <addaction name="_a2009s_action"/>
+     <addaction name="_dkt_action"/>
+     <addaction name="_aseg_action"/>
+    </widget>
+    <addaction name="menuAnatomical_labels"/>
     <addaction name="menuMNI_Transform"/>
     <addaction name="separator"/>
     <addaction name="menuPower_Spectral_Density"/>
-    <addaction name="actionCross_Spectral_Density"/>
+    <addaction name="menuCross_Spectral_Density"/>
     <addaction name="menuTime_Frequency_Response"/>
     <addaction name="separator"/>
     <addaction name="menuConnectivity"/>
@@ -493,11 +510,6 @@
     <string>Export Coordinates</string>
    </property>
   </action>
-  <action name="_get_anatomy_action">
-   <property name="text">
-    <string>Anatomical labels</string>
-   </property>
-  </action>
   <action name="_display_mri_action">
    <property name="text">
     <string>Display MRI</string>
@@ -561,11 +573,6 @@
   <action name="_ieeg_locator_action">
    <property name="text">
     <string>iEEG Locator</string>
-   </property>
-  </action>
-  <action name="actionCross_Spectral_Density">
-   <property name="text">
-    <string>Cross Spectral Density</string>
    </property>
   </action>
   <action name="_psd_multitaper_action">
@@ -815,6 +822,41 @@
   <action name="_nx1__coherency_action">
    <property name="text">
     <string>Nx1 Coherency</string>
+   </property>
+  </action>
+  <action name="_csd_fourier_action">
+   <property name="text">
+    <string>Fourier</string>
+   </property>
+  </action>
+  <action name="_csd_morlet_action">
+   <property name="text">
+    <string>Morlet</string>
+   </property>
+  </action>
+  <action name="_csd_multitaper_action">
+   <property name="text">
+    <string>Multitaper</string>
+   </property>
+  </action>
+  <action name="_a2009s_action">
+   <property name="text">
+    <string>aparc.a2009s+aseg</string>
+   </property>
+  </action>
+  <action name="_dkt_action">
+   <property name="text">
+    <string>aparc.DKTatlas+aseg</string>
+   </property>
+  </action>
+  <action name="_aseg_action">
+   <property name="text">
+    <string>aparc+aseg</string>
+   </property>
+  </action>
+  <action name="_vep_action">
+   <property name="text">
+    <string>aparc+aseg.vep</string>
    </property>
   </action>
  </widget>
