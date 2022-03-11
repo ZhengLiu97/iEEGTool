@@ -41,6 +41,8 @@ from gui.table_win import TableWin
 from gui.psd_multitaper_win import MultitaperPSDWin
 from gui.psd_welch_win import WelchPSDWin
 from gui.csd_fourier_win import FourierCSDWin
+from gui.csd_morlet_win import MorletCSDWin
+from gui.csd_multitaper_win import MultitaperCSDWin
 from gui.tfr_multitaper_win import TFRMultitaperWin
 from gui.tfr_morlet_win import TFRMorletWin
 from utils.subject import Subject
@@ -174,6 +176,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self._psd_multitaper_action.triggered.connect(self._psd_multitaper)
         self._psd_welch_action.triggered.connect(self._psd_welch)
         self._csd_fourier_action.triggered.connect(self._csd_fourier)
+        self._csd_morlet_action.triggered.connect(self._csd_morlet)
+        self._csd_multitaper_action.triggered.connect(self._csd_multitaper)
         self._tfr_multitaper_action.triggered.connect(self._tfr_multitaper)
         self._tfr_morlet_action.triggered.connect(self._tfr_morlet)
         self._epileptogenic_index_action.triggered.connect(self._compute_ei)
@@ -834,6 +838,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         ieeg = self.subject.get_ieeg()
         if ieeg is not None:
             self._csd_fourier_win = FourierCSDWin(ieeg)
+            self._csd_fourier_win.show()
+
+    def _csd_morlet(self):
+        ieeg = self.subject.get_ieeg()
+        if ieeg is not None:
+            self._csd_fourier_win = MorletCSDWin(ieeg)
+            self._csd_fourier_win.show()
+
+    def _csd_multitaper(self):
+        ieeg = self.subject.get_ieeg()
+        if ieeg is not None:
+            self._csd_fourier_win = MultitaperCSDWin(ieeg)
             self._csd_fourier_win.show()
 
     def _tfr_multitaper(self):

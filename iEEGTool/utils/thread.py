@@ -327,12 +327,12 @@ class ComputeCSD(QThread):
             self.CSD_SIGNAL.emit(csd)
         elif self.compute_method == 'morlet':
             print('Start Calculating Morlet CSD')
-            csd = csd_fourier(self.ieeg, **self.params)
+            csd = csd_morlet(self.ieeg, **self.params)
             print('Finish Calculating Morlet CSD')
             self.CSD_SIGNAL.emit(csd)
         elif self.compute_method == 'multitaper':
             print('Start Calculating Multitaper CSD')
-            csd = csd_fourier(self.ieeg, **self.params)
+            csd = csd_multitaper(self.ieeg, **self.params)
             print('Finish Calculating Multitaper CSD')
             self.CSD_SIGNAL.emit(csd)
 

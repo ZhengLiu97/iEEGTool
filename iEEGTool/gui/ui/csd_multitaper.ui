@@ -7,8 +7,20 @@
     <x>0</x>
     <y>0</y>
     <width>314</width>
-    <height>455</height>
+    <height>415</height>
    </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>314</width>
+    <height>415</height>
+   </size>
+  </property>
+  <property name="maximumSize">
+   <size>
+    <width>314</width>
+    <height>415</height>
+   </size>
   </property>
   <property name="font">
    <font>
@@ -67,7 +79,7 @@
             </font>
            </property>
            <property name="text">
-            <string>Fourier</string>
+            <string>Multitaper</string>
            </property>
           </widget>
          </item>
@@ -185,31 +197,6 @@
             </widget>
            </item>
            <item>
-            <widget class="QLabel" name="_n_fft_lb">
-             <property name="minimumSize">
-              <size>
-               <width>0</width>
-               <height>25</height>
-              </size>
-             </property>
-             <property name="maximumSize">
-              <size>
-               <width>16777215</width>
-               <height>25</height>
-              </size>
-             </property>
-             <property name="font">
-              <font>
-               <weight>50</weight>
-               <bold>false</bold>
-              </font>
-             </property>
-             <property name="text">
-              <string>FFT length</string>
-             </property>
-            </widget>
-           </item>
-           <item>
             <widget class="QLabel" name="_bandwidth_lb">
              <property name="minimumSize">
               <size>
@@ -265,19 +252,6 @@
           </layout>
          </item>
          <item>
-          <spacer name="horizontalSpacer">
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>40</width>
-             <height>20</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
-         <item>
           <layout class="QVBoxLayout" name="verticalLayout">
            <property name="spacing">
             <number>15</number>
@@ -329,37 +303,6 @@
              </property>
              <property name="focusPolicy">
               <enum>Qt::ClickFocus</enum>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignCenter</set>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QLineEdit" name="_fft_le">
-             <property name="minimumSize">
-              <size>
-               <width>100</width>
-               <height>25</height>
-              </size>
-             </property>
-             <property name="maximumSize">
-              <size>
-               <width>100</width>
-               <height>25</height>
-              </size>
-             </property>
-             <property name="font">
-              <font>
-               <weight>50</weight>
-               <bold>false</bold>
-              </font>
-             </property>
-             <property name="focusPolicy">
-              <enum>Qt::ClickFocus</enum>
-             </property>
-             <property name="text">
-              <string>256</string>
              </property>
              <property name="alignment">
               <set>Qt::AlignCenter</set>
