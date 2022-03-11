@@ -6,21 +6,34 @@
 @Date    ：2021/11/15 21:20
 """
 
-# 20 colors generated to be evenly spaced in a cube, worked better than
-# matplotlib color cycle
-_mne_unipue_color = [(0.1, 0.42, 0.43), (0.9, 0.34, 0.62), (0.47, 0.51, 0.3),
-                  (0.47, 0.55, 0.99), (0.79, 0.68, 0.06), (0.34, 0.74, 0.05),
-                  (0.58, 0.87, 0.13), (0.86, 0.98, 0.4), (0.92, 0.91, 0.66),
-                  (0.77, 0.38, 0.34), (0.9, 0.37, 0.1), (0.2, 0.62, 0.9),
-                  (0.22, 0.65, 0.64), (0.14, 0.94, 0.8), (0.34, 0.31, 0.68),
-                  (0.59, 0.28, 0.74), (0.46, 0.19, 0.94), (0.37, 0.93, 0.7),
-                  (0.56, 0.86, 0.55), (0.67, 0.69, 0.44)]
-
 color = ("#FF0000", "#EB8E55", "#CD853F", "#1E90FF", "#228B22",
          "#FF4500", "#0000FF", "#00FFFF", "#8A2BE2", "#D2691E",
          "#00FF00", "#4B0082", "#FF8C00", "#00C78C", "#ED9121",
          "#40E0D0", "#FF00FF", "#FFA500", "#8B4513", "#DC143C")
 
+brain_kwargs = dict(
+    name='brain', color='#ccccc', style='surface',
+    opacity=0.1, lighting=True, ambient=0.4225,
+    specular=0.3, specular_power=20, diffuse=0.5,
+    line_width=10., smooth_shading=True, reset_camera=True
+)
+
+contact_kwargs = dict(
+    style='surface', lighting=True, ambient=0.4225,
+    specular=0.3, specular_power=20, diffuse=0.5,
+    smooth_shading=True, line_width=1., reset_camera=False
+)
+
+text_kwargs = dict(
+    font_size=12, text_color='k', show_points=False,
+    shape_opacity=0.1, tolerance=0.1, reset_camera=False
+)
+
+roi_kwargs = dict(
+    style='surface', opacity=0.6, render_points_as_spheres=True,
+    lighting=True, smooth_shading=True, line_width=1.,
+    reset_camera=False
+)
 
 def _to_rgb(*args, name='color', alpha=False):
     from matplotlib.colors import colorConverter

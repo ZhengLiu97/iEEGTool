@@ -9,7 +9,7 @@
 if __name__ == '__main__':
     import sys
     from PyQt5.QtWidgets import QApplication
-    from PyQt5.QtCore import Qt, QCoreApplication
+    from PyQt5.QtCore import Qt
     from gui.main_win import MainWindow
 
     QApplication.setAttribute(Qt.AA_EnableHighDpiScaling)

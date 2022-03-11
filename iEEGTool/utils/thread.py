@@ -10,7 +10,7 @@ import numpy as np
 import pandas as pd
 
 from mne.io import BaseRaw
-from mne.time_frequency import AverageTFR
+from mne.time_frequency import AverageTFR, CrossSpectralDensity
 from PyQt5.QtCore import QThread, pyqtSignal
 
 from utils.log_config import create_logger
@@ -306,6 +306,35 @@ class ComputePSD(QThread):
             print('Finish Calculating Welch PSD')
             result = {'psd': psd, 'freqs': freqs}
             self.PSD_SIGNAL.emit(result)
+
+
+class ComputeCSD(QThread):
+    CSD_SIGNAL = pyqtSignal(CrossSpectralDensity)
+
+    def __init__(self, ieeg, compute_method, params):
+        super().__init__()
+        self.ieeg = ieeg
+        self.compute_method = compute_method
+        self.params = params
+
+    def run(self) -> None:
+        from mne.time_frequency import csd_fourier, csd_morlet, csd_multitaper
+        if self.compute_method == 'fourier':
+            print('Start Calculating Fourier CSD')
+            print(self.params)
+            csd = csd_fourier(self.ieeg, **self.params)
+            print('Finish Calculating Fourier CSD')
+            self.CSD_SIGNAL.emit(csd)
+        elif self.compute_method == 'morlet':
+            print('Start Calculating Morlet CSD')
+            csd = csd_fourier(self.ieeg, **self.params)
+            print('Finish Calculating Morlet CSD')
+            self.CSD_SIGNAL.emit(csd)
+        elif self.compute_method == 'multitaper':
+            print('Start Calculating Multitaper CSD')
+            csd = csd_fourier(self.ieeg, **self.params)
+            print('Finish Calculating Multitaper CSD')
+            self.CSD_SIGNAL.emit(csd)
 
 
 class ComputeTFR(QThread):
