@@ -368,7 +368,7 @@ class ComputeTFR(QThread):
 
 
 class ComputeSpectralConnectivity(QThread):
-    _COMPUTE_SIGNAL = pyqtSignal(object)
+    COMPUTE_SIGNAL = pyqtSignal(object)
 
     def __init__(self, epoch, params):
         super(ComputeSpectralConnectivity, self).__init__()
@@ -378,7 +378,7 @@ class ComputeSpectralConnectivity(QThread):
     def run(self) -> None:
         from mne_connectivity import spectral_connectivity_epochs
         con = spectral_connectivity_epochs(self._epoch, **self._params)
-        self._COMPUTE_SIGNAL.emit(con)
+        self.COMPUTE_SIGNAL.emit(con)
 
 
 class ComputeHFOsRate(QThread):
@@ -404,7 +404,6 @@ class ComputeEI(QThread):
 
     def run(self) -> None:
         from utils.epi_index import calc_EI
-
         print('Start calculating EI')
         ei_df, U_n = calc_EI(self.ieeg, **self._params)
         print('Finish calculating EI')

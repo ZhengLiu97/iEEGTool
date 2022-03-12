@@ -5,8 +5,8 @@
 @Author  ：Barry
 @Date    ：2022/1/20 1:52 
 """
-import numpy as np
 import re
+import numpy as np
 
 from collections import OrderedDict
 
@@ -120,25 +120,62 @@ def is_gm(roi_name):
     return True
 
 def reorder_chs(chs):
-    try:
-        ch_group = OrderedDict(get_chan_group(chs))
-        ch_names = []
-        items = list(ch_group.values())
-        for item in items:
-            ch_names += item
-        return ch_names
-    except:
-        print('This is not iEEG')
-        return None
+    """Reorder iEEG channels' name
+    Parameters
+    ----------
+    chs : list of str
+        The name of channels
+    Returns
+    -------
+    sorted_chs : list of str
+        The right sorted name of channels
+    Notes
+    -----
+    The code is from
+    https://stackoverflow.com/questions/71410219/reorder-a-list-with-elements-in-the-format-like-letternumber
+
+    Because of the file exporting software of iEEG, the channels' names are always in the
+    wrong order. The expected order is like
+    ['A1', 'A2', 'A3', 'A11', 'A12', 'B1', 'B12', 'EC1', 'EC21']
+    The code here considered both different length of channels' group and number using RegEx
+    The idea of this code is
+    1. separate the group and num
+    2. save num to the corresponding group
+    3. sort the group
+    4. sort the num in each group
+    5. merge the group+num
+
+    """
+    unsorted_chs_dict = {}
+    for ch in chs:
+        # Get the letter part and the number part
+        # The letter is the group of this contact
+        # and the number is the serial number of this contact
+        match = re.match(r"([A-Z]+)([0-9]+)", ch, re.I)
+        ch_group = match.groups()[0]
+        # have to int the num so it would be sorted by the rule of int
+        # not the rule of str
+        ch_num = int(match.groups()[1])
+        if ch_group in unsorted_chs_dict:
+            unsorted_chs_dict[ch_group].append(ch_num)
+        else:
+            unsorted_chs_dict[ch_group] = [ch_num]
+    # sort the channels' group, aka the keys of dict
+    ch_group_sorted_dict = OrderedDict(sorted(unsorted_chs_dict.items()))
+
+    sorted_chs = []
+    for group in ch_group_sorted_dict:
+        for ch_num in sorted(ch_group_sorted_dict[group]):
+            sorted_chs.append(f'{group}{ch_num}')
+    print(sorted_chs)
+
+    return sorted_chs
 
 def reorder_chs_df(df):
     ch_names = df['Channel'].to_list()
     try:
-        ch_group = OrderedDict(get_chan_group(ch_names))
-        ch_names = []
-        items = list(ch_group.values())
-        for item in items:
-            ch_names += item
+        ch_names = reorder_chs(ch_names)
+        print(ch_names)
         df['Channel'] = df['Channel'].astype('category').cat.set_categories(ch_names)
         return df.sort_values(by=['Channel'], ascending=True)
     except:

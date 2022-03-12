@@ -41,9 +41,12 @@ def key_press_event(params, event):
     plot_matrix = matrix[NUM, :, :]
     plot_matrix_df = pd.DataFrame(dict(zip(ch_names, plot_matrix)), index=ch_names).T
 
+    linewidth = 0 if matrix.shape[1] > 20 else 1
+
     fig.clf()
     # recreate an ax, do not use the former one
-    ax = sns.heatmap(plot_matrix_df, center=0., cmap='Blues', linewidth=1., square=True, **fig_params)
+    ax = sns.heatmap(plot_matrix_df, center=0., cmap='Blues', linewidth=linewidth,
+                     square=True, **fig_params)
     plt.setp(ax.get_xticklabels(), rotation=45, ha="right", rotation_mode="anchor")
     plt.setp(ax.get_yticklabels(), rotation=-0, ha="right", rotation_mode="anchor")
 
@@ -65,8 +68,10 @@ def create_heatmap(matrix, ch_names, mask, title='', title_item=None, unit=''):
 
     first_matrix_df = pd.DataFrame(dict(zip(ch_names, first_matrix)), index=ch_names).T
 
+    linewidth = 0 if matrix.shape[1] > 20 else 1
+
     sns.heatmap(first_matrix_df, center=0., mask=mask, cmap='Blues',
-                linewidth=1., square=True, ax=ax)
+                linewidth=linewidth, square=True, ax=ax)
     plt.setp(ax.get_xticklabels(), rotation=45, ha="right", rotation_mode="anchor")
     plt.setp(ax.get_yticklabels(), rotation=-0, ha="right", rotation_mode="anchor")
 
