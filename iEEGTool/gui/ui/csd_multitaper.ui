@@ -421,7 +421,7 @@
               </font>
              </property>
              <property name="text">
-              <string>Mean across freqs</string>
+              <string>Average across freqs</string>
              </property>
             </widget>
            </item>

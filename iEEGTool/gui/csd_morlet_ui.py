@@ -274,7 +274,7 @@ class Ui_MainWindow(object):
         self._denom_ncycles_le.setText(_translate("MainWindow", "2"))
         self._n_jobs_le.setText(_translate("MainWindow", "3"))
         self.groupBox_2.setTitle(_translate("MainWindow", "Figure Configuration"))
-        self._mean_freqs_lb.setText(_translate("MainWindow", "Mean across freqs"))
+        self._mean_freqs_lb.setText(_translate("MainWindow", "Average across freqs"))
         self._mean_freq_band_lb.setText(_translate("MainWindow", "Freq band (Hz)"))
         self._mean_freqs_cbx.setItemText(0, _translate("MainWindow", "True"))
         self._mean_freqs_cbx.setItemText(1, _translate("MainWindow", "False"))
