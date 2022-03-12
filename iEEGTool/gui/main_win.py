@@ -46,6 +46,7 @@ from gui.csd_multitaper_win import MultitaperCSDWin
 from gui.tfr_multitaper_win import TFRMultitaperWin
 from gui.tfr_morlet_win import TFRMorletWin
 from gui.NxN_connectivity_win import NxNSpectraConWin
+from gui.Nx1_connectivity_win import Nx1SpectraConWin
 from utils.subject import Subject
 from utils.thread import *
 from utils.log_config import create_logger
@@ -120,7 +121,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self._tfr_morlet_win = None
 
         self._nxn_con_win = None
-        self._1xn_con_win = None
+        self._nx1_con_win = None
 
         self._ei_win = None
         self._hfo_win = None
@@ -185,6 +186,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self._tfr_multitaper_action.triggered.connect(self._tfr_multitaper)
         self._tfr_morlet_action.triggered.connect(self._tfr_morlet)
         self._nxn_coherence_action.triggered.connect(lambda: self._nxn_con('coh'))
+        self._nx1_coherence_action.triggered.connect(lambda: self._nx1_con('coh'))
         self._epileptogenic_index_action.triggered.connect(self._compute_ei)
         self._high_frequency_action.triggered.connect(self._compute_hfo)
 
@@ -875,6 +877,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self._nxn_con_win = NxNSpectraConWin(ieeg, method)
             self._nxn_con_win.show()
 
+    def _nx1_con(self, method):
+        ieeg = self.subject.get_ieeg()
+        if ieeg is not None:
+            self._nx1_con_win = Nx1SpectraConWin(ieeg, method)
+            self._nx1_con_win.show()
+
     def _transfer_anatomy(self, win_type):
         windows = {
             'EI': self._ei_win,
@@ -966,5 +974,5 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self._csd_multitaper_win.close()
         if self._nxn_con_win is not None:
             self._nxn_con_win.close()
-        if self._1xn_con_win is not None:
-            self._1xn_con_win.close()
+        if self._nx1_con_win is not None:
+            self._nx1_con_win.close()

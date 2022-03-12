@@ -94,6 +94,39 @@ def create_heatmap(matrix, ch_names, mask, title='', title_item=None, unit=''):
     plt.show()
 
 
+def create_nx1_lineplot(ieeg_df, con_df, source):
+    if ieeg_df is not None:
+        fig, axes = plt.subplots(2, 1, dpi=150)
+        print(len(ieeg_df))
+        print(ieeg_df)
+        sns.lineplot(data=ieeg_df, ax=axes[0], linewidth=0.75, dashes=False)
+        axes[0].legend(loc='upper right')
+        axes[0].set_ylabel('Amplitude (mV)')
+        axes[0].set_xlabel('time (second)')
+        axes[0].set_title(f'Signal Source {source}')
+
+        sns.lineplot(data=con_df, ax=axes[1], palette=['royalblue'], linewidth=0.75, dashes=False)
+        axes[1].axhline(y=1, color='k', linestyle='dashed', linewidth=0.5)
+        axes[1].legend(loc='upper right')
+        axes[1].set(ylim=(0, 1.2))
+        axes[1].set_ylabel('Connectivity')
+        axes[1].set_xlabel('frequency (Hz)')
+        axes[1].set_title(f'Connectivity Source {source}')
+    else:
+        fig, ax = plt.subplots(1, 1, dpi=150)
+        sns.lineplot(data=con_df, ax=ax, linewidth=0.75, dashes=False)
+        ax.axhline(y=1, color='k', linestyle='dashed', linewidth=0.5)
+        ax.legend(loc='upper right')
+        ax.set(ylim=(0, 1.2))
+        ax.set_ylabel('Connectivity')
+        ax.set_xlabel('frequency (Hz)')
+        ax.set_title(f'Connectivity Source {source}')
+
+    fig.tight_layout()
+    plt.show()
+
+
+
 if __name__ == '__main__':
     matrix = np.random.random((5, 10, 10))
     ch_names = ['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']

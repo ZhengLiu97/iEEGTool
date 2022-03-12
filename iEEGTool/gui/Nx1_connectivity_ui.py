@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file '1xN_connectivity.ui'
+# Form implementation generated from reading ui file 'Nx1_connectivity.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.6
 #
@@ -15,6 +15,7 @@ class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(330, 453)
+        MainWindow.setMaximumSize(QtCore.QSize(330, 453))
         font = QtGui.QFont()
         font.setFamily("Ubuntu")
         MainWindow.setFont(font)
@@ -202,15 +203,15 @@ class Ui_MainWindow(object):
         self._select_chan_pair_lb.setFont(font)
         self._select_chan_pair_lb.setObjectName("_select_chan_pair_lb")
         self.horizontalLayout_2.addWidget(self._select_chan_pair_lb)
-        self._select_chan_pair_btn = QtWidgets.QToolButton(self.groupBox_2)
-        self._select_chan_pair_btn.setMinimumSize(QtCore.QSize(100, 25))
-        self._select_chan_pair_btn.setMaximumSize(QtCore.QSize(100, 25))
+        self._select_chan_pair_cbx = QtWidgets.QComboBox(self.groupBox_2)
+        self._select_chan_pair_cbx.setMinimumSize(QtCore.QSize(100, 25))
+        self._select_chan_pair_cbx.setMaximumSize(QtCore.QSize(100, 25))
         font = QtGui.QFont()
         font.setBold(False)
         font.setWeight(50)
-        self._select_chan_pair_btn.setFont(font)
-        self._select_chan_pair_btn.setObjectName("_select_chan_pair_btn")
-        self.horizontalLayout_2.addWidget(self._select_chan_pair_btn)
+        self._select_chan_pair_cbx.setFont(font)
+        self._select_chan_pair_cbx.setObjectName("_select_chan_pair_cbx")
+        self.horizontalLayout_2.addWidget(self._select_chan_pair_cbx)
         self.verticalLayout_4.addLayout(self.horizontalLayout_2)
         self.horizontalLayout_3 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_3.setSpacing(35)
@@ -244,15 +245,15 @@ class Ui_MainWindow(object):
         self.line_2.setFrameShadow(QtWidgets.QFrame.Sunken)
         self.line_2.setObjectName("line_2")
         self.verticalLayout_4.addWidget(self.line_2)
-        self._plot_heatmap_btn = QtWidgets.QPushButton(self.groupBox_2)
-        self._plot_heatmap_btn.setMinimumSize(QtCore.QSize(120, 25))
-        self._plot_heatmap_btn.setMaximumSize(QtCore.QSize(500, 25))
+        self._lineplot_btn = QtWidgets.QPushButton(self.groupBox_2)
+        self._lineplot_btn.setMinimumSize(QtCore.QSize(120, 25))
+        self._lineplot_btn.setMaximumSize(QtCore.QSize(500, 25))
         font = QtGui.QFont()
         font.setBold(False)
         font.setWeight(50)
-        self._plot_heatmap_btn.setFont(font)
-        self._plot_heatmap_btn.setObjectName("_plot_heatmap_btn")
-        self.verticalLayout_4.addWidget(self._plot_heatmap_btn)
+        self._lineplot_btn.setFont(font)
+        self._lineplot_btn.setObjectName("_lineplot_btn")
+        self.verticalLayout_4.addWidget(self._lineplot_btn)
         self.verticalLayout_5.addWidget(self.groupBox_2)
         MainWindow.setCentralWidget(self.centralwidget)
 
@@ -277,10 +278,9 @@ class Ui_MainWindow(object):
         self._n_jobs_le.setText(_translate("MainWindow", "3"))
         self.groupBox_2.setTitle(_translate("MainWindow", "2D Configuration"))
         self._select_chan_pair_lb.setText(_translate("MainWindow", "Channel pairs"))
-        self._select_chan_pair_btn.setText(_translate("MainWindow", "..."))
         self._freq_step_lb.setText(_translate("MainWindow", "Freq step"))
         self._freq_step_le.setText(_translate("MainWindow", "5"))
-        self._plot_heatmap_btn.setText(_translate("MainWindow", "LinePlot"))
+        self._lineplot_btn.setText(_translate("MainWindow", "LinePlot"))
 
 
 if __name__ == "__main__":

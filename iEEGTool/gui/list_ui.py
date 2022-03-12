@@ -52,6 +52,10 @@ class Ui_MainWindow(object):
         self._ok_btn.setText(_translate("MainWindow", "OK"))
         self._ok_btn.setShortcut(_translate("MainWindow", "Return"))
 
+    @property
+    def list_widget(self):
+        return self._list_widget
+
 
 if __name__ == "__main__":
     import sys

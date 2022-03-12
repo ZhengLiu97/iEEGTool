@@ -147,6 +147,7 @@ def reorder_chs(chs):
 
     """
     unsorted_chs_dict = {}
+    post_node = {}
     for ch in chs:
         # Get the letter part and the number part
         # The letter is the group of this contact
@@ -160,13 +161,20 @@ def reorder_chs(chs):
             unsorted_chs_dict[ch_group].append(ch_num)
         else:
             unsorted_chs_dict[ch_group] = [ch_num]
+        ch_len = len(ch_group) + len(str(ch_num))
+        if ch_len < len(ch):
+            # if bipolar, restore its post channel's name with -
+            post_node[f'{ch_group}{ch_num}'] = ch[ch_len:]
     # sort the channels' group, aka the keys of dict
     ch_group_sorted_dict = OrderedDict(sorted(unsorted_chs_dict.items()))
 
     sorted_chs = []
     for group in ch_group_sorted_dict:
         for ch_num in sorted(ch_group_sorted_dict[group]):
-            sorted_chs.append(f'{group}{ch_num}')
+            ch_name = f'{group}{ch_num}'
+            if ch_name in post_node:
+                ch_name += post_node[ch_name]
+            sorted_chs.append(ch_name)
     print(sorted_chs)
 
     return sorted_chs
