@@ -9,7 +9,6 @@ import mne
 import numpy as np
 
 from mne.io import BaseRaw
-from matplotlib import pyplot as plt
 from PyQt5.QtWidgets import QMainWindow, QDesktopWidget, QButtonGroup, QMessageBox
 
 from gui.psd_multitaper_ui import Ui_MainWindow
