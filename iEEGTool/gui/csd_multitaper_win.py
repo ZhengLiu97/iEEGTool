@@ -9,6 +9,7 @@ import mne
 import numpy as np
 
 from mne.io import BaseRaw
+from mne.time_frequency.multitaper import _compute_mt_params
 from PyQt5.QtWidgets import QMainWindow, QDesktopWidget, QButtonGroup, QMessageBox
 
 from gui.csd_multitaper_ui import Ui_MainWindow
@@ -66,11 +67,13 @@ class MultitaperCSDWin(QMainWindow, Ui_MainWindow):
 
     def _get_compute_chans(self, chans):
         self._compute_chans = chans
-        if len(chans) == 1:
-            self._fig_chans = chans
+        if len(chans) < 2:
+            QMessageBox.warning(self, 'CSD', 'As least two channels!')
+            return
         logger.info(f"Selected channels are {chans}")
 
     def get_compute_params(self):
+        keep = True
         freq_band = self._freq_band_le.text().split(' ')
         if len(freq_band) != 2:
             QMessageBox.warning(self, 'Frequency', 'Wrong frequency input!')
@@ -85,6 +88,20 @@ class MultitaperCSDWin(QMainWindow, Ui_MainWindow):
         self.compute_params['adaptive'] = True
         self.compute_params['low_bias'] = True
         self.compute_params['n_jobs'] = n_jobs
+
+        n_times = self.ieeg.get_data().shape[-1]
+        sfreq = self.ieeg.info['sfreq']
+        _, eigvals, _ = _compute_mt_params(n_times, sfreq, bandwidth, True, True)
+        question = f'Using multitaper spectrum estimation with {len(eigvals)} DPSS windows'
+        logger.info(question)
+        reply = QMessageBox.question(self, 'PSD',
+                                     question,
+                                     QMessageBox.Yes | QMessageBox.No,
+                                     QMessageBox.Yes)
+        if reply == QMessageBox.No:
+            keep = False
+
+        return keep
 
     def get_fig_params(self):
         mean = self._mean_freqs_cbx.currentText()
@@ -102,17 +119,17 @@ class MultitaperCSDWin(QMainWindow, Ui_MainWindow):
 
     def _compute_csd(self):
         logger.info('Start computing CSD using Multitaper')
-        self.get_compute_params()
+        keep = self.get_compute_params()
+        if keep:
+            logger.info(f'Compute CSD with \n {self.compute_params}')
 
-        logger.info(f'Compute CSD with \n {self.compute_params}')
-
-        ieeg = self.ieeg.copy()
-        if len(self._compute_chans):
-            ieeg.pick_channels(self._compute_chans)
-        self._compute_csd_multitaper_thread = ComputeCSD(ieeg, compute_method='multitaper',
-                                                      params=self.compute_params)
-        self._compute_csd_multitaper_thread.CSD_SIGNAL.connect(self._get_csd)
-        self._compute_csd_multitaper_thread.start()
+            ieeg = self.ieeg.copy()
+            if len(self._compute_chans):
+                ieeg.pick_channels(self._compute_chans)
+            self._compute_csd_multitaper_thread = ComputeCSD(ieeg, compute_method='multitaper',
+                                                          params=self.compute_params)
+            self._compute_csd_multitaper_thread.CSD_SIGNAL.connect(self._get_csd)
+            self._compute_csd_multitaper_thread.start()
 
     def _get_csd(self, csd):
         self.csd = csd

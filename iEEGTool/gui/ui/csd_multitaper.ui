@@ -333,7 +333,7 @@
               <enum>Qt::ClickFocus</enum>
              </property>
              <property name="text">
-              <string>8</string>
+              <string>1</string>
              </property>
              <property name="alignment">
               <set>Qt::AlignCenter</set>

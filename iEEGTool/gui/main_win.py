@@ -310,7 +310,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def _get_ieeg(self, ieeg):
         ieeg = clean_chans(ieeg)
         logger.info(f'Cleaning channels finished!')
-        chs = reorder_chs(ieeg.ch_names)
+        try:
+            chs = reorder_chs(ieeg.ch_names)
+        except:
+            chs = None
         if chs is not None:
             ieeg.reorder_channels(chs)
         self.subject.set_ieeg(ieeg)

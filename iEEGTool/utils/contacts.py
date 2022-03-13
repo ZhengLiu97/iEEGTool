@@ -148,7 +148,6 @@ def reorder_chs(chs):
     """
     unsorted_chs_dict = {}
     post_node = {}
-    quote = {}
     for ch in chs:
         # Get the letter part and the number part
         # The letter is the group of this contact

@@ -197,7 +197,7 @@
             </widget>
            </item>
            <item>
-            <widget class="QLabel" name="_bandwidth_lb">
+            <widget class="QLabel" name="_half_bandwidth_lb">
              <property name="minimumSize">
               <size>
                <width>100</width>
@@ -310,7 +310,7 @@
             </widget>
            </item>
            <item>
-            <widget class="QLineEdit" name="_bandwidth_le">
+            <widget class="QLineEdit" name="_half_bandwidth_le">
              <property name="minimumSize">
               <size>
                <width>100</width>
@@ -333,7 +333,7 @@
               <enum>Qt::ClickFocus</enum>
              </property>
              <property name="text">
-              <string>8</string>
+              <string>1</string>
              </property>
              <property name="alignment">
               <set>Qt::AlignCenter</set>

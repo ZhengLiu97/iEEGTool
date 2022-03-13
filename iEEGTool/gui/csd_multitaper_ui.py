@@ -250,7 +250,7 @@ class Ui_MainWindow(object):
         self._bandwidth_lb.setText(_translate("MainWindow", "Bandwidth (Hz)"))
         self._n_jobs_lb.setText(_translate("MainWindow", "Number of jobs"))
         self._select_chan_btn.setText(_translate("MainWindow", "..."))
-        self._bandwidth_le.setText(_translate("MainWindow", "8"))
+        self._bandwidth_le.setText(_translate("MainWindow", "1"))
         self._n_jobs_le.setText(_translate("MainWindow", "3"))
         self.groupBox_2.setTitle(_translate("MainWindow", "Figure Configuration"))
         self._mean_freqs_lb.setText(_translate("MainWindow", "Average across freqs"))

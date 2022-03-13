@@ -9,6 +9,7 @@ import mne
 import numpy as np
 
 from mne.io import BaseRaw
+from mne.time_frequency.multitaper import _compute_mt_params
 from PyQt5.QtWidgets import QMainWindow, QDesktopWidget, QButtonGroup, QMessageBox
 
 from gui.psd_multitaper_ui import Ui_MainWindow
@@ -39,7 +40,6 @@ class MultitaperPSDWin(QMainWindow, Ui_MainWindow):
         self._freq_band_le.setText(fmin + ' ' + fmax)
 
         self._compute_chans = ieeg.ch_names
-        self._fig_chans = None
 
         self.compute_params = {}
         self.fig_params = {}
@@ -67,18 +67,17 @@ class MultitaperPSDWin(QMainWindow, Ui_MainWindow):
 
     def _get_compute_chans(self, chans):
         self._compute_chans = chans
-        if len(chans) == 1:
-            self._fig_chans = chans
         logger.info(f"Selected channels are {chans}")
 
     def get_compute_params(self):
+        keep = True
         freq_band = self._freq_band_le.text().split(' ')
         if len(freq_band) != 2:
             QMessageBox.warning(self, 'Frequency', 'Wrong frequency input!')
             return
         fmin = float(freq_band[0])
         fmax = float(freq_band[1])
-        bandwidth = float(self._bandwidth_le.text())
+        bandwidth = float(self._half_bandwidth_le.text())
         n_jobs = int(self._n_jobs_le.text())
 
         self.compute_params['fmin'] = fmin
@@ -88,6 +87,20 @@ class MultitaperPSDWin(QMainWindow, Ui_MainWindow):
         self.compute_params['adaptive'] = True
         self.compute_params['low_bias'] = True
 
+        n_times = self.ieeg.get_data().shape[-1]
+        sfreq = self.ieeg.info['sfreq']
+        _, eigvals, _ = _compute_mt_params(n_times, sfreq, bandwidth, True, True)
+        question = f'Using multitaper spectrum estimation with {len(eigvals)} DPSS windows'
+        logger.info(question)
+        reply = QMessageBox.question(self, 'PSD',
+                                     question,
+                                     QMessageBox.Yes | QMessageBox.No,
+                                     QMessageBox.Yes)
+        if reply == QMessageBox.No:
+            keep = False
+
+        return keep
+
     def get_fig_params(self):
         average = self._average_chs_cbx.currentText()
         self.fig_params['average'] = True if average == 'True' else False
@@ -96,14 +109,15 @@ class MultitaperPSDWin(QMainWindow, Ui_MainWindow):
 
     def _compute_psd(self):
         logger.info('Start computing PSD using Multitaper')
-        self.get_compute_params()
-        ieeg = self.ieeg.copy()
-        if len(self._compute_chans):
-            ieeg.pick_channels(self._compute_chans)
-        self._compute_psd_multitaper_thread = ComputePSD(ieeg, compute_method='multitaper',
-                                                         params=self.compute_params)
-        self._compute_psd_multitaper_thread.PSD_SIGNAL.connect(self._get_psd)
-        self._compute_psd_multitaper_thread.start()
+        keep = self.get_compute_params()
+        if keep:
+            ieeg = self.ieeg.copy()
+            if len(self._compute_chans):
+                ieeg.pick_channels(self._compute_chans)
+            self._compute_psd_multitaper_thread = ComputePSD(ieeg, compute_method='multitaper',
+                                                             params=self.compute_params)
+            self._compute_psd_multitaper_thread.PSD_SIGNAL.connect(self._get_psd)
+            self._compute_psd_multitaper_thread.start()
 
     def _get_psd(self, result):
         QMessageBox.information(self, 'PSD', 'Finish computing PSD!')
