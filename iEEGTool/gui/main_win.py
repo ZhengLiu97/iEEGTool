@@ -199,8 +199,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def _update_fig(self):
         raw = self.subject.get_ieeg()
+        # fig = mne.viz.plot_raw(raw, remove_dc=True, color='k',
+        #                        n_channels=30, scalings='auto', show=False)
         fig = mne.viz.plot_raw(raw, remove_dc=True, color='k',
-                               n_channels=30, scalings='auto', show=False)
+                               n_channels=30, scalings={'seeg': 1e-4}, show=False)
         fig.mne.overview_bar.setVisible(False)
         fig.statusBar().setVisible(False)
         fig._set_annotations_visible(False)

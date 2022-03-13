@@ -13,6 +13,7 @@ from functools import partial
 from mne.viz.utils import _convert_psds
 
 
+
 def plot_psd(info, psds, freqs, dB, average, method):
     fig, ax = plt.subplots(figsize=(12, 6))
     estimate = 'power' if dB else 'amplitude'
@@ -31,7 +32,8 @@ def plot_psd(info, psds, freqs, dB, average, method):
             lines.append(line)
         highlight_kwargs = dict(color="r")
         # annotation_kwargs = dict(color='k', arrowprops=dict(arrowstyle="->", connectionstyle="arc3, rad=.2"))
-        mplcursors.cursor(lines, highlight=True, highlight_kwargs=highlight_kwargs, multiple=True).connect(
+        cursor = mplcursors.cursor(lines, highlight=True, highlight_kwargs=highlight_kwargs, multiple=True)
+        cursor.connect(
             "add", lambda sel: sel.annotation.set(
                 text=sel.artist.get_label(),)
         )
@@ -41,3 +43,4 @@ def plot_psd(info, psds, freqs, dB, average, method):
     plt.grid(color='k', linestyle=':', linewidth=0.5)
     fig.tight_layout()
     plt.show()
+
