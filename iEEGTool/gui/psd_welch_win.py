@@ -85,6 +85,8 @@ class WelchPSDWin(QMainWindow, Ui_MainWindow):
         window = self._win_type_cbx.currentText()
         n_jobs = int(self._n_jobs_le.text())
 
+        n_jobs = len(self._compute_chans) if len(self._compute_chans) < n_jobs else n_jobs
+
         self.compute_params['fmin'] = fmin
         self.compute_params['fmax'] = fmax
         self.compute_params['n_fft'] = n_fft

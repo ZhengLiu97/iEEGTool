@@ -302,7 +302,6 @@ class ComputePSD(QThread):
             self.PSD_SIGNAL.emit(result)
         elif self.compute_method == 'welch':
             print('Start Calculating Welch PSD')
-            print(self.ieeg.get_data().shape)
             psd, freqs = psd_welch(self.ieeg, **self.params)
             print('Finish Calculating Welch PSD')
             result = {'psd': psd, 'freqs': freqs}
