@@ -190,6 +190,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self._epileptogenic_index_action.triggered.connect(self._compute_ei)
         self._high_frequency_action.triggered.connect(self._compute_hfo)
 
+        # Visualization Menu
+        self._freeview_action.triggered.connect(self._open_freeview)
+
         # Help Menu
         self._github_action.triggered.connect(self._open_github)
 
@@ -928,6 +931,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self._hfo_win = RMSHFOWin(ieeg, anatomy, seg_name)
             self._hfo_win.ANATOMY_SIGNAL.connect(self._transfer_anatomy)
             self._hfo_win.show()
+
+    # Visualization Menu
+    def _open_freeview(self):
+        if SYSTEM != 'Windows':
+            result = os.system('freeview')
+            if result:
+                QMessageBox.warning(self, 'FreeSurfer', 'Please install Freesurfer!')
 
     # Toolbar
     def _take_screenshot(self):
