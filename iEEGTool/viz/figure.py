@@ -126,7 +126,6 @@ def create_nx1_lineplot(ieeg_df, con_df, source):
     plt.show()
 
 
-
 if __name__ == '__main__':
     matrix = np.random.random((5, 10, 10))
     ch_names = ['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']

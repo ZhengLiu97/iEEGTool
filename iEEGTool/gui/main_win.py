@@ -52,7 +52,7 @@ from utils.thread import *
 from utils.log_config import create_logger
 from utils.decorator import safe_event
 from utils.electrodes import Electrodes
-from utils.contacts import calc_ch_pos, reorder_chs, reorder_chs_df
+from utils.contacts import calc_ch_pos, calc_bipolar_chs_pos, reorder_chs, reorder_chs_df
 from utils.process import get_chan_group, set_montage, clean_chans, get_montage, mne_bipolar
 from utils.get_anatomical_labels import labelling_contacts_vol_fs_mgz
 from viz.locate_ieeg import locate_ieeg
@@ -339,6 +339,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             y = coords_df['y'].to_numpy()
             z = coords_df['z'].to_numpy()
 
+            self.electrodes.clean()
             self.electrodes.set_ch_names(ch_names)
             self.electrodes.set_ch_xyz([x, y, z])
 
@@ -727,7 +728,34 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if ieeg is not None:
             ieeg = mne_bipolar(ieeg)
             self.subject.set_ieeg(ieeg)
-            self.subject.set_electrodes(None)
+            ch_info = self.subject.get_electrodes()
+            if ch_info is not None:
+                print('ch_info is not None')
+
+                ch_names = ch_info['Channel'].to_list()
+                xyz = ch_info[['x', 'y', 'z']].to_numpy()
+                ch_pos = dict(zip(ch_names, xyz))
+                bipolar_ch_pos = calc_bipolar_chs_pos(ch_pos)
+
+                ch_names = list(bipolar_ch_pos.keys())
+
+                bipolar_xyz = np.asarray(list(bipolar_ch_pos.values()))
+                x = bipolar_xyz[:, 0]
+                y = bipolar_xyz[:, 1]
+                z = bipolar_xyz[:, 2]
+
+                bipolar_ch_df = pd.DataFrame()
+                bipolar_ch_df['Channel'] = ch_names
+                bipolar_ch_df['x'] = x
+                bipolar_ch_df['y'] = y
+                bipolar_ch_df['z'] = z
+                self.subject.set_electrodes(bipolar_ch_df)
+                self.electrodes.clean()
+                self.electrodes.set_ch_names(ch_names)
+                self.electrodes.set_ch_xyz([x, y, z])
+                logger.info("Finish bipolar channels coordinates")
+            else:
+                self.subject.set_electrodes(None)
             self._update_fig()
 
     def _average_reference(self):

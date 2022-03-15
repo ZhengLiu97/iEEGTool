@@ -69,6 +69,9 @@ class Electrodes(object):
     def get_info(self):
         return self.electrodes_df
 
+    def clean(self):
+        self.electrodes_df = pd.DataFrame()
+
 
 class BrainRegions(object):
     def __init__(self):

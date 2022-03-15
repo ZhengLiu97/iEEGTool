@@ -61,6 +61,37 @@ def calc_ch_pos(tip, tail, ch_num, dist=3.5, extra_interval=None):
 
     return ch_pos
 
+def calc_bipolar_chs_pos(ch_pos):
+    """Calculate the bipolar channels' position based on the original coordinates
+    Parameters
+    ----------
+    ch_pos : dict
+        the coordinates of each contact
+
+    Returns
+    -------
+    bipolar_ch_pos : dict
+        the coordinates of the bipolar contacts
+
+    """
+    from utils.process import get_bipolar_pair
+
+    ch_names = list(ch_pos.keys())
+    bipolar_pairs = get_bipolar_pair(ch_names)
+    anode = []
+    cathode = []
+    for group in bipolar_pairs:
+        anode += bipolar_pairs[group][0]
+        cathode += bipolar_pairs[group][1]
+    bipolar_ch_pos = OrderedDict()
+    for index, _ in enumerate(anode):
+        anode_name = anode[index]
+        cathode_name = cathode[index]
+        ch_name = f'{anode_name}-{cathode_name}'
+        bipolar_ch_pos[ch_name] = np.round((ch_pos[anode_name] + ch_pos[cathode_name]) / 2, 3)
+
+    return bipolar_ch_pos
+
 def is_wm(roi_name):
     """Judge if roi is in white matter
 

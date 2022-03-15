@@ -15,7 +15,7 @@ from mne.viz.utils import _convert_psds
 
 
 def plot_psd(info, psds, freqs, dB, average, method):
-    fig, ax = plt.subplots(figsize=(12, 6))
+    fig, ax = plt.subplots(figsize=(6, 6))
     estimate = 'power' if dB else 'amplitude'
     ylabels = _convert_psds(psds, dB, estimate, 1000, 'mV', info.ch_names)
     if average:
@@ -43,4 +43,3 @@ def plot_psd(info, psds, freqs, dB, average, method):
     plt.grid(color='k', linestyle=':', linewidth=0.5)
     fig.tight_layout()
     plt.show()
-
