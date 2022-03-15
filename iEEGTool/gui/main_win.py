@@ -727,6 +727,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if ieeg is not None:
             ieeg = mne_bipolar(ieeg)
             self.subject.set_ieeg(ieeg)
+            self.subject.set_electrodes(None)
             self._update_fig()
 
     def _average_reference(self):
