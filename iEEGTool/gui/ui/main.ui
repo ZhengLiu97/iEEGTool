@@ -143,7 +143,7 @@
     </widget>
     <widget class="QMenu" name="menuDrop_bad">
      <property name="title">
-      <string>Drop bad</string>
+      <string>Drop channels</string>
      </property>
      <addaction name="_drop_annotations_action"/>
      <addaction name="_drop_white_matters_action"/>

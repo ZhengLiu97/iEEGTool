@@ -95,6 +95,32 @@ class PageHinkley(BaseDriftDetector):
             # print(self.threshold)
             self.in_concept_change = True
 
+
+def calc_psd_multitaper(ieeg, freqs, window=1, step=0.25):
+    fmin = freqs[0]
+    fmax = freqs[1]
+
+    start = 0
+    samples_per_seg = int(ieeg.info['sfreq'] * window)
+    step = samples_per_seg * step
+
+    data = ieeg.get_data()
+    sfreq = ieeg.info['sfreq']
+    ch_len = data.shape[0]
+    n_segs = int(data.shape[1] // step)
+    multitaper_psd = np.zeros((ch_len, int(fmax - fmin) + 1, n_segs))
+    print(multitaper_psd.shape)
+    for i in range(n_segs):
+        end = start + samples_per_seg
+        if end > data.shape[-1]:
+            return multitaper_psd, freqs
+        seg_data = data[:, start: end]
+        psd, freqs = mne.time_frequency.psd_array_multitaper(seg_data, sfreq=sfreq, fmin=fmin, fmax=fmax, adaptive=True,
+                                                             n_jobs=10, verbose='error')
+        multitaper_psd[:, :, i] = psd
+        start = int(start + step)
+    return multitaper_psd, freqs
+
 def calc_psd_welch(raw, freqs, window=1, step=0.25):
     """Calculating PSD using welch morlet
     Parameters
@@ -154,13 +180,15 @@ def calc_ER(raw, low=(4, 12), high=(12, 127), window=1, step=0.25):
     """
     lpsd, lfreqs = calc_psd_welch(raw, low, window, step)
     hpsd, hfreqs = calc_psd_welch(raw, high, window, step)
+    # lpsd, lfreqs = calc_psd_multitaper(raw, low, window, step)
+    # hpsd, hfreqs = calc_psd_multitaper(raw, high, window, step)
 
     lfreq_band = np.sum(lpsd, axis=1)
     hfreq_band = np.sum(hpsd, axis=1)
     print(f"lfreq_band shape {lfreq_band.shape}")
     print(f"hfreq_band shape {hfreq_band.shape}")
 
-    ER = hfreq_band / lfreq_band
+    ER =hfreq_band[:, :-3] / lfreq_band[:, :-3]
     return ER
 
 

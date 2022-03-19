@@ -454,7 +454,7 @@ class Ui_MainWindow(object):
         self.menuExport_SEEG.setTitle(_translate("MainWindow", "Export SEEG"))
         self.menuProcess.setTitle(_translate("MainWindow", "Signal"))
         self.menuReference.setTitle(_translate("MainWindow", "Reference"))
-        self.menuDrop_bad.setTitle(_translate("MainWindow", "Drop bad"))
+        self.menuDrop_bad.setTitle(_translate("MainWindow", "Drop channels"))
         self.menuFilter.setTitle(_translate("MainWindow", "Filter"))
         self.menuAnalysis.setTitle(_translate("MainWindow", "Analysis"))
         self.menuEpilepsy.setTitle(_translate("MainWindow", "Epilepsy"))

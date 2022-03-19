@@ -64,7 +64,7 @@ SYSTEM = platform.system()
 
 logger = create_logger(filename='iEEGTool.log')
 
-default_path = 'data'
+default_path = 'H:/SZ'
 freesurfer_path = 'data/freesurfer'
 
 
@@ -219,6 +219,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def _short_cut(self):
         QShortcut(QKeySequence(self.tr("Ctrl+F")), self, self.showMaximized)
         QShortcut(QKeySequence(self.tr("Ctrl+G")), self, self.showNormal)
+        QShortcut(QKeySequence(self.tr("Ctrl+S")), self, self._export_ieeg_fif)
         QShortcut(QKeySequence(self.tr("Ctrl+Q")), self, self.close)
 
     def _set_icon(self):
@@ -320,6 +321,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if chs is not None:
             ieeg.reorder_channels(chs)
         self.subject.set_ieeg(ieeg)
+        self.subject.set_electrodes(None)
         self._update_fig()
         self.setWindowTitle(f'iEEG Tool      {self.ieeg_title}   {self.mri_title}   '
                             f'{self.ct_title}')
@@ -330,6 +332,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                                                filter='Coordinates (*.txt *.tsv)')
         if len(fname):
             # try:
+            basename = os.path.basename(fname)
+            self.subject.set_name(basename[:basename.rfind('.txt')])
             coords_df = pd.read_table(fname)
             df = reorder_chs_df(coords_df)
             if df is not None:
@@ -413,7 +417,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             logger.info('Stop exporting iEEG')
 
     def _export_coords(self):
-        ch_info = self.subject.get_electrodes()
+        ch_info = self.electrodes.get_info()
         if ch_info is not None:
             fname, _ = QFileDialog.getSaveFileName(self, 'Coordinates', default_path, filter="Coordinates (*.txt)")
             if len(fname):
@@ -466,8 +470,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def get_info(self, info):
         self._info = info
-        self.subject.set_name(info['subject_name'])
-        logger.info(f"Update subject's info to {info}")
+        if len(info['subject_name']):
+            self.subject.set_name(info['subject_name'])
+            logger.info(f"Update subject's info to {info}")
 
     # View Menu
     def _view_ieeg_info(self):
@@ -792,11 +797,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             return
         if len(self.wm_chs):
             logger.info(f'Drop white matter channels: {self.wm_chs}')
-            try:
-                ieeg.drop_channels(self.wm_chs)
+            # try:
+            drop_chans = list(set(self.wm_chs).intersection(set(ieeg.ch_names)))
+            if len(drop_chans):
+                ieeg.drop_channels(drop_chans)
                 self._update_fig()
-            except:
-                logger.warning('No channels will be left, so dropping channels is stopped')
+            # except:
+            #     logger.warning('No channels will be left, so dropping channels is stopped')
 
     def _drop_gm_chs(self):
         ieeg = self.subject.get_ieeg()
@@ -804,11 +811,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             return
         if len(self.gm_chs):
             logger.info(f'Drop gray matter channels: {self.gm_chs}')
-            try:
-                ieeg.drop_channels(self.gm_chs)
+            # try:
+            drop_chans = list(set(self.gm_chs).intersection(set(ieeg.ch_names)))
+            if len(drop_chans):
+                ieeg.drop_channels(drop_chans)
                 self._update_fig()
-            except:
-                logger.warning('No channels will be left, so dropping channels is stopped')
+            # except:
+            #     logger.warning('No channels will be left, so dropping channels is stopped')
 
     def _drop_unknown_chs(self):
         ieeg = self.subject.get_ieeg()
@@ -816,11 +825,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             return
         if len(self.unknown_chs):
             logger.info(f'Drop unknown channels: {self.unknown_chs}')
-            try:
-                ieeg.drop_channels(self.unknown_chs)
+            # try:
+            drop_chans = list(set(self.unknown_chs).intersection(set(ieeg.ch_names)))
+            if len(drop_chans):
+                ieeg.drop_channels(drop_chans)
                 self._update_fig()
-            except:
-                logger.warning('No channels will be left, so dropping channels is stopped')
+            # except:
+            #     logger.warning('No channels will be left, so dropping channels is stopped')
 
     # Analysis Menu
     def _set_anatomy(self, parcellation):

@@ -108,13 +108,19 @@ class EIWin(QMainWindow, Ui_MainWindow):
         self.ANATOMY_SIGNAL.emit('EI')
 
     def set_anatomy(self, anatomy):
+        self.ei_anatomy = pd.DataFrame()
         ch_names = self.ei['Channel'].to_list()
+
         anatomy = anatomy[anatomy['Channel'].isin(ch_names)]
-        # reorder the anatomy df using hfo_rate_df
+
+        ana_ch = anatomy['Channel'].to_list()
+        extra_chans = list(set(ch_names).difference(set(ana_ch)))
+        print(extra_chans)
+        # reorder the anatomy df using ei df
         anatomy['Channel'] = anatomy['Channel'].astype('category').cat.set_categories(ch_names)
         anatomy = anatomy.sort_values(by=['Channel'], ascending=True)
-
         self.ei[self.seg_name] = anatomy[self.seg_name].to_list()
+        print(ch_names)
         self.ei_anatomy['Channel'] = ch_names
         self.ei_anatomy['x'] = anatomy['x']
         self.ei_anatomy['y'] = anatomy['y']
@@ -164,7 +170,7 @@ class EIWin(QMainWindow, Ui_MainWindow):
             self.ei = df
 
         if self.anatomy is not None:
-            self.set_anatomy(self.anatomy)
+            self.set_anatomy(self.anatomy.copy())
 
         onset = self.ei.detection_time.min()
 
@@ -199,26 +205,43 @@ class EIWin(QMainWindow, Ui_MainWindow):
                     for ch in ch_names:
                         ch_color[ch] = 'g'
 
-                fig, ax = plt.subplots(2, 1, figsize=(20, 8), sharex=True)
-                sns.barplot(data=self.ei, x='Channel', y='norm_ER', ci=None, palette=ch_color, ax=ax[0])
-                plt.setp(ax[1].get_xticklabels(), rotation=45, ha="right", rotation_mode="anchor")
-                ax[0].set_title('Energy Ratio')
+                # fig, ax = plt.subplots(2, 1, figsize=(20, 8), sharex=True)
+                # sns.barplot(data=self.ei, x='Channel', y='norm_ER', ci=None, palette=ch_color, ax=ax[0])
+                # plt.setp(ax[1].get_xticklabels(), rotation=45, ha="right", rotation_mode="anchor")
+                # ax[0].set_title('Energy Ratio')
+                #
+                # sns.barplot(data=self.ei, x='Channel', y='norm_EI', ci=None, palette=ch_color, ax=ax[1])
+                # ax[1].hlines(min_ei, xmin=-.5, xmax=len(ch_names), colors='r', linestyles='--')
+                # ax[1].hlines(1., xmin=-.5, xmax=len(ch_names), colors='r', linestyles='--')
+                # ax[1].set_xlim(-.5, len(ch_names))
+                # ax[1].set_ylim(0, 1.2)
+                # plt.setp(ax[0].get_xticklabels(), rotation=45, ha="right", rotation_mode="anchor")
+                #
+                # for index, p in enumerate(ax[1].patches):
+                #     _x = p.get_x() + p.get_width() / 2
+                #     _y = p.get_y() + p.get_height() + 0.01
+                #     ei = round(self.ei.iloc[index].norm_EI, 3)
+                #     if ei > 0.3:
+                #         ax[1].text(_x, _y, ei, ha="center")
+                #
+                # ax[1].set_title('Epileptogenicity Index')
 
-                sns.barplot(data=self.ei, x='Channel', y='norm_EI', ci=None, palette=ch_color, ax=ax[1])
-                ax[1].hlines(min_ei, xmin=-.5, xmax=len(ch_names), colors='r', linestyles='--')
-                ax[1].hlines(1., xmin=-.5, xmax=len(ch_names), colors='r', linestyles='--')
-                ax[1].set_xlim(-.5, len(ch_names))
-                ax[1].set_ylim(0, 1.2)
-                plt.setp(ax[0].get_xticklabels(), rotation=45, ha="right", rotation_mode="anchor")
+                fig, ax = plt.subplots(1, 1, figsize=(20, 4), sharex=True)
+                sns.barplot(data=self.ei, x='Channel', y='norm_EI', ci=None, palette=ch_color, ax=ax)
+                ax.hlines(min_ei, xmin=-.5, xmax=len(ch_names), colors='r', linestyles='--')
+                ax.hlines(1., xmin=-.5, xmax=len(ch_names), colors='r', linestyles='--')
+                ax.set_xlim(-.5, len(ch_names))
+                ax.set_ylim(0, 1.2)
+                plt.setp(ax.get_xticklabels(), rotation=45, ha="right", rotation_mode="anchor")
 
-                for index, p in enumerate(ax[1].patches):
+                for index, p in enumerate(ax.patches):
                     _x = p.get_x() + p.get_width() / 2
                     _y = p.get_y() + p.get_height() + 0.01
                     ei = round(self.ei.iloc[index].norm_EI, 3)
                     if ei > 0.3:
-                        ax[1].text(_x, _y, ei, ha="center")
+                        ax.text(_x, _y, ei, ha="center")
 
-                ax[1].set_title('Epileptogenicity Index')
+                ax.set_title('Epileptogenicity Index')
 
                 fig.tight_layout()
                 plt.show()

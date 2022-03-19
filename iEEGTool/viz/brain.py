@@ -43,10 +43,10 @@ class Brain(pv.Plotter):
         actors = self.renderer.actors
         [actors[name].SetVisibility(viz) for name in actors if name in hemi]
 
-    def set_brain_color(self, color):
+    def set_brain_color(self, brain_color):
         hemi = ['lh', 'rh']
         actors = self.renderer.actors
-        [actors[name].GetProperty().SetColor(color) for name in actors if name in hemi]
+        [actors[name].GetProperty().SetColor(brain_color) for name in actors if name in hemi]
 
     def add_chs(self, ch_names, ch_coords):
         spheres = create_chs_sphere(ch_coords)
@@ -65,15 +65,17 @@ class Brain(pv.Plotter):
             group_label_pos = ch_pos[ch_name] + 1
             self.add_point_labels(group_label_pos, [group], name=group, **text_kwargs)
 
-    def enable_group_label_viz(self, group, viz):
-        actors = self.renderer.actors
-        print(actors.keys())
-        [actors[name].SetVisibility(viz) for name in actors if name == f'{group}-labels']
-
     def enable_chs_viz(self, ch_names):
         ch_names = [f'{ch_name}_sphere' for ch_name in ch_names]
         actors = self.renderer.actors
         [actors[name].SetVisibility(viz) for name in actors if name in ch_names]
 
+    def enable_group_label_viz(self, group, viz):
+        actors = self.renderer.actors
+        print(actors.keys())
+        [actors[name].SetVisibility(viz) for name in actors if name == f'{group}-labels']
+
     def add_rois(self):
+        # compute all coords of the regions related in a dict
+        # then use the dict
         pass
