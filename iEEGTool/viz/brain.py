@@ -83,13 +83,11 @@ class Brain(QtInteractor):
             self.actors[group] = self.add_point_labels(group_label_pos, [group],
                                                        name=group, **text_kwargs)
 
-    def enable_chs_viz(self, ch_names):
+    def enable_chs_viz(self, ch_names, viz):
         [self.actors[name].SetVisibility(viz) for name in ch_names]
 
     def enable_group_label_viz(self, group, viz):
-        actors = self.renderer.actors
-        print(actors.keys())
-        [actors[name].SetVisibility(viz) for name in actors if name == f'{group}-labels']
+        [self.actors[name].SetVisibility(viz) for name in group]
 
     def add_rois(self):
         # compute all coords of the regions related in a dict

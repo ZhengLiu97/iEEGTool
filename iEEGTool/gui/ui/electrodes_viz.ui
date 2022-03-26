@@ -325,12 +325,7 @@
              </property>
              <item>
               <property name="text">
-               <string>Inside the brain</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>Outside the brain</string>
+               <string>All</string>
               </property>
              </item>
              <item>
