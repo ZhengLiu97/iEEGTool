@@ -16,6 +16,7 @@ from PyQt5.QtGui import QCloseEvent, QCursor
 from gui.electrodes_viz_ui import Ui_MainWindow
 from viz.surface import check_hemi
 from utils.process import get_chan_group
+from utils.contacts import is_lh
 
 
 class ElectrodesWin(QMainWindow, Ui_MainWindow):
@@ -27,10 +28,11 @@ class ElectrodesWin(QMainWindow, Ui_MainWindow):
         self._center_win()
         self.setWindowTitle('Electrodes Visualization')
 
-        self.ch_anatomy = None
+        self.ch_rois = None
         self.chs_wm = []
         self.chs_gm = []
         self.chs_unknown = []
+        self.group_hemi = {}
 
         self.subject = subject
         self.subjects_dir = subjects_dir
@@ -41,6 +43,7 @@ class ElectrodesWin(QMainWindow, Ui_MainWindow):
         self.ch_group = get_chan_group(self.ch_names)
         self._group_cbx.addItems(self.ch_group.keys())
         self.group_viz = {group: True for group in self.ch_group}
+        self.group_roi_viz = {group: False for group in self.ch_group}
         self.electrode_viz = {ch_name: True for ch_name in self.ch_names}
 
         if parcellation is not None:
@@ -48,8 +51,13 @@ class ElectrodesWin(QMainWindow, Ui_MainWindow):
             rois = ch_info[parcellation].to_list()
             self.rois_num = {roi: 0 for roi in rois} # to find if the roi need removing
             issues = ch_info['issue'].to_numpy()
-            self.ch_anatomy = dict(zip(self.ch_names, rois))
+            self.ch_rois = dict(zip(self.ch_names, rois))
 
+            for group in self.ch_group:
+                ch_name = self.ch_group[group][0]
+                roi = self.ch_rois[ch_name]
+                self.group_hemi[group] = 'lh' if is_lh(roi) else 'rh'
+            print(self.group_hemi)
             ch_names = np.array(self.ch_names)
             self.chs_wm = list(ch_names[issues == 'White'])
             self.chs_gm = list(ch_names[issues == 'Gray'])
@@ -113,8 +121,10 @@ class ElectrodesWin(QMainWindow, Ui_MainWindow):
         self._transparency_slider.valueChanged.connect(self._set_brain_transparency)
         self._hemi_cbx.currentTextChanged.connect(self._set_brain_hemi)
         self._electrodes_gp.clicked.connect(self._enable_chs)
+        self._elec_hemi_cbx.currentTextChanged.connect(self._set_chs_viz)
+        self._roi_cbx.stateChanged.connect(self._enable_rois_viz)
         self._group_cbx.currentTextChanged.connect(self._change_info)
-        self._select_cbx.currentTextChanged.connect(self._enable_chs_viz)
+        self._select_cbx.currentTextChanged.connect(self._set_chs_viz)
         self._display_cbx.stateChanged.connect(self._enable_chs_group_viz)
 
     def _enable_brain_viz(self):
@@ -137,12 +147,64 @@ class ElectrodesWin(QMainWindow, Ui_MainWindow):
         self._plotter.enable_chs_viz(self.ch_names, viz)
         self._plotter.enable_group_label_viz(self.ch_group, viz)
 
+    def _set_chs_viz(self):
+        nviz_chs = set()
+        hemi = check_hemi(self._elec_hemi_cbx.currentText())
+
+        matter = self._select_cbx.currentText()
+
+        viz_group = {group for group in self.group_viz if self.group_viz[group]}
+
+        # find all the group that shouldn't viz
+        nviz_group = {group for group in self.group_viz if not self.group_viz[group]}
+        if len(viz_group):
+            for group in viz_group:
+                if self.group_hemi[group] not in hemi:
+                    nviz_group.add(group)
+        # print(nviz_group)
+        if len(nviz_group):
+            for group in nviz_group:
+                nviz_chs = nviz_chs.union(set(self.ch_group[group]))
+        # print(nviz_chs)
+        viz_chs = set(self.ch_names) - nviz_chs
+        viz_group = set(self.ch_group.keys()) - nviz_group
+        # print(viz_chs)
+        # now we know all the group shouldn't viz and its ch_names
+        # then we find all the viz_chs not in the right matter
+        if matter == 'Gray matter':
+            for ch in viz_chs:
+                if ch not in self.chs_gm:
+                    nviz_chs.add(ch)
+                    print(ch)
+        elif matter == 'White matter':
+            for ch in viz_chs:
+                if ch not in self.chs_wm:
+                    nviz_chs.add(ch)
+        viz_chs = set(self.ch_names) - nviz_chs
+        # now we know all the chs should viz and nviz
+        # we update their state of viz
+        if len(viz_chs):
+            self._plotter.enable_chs_viz(viz_chs, True)
+            for ch in viz_chs:
+                self.electrode_viz[ch] = True
+        if len(nviz_chs):
+            self._plotter.enable_chs_viz(nviz_chs, False)
+            for ch in nviz_chs:
+                self.electrode_viz[ch] = False
+        self._plotter.enable_group_label_viz(viz_group, True)
+        self._plotter.enable_group_label_viz(nviz_group, False)
+
     def _enable_chs_group_viz(self):
-        nviz_chs = []
+        nviz_chs = set()
         viz = self._display_cbx.isChecked()
         group = self._group_cbx.currentText()
         condition = self._select_cbx.currentText()
+        hemi = list(check_hemi(self._elec_hemi_cbx.currentText()))
         if viz != self.group_viz[group]:
+            if self.group_hemi[group] not in hemi and viz:
+                self.group_viz[group] = viz
+                return
+
             ch_names = self.ch_group[group]
             if viz:
                 # if this group is not viz
@@ -151,12 +213,13 @@ class ElectrodesWin(QMainWindow, Ui_MainWindow):
                 # then find which chs need enabling
                 # according to the condition
                 if condition == 'Gray matter':
-                    [nviz_chs.append(ch_name) for ch_name in ch_names
+                    [nviz_chs.add(ch_name) for ch_name in ch_names
                                     if ch_name not in self.chs_gm]
                 elif condition == 'White matter':
-                    [nviz_chs.append(ch_name) for ch_name in ch_names
+                    [nviz_chs.add(ch_name) for ch_name in ch_names
                                     if ch_name not in self.chs_wm]
-                print(nviz_chs)
+            ch_names = set(ch_names) - nviz_chs
+            print(ch_names)
             self._plotter.enable_chs_viz(ch_names, viz)
             if len(nviz_chs):
                 nviz = not viz
@@ -207,9 +270,23 @@ class ElectrodesWin(QMainWindow, Ui_MainWindow):
         if len(viz_chs):
             self._plotter.enable_chs_viz(viz_chs, True)
 
+    def _enable_rois_viz(self):
+        viz = self._roi_cbx.isChecked()
+        group = self._group_cbx.currentText()
+        ch_names = self.ch_group[group]
+        rois = set()
+        for ch_name in ch_names:
+            rois.add(self.ch_rois[ch_name])
+        for roi in rois:
+            self.rois_num[roi] += 1
+        self.group_roi_viz[group] = viz
+        self._plotter.add_rois(rois)
+
     def _change_info(self):
         group = self._group_cbx.currentText()
         ch_names = self.ch_group[group]
+
+        self._roi_cbx.setChecked(self.group_roi_viz[group])
 
         info = self.ch_info_tb[self.ch_info_tb['Channel'].isin(ch_names)]
         self.add_items2table(info)

@@ -35,6 +35,7 @@ from gui.ieeg_info_win import iEEGInfoWin
 from gui.info_win import InfoWin
 from gui.list_win import ItemSelectionWin
 from gui.electrodes_viz_win import ElectrodesWin
+from gui.rois_viz_win import ROIsWin
 from gui.fir_filter_win import FIRFilterWin
 from gui.compute_ei_win import EIWin
 from gui.compute_hfo_win import RMSHFOWin
@@ -129,6 +130,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         # Visualization
         self._elec_viz_win = None
+        self._rois_viz_win = None
 
     def _center_win(self):
         qr = self.frameGeometry()
@@ -196,6 +198,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         # Visualization Menu
         self._electrodes_action.triggered.connect(self._electrodes_viz)
+        self._rois_action.triggered.connect(self._rois_viz)
         self._freeview_action.triggered.connect(self._open_freeview)
 
         # Help Menu
@@ -1005,6 +1008,32 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if close:
             self._elec_viz_win = None
 
+    def _rois_viz(self):
+
+        subject = self.subject.get_name()
+        ch_info = self.electrodes.get_info()
+        columns = list(ch_info.columns)
+        remove_columns = ['Channel', 'x', 'y', 'z']
+        for rm in remove_columns:
+            columns.remove(rm)
+        values = self.seg_name.values()
+        parcellation = None
+        for value in values:
+            if value in columns:
+                parcellation = value
+        if parcellation is None:
+            QMessageBox.warning(self, 'ROIs', 'Please get anatomy of electrodes first!')
+            return
+        ch_info = ch_info.rename(columns={parcellation: 'ROI'})
+        if subject is not None:
+            self._rois_viz_win = ROIsWin(subject, freesurfer_path, ch_info)
+            self._rois_viz_win.CLOSE_SIGNAL.connect(self._clean_roi_viz_win)
+            self._rois_viz_win.show()
+
+    def _clean_roi_viz_win(self, close):
+        if close:
+            self._rois_viz_win = None
+
     def _open_freeview(self):
         if SYSTEM != 'Windows':
             result = os.system('freeview')
@@ -1065,3 +1094,5 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self._nx1_con_win.close()
         if self._elec_viz_win is not None:
             self._elec_viz_win.close()
+        if self._rois_viz_win is not None:
+            self._rois_viz_win.close()
