@@ -102,7 +102,7 @@
               </font>
              </property>
              <property name="focusPolicy">
-              <enum>Qt::ClickFocus</enum>
+              <enum>Qt::StrongFocus</enum>
              </property>
              <property name="autoFillBackground">
               <bool>false</bool>
@@ -434,6 +434,11 @@
              <height>0</height>
             </size>
            </property>
+           <property name="font">
+            <font>
+             <pointsize>9</pointsize>
+            </font>
+           </property>
           </widget>
          </item>
         </layout>
@@ -442,7 +447,7 @@
      </layout>
     </item>
     <item>
-     <widget class="QtInteractor" name="_plotter">
+     <widget class="Brain" name="_plotter">
       <property name="minimumSize">
        <size>
         <width>800</width>
@@ -493,9 +498,9 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>QtInteractor</class>
+   <class>Brain</class>
    <extends>QOpenGLWidget</extends>
-   <header location="global">pyvistaqt</header>
+   <header>viz.brain</header>
   </customwidget>
  </customwidgets>
  <resources/>

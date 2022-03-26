@@ -9,6 +9,15 @@ import os.path as op
 import numpy as np
 import pyvista as pv
 
+
+def check_hemi(hemi):
+    if hemi == 'Both':
+        return ['lh', 'rh']
+    elif hemi == 'Left':
+        return 'lh'
+    else:
+        return 'rh'
+
 def inflated_offset(coords, subject, subjects_dir, hemi):
     from mne.transforms import apply_trans, invert_transform
     from mne._freesurfer import read_talxfm
@@ -36,6 +45,7 @@ def inflated_offset(coords, subject, subjects_dir, hemi):
 def read_fs_surface(subject, subjects_dir, hemi, surf='pial'):
     import nibabel as nib
 
+    print(f'Loading surface files from {subject}/{subjects_dir}/surf/{hemi}.{surf}')
     coords, faces = nib.freesurfer.read_geometry(op.join(subjects_dir, subject, 'surf', f'{hemi}.{surf}'))
 
     face_nums = np.ones(faces.shape[0]) * 3

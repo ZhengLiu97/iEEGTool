@@ -46,7 +46,7 @@ class Ui_MainWindow(object):
         font = QtGui.QFont()
         font.setFamily("Ubuntu")
         self._transparency_slider.setFont(font)
-        self._transparency_slider.setFocusPolicy(QtCore.Qt.ClickFocus)
+        self._transparency_slider.setFocusPolicy(QtCore.Qt.StrongFocus)
         self._transparency_slider.setAutoFillBackground(False)
         self._transparency_slider.setMaximum(100)
         self._transparency_slider.setSingleStep(10)
@@ -152,13 +152,16 @@ class Ui_MainWindow(object):
         self.verticalLayout_2.addLayout(self.horizontalLayout_4)
         self._info_table = QtWidgets.QTableWidget(self._electrodes_gp)
         self._info_table.setMinimumSize(QtCore.QSize(0, 0))
+        font = QtGui.QFont()
+        font.setPointSize(9)
+        self._info_table.setFont(font)
         self._info_table.setObjectName("_info_table")
         self._info_table.setColumnCount(0)
         self._info_table.setRowCount(0)
         self.verticalLayout_2.addWidget(self._info_table)
         self.verticalLayout_3.addWidget(self._electrodes_gp)
         self.horizontalLayout_7.addLayout(self.verticalLayout_3)
-        self._plotter = QtInteractor(self.centralwidget)
+        self._plotter = Brain(self.centralwidget)
         self._plotter.setMinimumSize(QtCore.QSize(800, 800))
         self._plotter.setObjectName("_plotter")
         self.horizontalLayout_7.addWidget(self._plotter)
@@ -211,7 +214,7 @@ class Ui_MainWindow(object):
         self.menuView.setTitle(_translate("MainWindow", "View"))
         self.actionScreenshot.setText(_translate("MainWindow", "Screenshot"))
         self._screenshot_action.setText(_translate("MainWindow", "Screenshot"))
-from pyvistaqt import QtInteractor
+from viz.brain import Brain
 
 
 if __name__ == "__main__":

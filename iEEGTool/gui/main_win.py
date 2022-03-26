@@ -34,6 +34,7 @@ from gui.crop_win import CropWin
 from gui.ieeg_info_win import iEEGInfoWin
 from gui.info_win import InfoWin
 from gui.list_win import ItemSelectionWin
+from gui.electrodes_viz_win import ElectrodesWin
 from gui.fir_filter_win import FIRFilterWin
 from gui.compute_ei_win import EIWin
 from gui.compute_hfo_win import RMSHFOWin
@@ -126,6 +127,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self._ei_win = None
         self._hfo_win = None
 
+        # Visualization
+        self._elec_viz_win = None
+
     def _center_win(self):
         qr = self.frameGeometry()
         cp = QDesktopWidget().availableGeometry().center()
@@ -191,6 +195,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self._high_frequency_action.triggered.connect(self._compute_hfo)
 
         # Visualization Menu
+        self._electrodes_action.triggered.connect(self._electrodes_viz)
         self._freeview_action.triggered.connect(self._open_freeview)
 
         # Help Menu
@@ -476,7 +481,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self._info = info
         if len(info['subject_name']):
             self.subject.set_name(info['subject_name'])
-            logger.info(f"Update subject's info to {info}")
+            print(f"Update subject's info to {info}")
 
     # View Menu
     def _view_ieeg_info(self):
@@ -979,6 +984,27 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self._hfo_win.show()
 
     # Visualization Menu
+    def _electrodes_viz(self):
+        subject = self.subject.get_name()
+        ch_info = self.electrodes.get_info()
+        columns = list(ch_info.columns)
+        remove_columns = ['Channel', 'x', 'y', 'z']
+        for rm in remove_columns:
+            columns.remove(rm)
+        values = self.seg_name.values()
+        parcellation = None
+        for value in values:
+            if value in columns:
+                parcellation = value
+        if subject is not None:
+            self._elec_viz_win = ElectrodesWin(subject, freesurfer_path, ch_info, parcellation)
+            self._elec_viz_win.CLOSE_SIGNAL.connect(self._clean_elec_viz_win)
+            self._elec_viz_win.show()
+
+    def _clean_elec_viz_win(self, close):
+        if close:
+            self._elec_viz_win = None
+
     def _open_freeview(self):
         if SYSTEM != 'Windows':
             result = os.system('freeview')
@@ -1037,3 +1063,5 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self._nxn_con_win.close()
         if self._nx1_con_win is not None:
             self._nx1_con_win.close()
+        if self._elec_viz_win is not None:
+            self._elec_viz_win.close()

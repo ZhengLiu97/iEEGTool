@@ -227,7 +227,7 @@ def reorder_chs_df(df):
     ch_names = df['Channel'].to_list()
     try:
         ch_names = reorder_chs(ch_names)
-        print(ch_names)
+        # print(ch_names)
         df['Channel'] = df['Channel'].astype('category').cat.set_categories(ch_names)
         return df.sort_values(by=['Channel'], ascending=True)
     except:
