@@ -5,6 +5,8 @@
 @Author  ：Barry
 @Date    ：2022/2/18 1:52 
 """
+import gc
+
 class Subject(object):
 
     def __init__(self, name=None):
@@ -64,10 +66,12 @@ class Subject(object):
         self._align_ct = None
 
     def remove_ieeg(self):
+        if self._ieeg is not None:
+            print('Delete data')
+            self._ieeg.close()
+            del self._ieeg
+            gc.collect()
         self._ieeg = None
 
     def remove_electrodes(self):
         self._electrodes = None
-
-
-a = Subject()

@@ -61,12 +61,14 @@ def calc_ch_pos(tip, tail, ch_num, dist=3.5, extra_interval=None):
 
     return ch_pos
 
-def calc_bipolar_chs_pos(ch_pos):
+def calc_bipolar_chs_pos(ch_pos, middle=False):
     """Calculate the bipolar channels' position based on the original coordinates
     Parameters
     ----------
     ch_pos : dict
         the coordinates of each contact
+
+    middle : bool
 
     Returns
     -------
@@ -88,7 +90,10 @@ def calc_bipolar_chs_pos(ch_pos):
         anode_name = anode[index]
         cathode_name = cathode[index]
         ch_name = f'{anode_name}-{cathode_name}'
-        bipolar_ch_pos[ch_name] = np.round((ch_pos[anode_name] + ch_pos[cathode_name]) / 2, 3)
+        if middle:
+            bipolar_ch_pos[ch_name] = np.round((ch_pos[anode_name] + ch_pos[cathode_name]) / 2, 3)
+        else:
+            bipolar_ch_pos[ch_name] = ch_pos[anode_name]
 
     return bipolar_ch_pos
 
@@ -214,7 +219,7 @@ def reorder_chs(chs):
             if ch_name in post_node:
                 ch_name += post_node[ch_name]
             sorted_chs.append(ch_name)
-    print(sorted_chs)
+    # print(sorted_chs)
 
     return sorted_chs
 

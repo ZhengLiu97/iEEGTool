@@ -13,7 +13,7 @@ import pandas as pd
 from collections import OrderedDict
 from PyQt5.QtWidgets import QMainWindow, QDesktopWidget, QMessageBox, QFileDialog
 from PyQt5.QtCore import pyqtSignal
-from PyQt5.QtGui import QIcon, QPixmap
+from PyQt5.QtGui import QIcon, QPixmap, QCloseEvent
 from matplotlib import pyplot as plt
 from mne_hfo import RMSDetector, events_to_annotations, compute_chs_hfo_rates
 
@@ -27,6 +27,8 @@ from utils.config import color
 from utils.contacts import reorder_chs_df
 
 logger = create_logger(filename='iEEGTool.log')
+
+save_path = 'H:\\SZ\\HFO'
 
 
 class RMSHFOWin(QMainWindow, Ui_MainWindow):
@@ -193,10 +195,22 @@ class RMSHFOWin(QMainWindow, Ui_MainWindow):
 
     def _save_hfo(self):
         if (self.hfo_df is not None) and (self.hfo_rate_df is not None):
-            fname, _ = QFileDialog.getSaveFileName(self, 'Export HFO to Excel', 'data',
+            fname, _ = QFileDialog.getSaveFileName(self, 'Export HFO to Excel', save_path,
                                                      filter="HFO Rates (*.xlsx)")
             if len(fname):
-                self.hfo_df.to_excel(fname, index=None)
+                # self.hfo_df.to_excel(fname, index=None)
                 hfo_rate_fname = fname[:fname.rfind('.')] + '_hfo_rate.xlsx'
                 self.hfo_rate_df.to_excel(hfo_rate_fname, index=None)
                 QMessageBox.information(self, 'Save HFO Rates', 'Finish saving HFO Rates')
+
+    def closeEvent(self, a0: QCloseEvent) -> None:
+        try:
+            del self.ieeg
+            del self.anatomy
+            del self.seg_name
+            del self.chans
+            del self.params
+            del self.detector
+            del self.hfo_rate_df
+        except:
+            pass

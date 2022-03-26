@@ -115,12 +115,12 @@ class EIWin(QMainWindow, Ui_MainWindow):
 
         ana_ch = anatomy['Channel'].to_list()
         extra_chans = list(set(ch_names).difference(set(ana_ch)))
-        print(extra_chans)
+        print('Extra channels are: ', extra_chans)
         # reorder the anatomy df using ei df
         anatomy['Channel'] = anatomy['Channel'].astype('category').cat.set_categories(ch_names)
         anatomy = anatomy.sort_values(by=['Channel'], ascending=True)
         self.ei[self.seg_name] = anatomy[self.seg_name].to_list()
-        print(ch_names)
+        # print(ch_names)
         self.ei_anatomy['Channel'] = ch_names
         self.ei_anatomy['x'] = anatomy['x']
         self.ei_anatomy['y'] = anatomy['y']

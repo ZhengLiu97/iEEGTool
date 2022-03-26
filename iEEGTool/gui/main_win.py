@@ -58,7 +58,7 @@ from utils.get_anatomical_labels import labelling_contacts_vol_fs_mgz
 from viz.locate_ieeg import locate_ieeg
 
 matplotlib.use('Qt5Agg')
-mne.viz.set_browser_backend('pyqtgraph')
+mne.viz.set_browser_backend('qt')
 
 SYSTEM = platform.system()
 
@@ -313,6 +313,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def _get_ieeg(self, ieeg):
         ieeg = clean_chans(ieeg)
+        clean_chans(ieeg)
         logger.info(f'Cleaning channels finished!')
         try:
             chs = reorder_chs(ieeg.ch_names)
@@ -320,6 +321,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             chs = None
         if chs is not None:
             ieeg.reorder_channels(chs)
+        self.subject.remove_ieeg()
         self.subject.set_ieeg(ieeg)
         self.subject.set_electrodes(None)
         self._update_fig()
@@ -358,10 +360,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
                     position = value_list.index(seg_name)
                     self.parcellation = key_list[position]
-                    print(self.parcellation)
-                    print(seg_name)
+                    # print(self.parcellation)
+                    # print(seg_name)
                 rois = coords_df[seg_name].to_list()
-                print(rois)
+                # print(rois)
                 self.electrodes.set_issues(rois)
                 self.electrodes.set_anatomy(seg_name, rois)
             self.set_montage = False
@@ -448,6 +450,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.unknown_chs = list()
         self.set_montage = False
         self.parcellation = 'aparc+aseg.vep'
+
+        gc.collect()
 
         logger.info('clear Coordinates')
 
@@ -692,7 +696,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self._update_fig()
 
     def _resample_ieeg(self):
+        print('here1')
         if self.subject.get_ieeg() is not None:
+            print('here2')
             raw = self.subject.get_ieeg()
             self._resample_win = ResampleWin(raw)
             self._resample_win.RESAMPLE_SIGNAL.connect(self._get_resampled_ieeg)
