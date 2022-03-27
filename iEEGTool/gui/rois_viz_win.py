@@ -14,7 +14,7 @@ from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QCloseEvent, QCursor
 
 from gui.rois_viz_ui import Ui_MainWindow
-from viz.surface import check_hemi
+from viz.surface import check_hemi, create_roi_surface
 from utils.process import get_chan_group
 from utils.contacts import is_lh
 
@@ -22,7 +22,7 @@ from utils.contacts import is_lh
 class ROIsWin(QMainWindow, Ui_MainWindow):
     CLOSE_SIGNAL = pyqtSignal(bool)
 
-    def __init__(self, subject, subjects_dir, ch_info):
+    def __init__(self, subject, subjects_dir, ch_info, parcellation):
         super().__init__()
         self.setupUi(self)
         self._center_win()
@@ -31,6 +31,7 @@ class ROIsWin(QMainWindow, Ui_MainWindow):
         self.subject = subject
         self.subjects_dir = subjects_dir
         self.ch_info = ch_info
+        self.parcellation = parcellation
 
         stats = list(self.ch_info.groupby(by='ROI'))
         rois = [stat[0] for stat in stats]
@@ -43,10 +44,13 @@ class ROIsWin(QMainWindow, Ui_MainWindow):
         self._info_table.setMouseTracking(True)
         self._info_table.cellEntered.connect(self._show_tooltip)
 
+        self.roi_viz = {roi: False for roi in rois}
+
         self._init_brain(subject, subjects_dir)
+        self._init_rois(subject, subjects_dir, rois)
         self.add_items2table(self.roi_info)
 
-        # self._slot_connection()
+        self._slot_connection()
 
     def _center_win(self):
         qr = self.frameGeometry()
@@ -56,6 +60,11 @@ class ROIsWin(QMainWindow, Ui_MainWindow):
 
     def _init_brain(self, subject, subjects_dir):
         self._plotter.add_brain(subject, subjects_dir, ['lh', 'rh'], 'pial', 0.1)
+
+    def _init_rois(self, subject, subjects_dir, rois):
+        self._plotter.add_rois(subject, subjects_dir, rois, self.parcellation)
+        for roi in rois:
+            self._plotter.enable_rois_viz(roi, False)
 
     def add_items2table(self, ch_info):
         columns = list(ch_info.columns)
@@ -79,6 +88,33 @@ class ROIsWin(QMainWindow, Ui_MainWindow):
         self._info_table.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self._info_table.setColumnWidth(0, 220)
         self._info_table.horizontalHeader().setStretchLastSection(True)
+
+    def _slot_connection(self):
+        self._brain_gp.clicked.connect(self._enable_brain_viz)
+        self._transparency_slider.valueChanged.connect(self._set_brain_transparency)
+        self._hemi_cbx.currentTextChanged.connect(self._set_brain_hemi)
+
+        self._info_table.cellClicked.connect(self._enable_roi_viz)
+
+    def _enable_brain_viz(self):
+        viz = self._brain_gp.isChecked()
+        hemi = check_hemi(self._hemi_cbx.currentText())
+        self._plotter.enable_brain_viz(viz, hemi)
+
+    def _set_brain_transparency(self, transparency):
+        transparency = float(transparency) / 100
+        self._plotter.set_brain_opacity(transparency)
+
+    def _set_brain_hemi(self):
+        hemi = check_hemi(self._hemi_cbx.currentText())
+        self._plotter.set_brain_hemi(hemi)
+
+    def _enable_roi_viz(self, i, j):
+        if j == 0:
+            roi = self._info_table.item(i, j).text()
+            viz = bool(self._info_table.item(i, 0).checkState())
+            self.roi_viz[roi] = viz
+            self._plotter.enable_rois_viz(roi, viz)
 
     def _show_tooltip(self, i, j):
         item = self._info_table.item(i, j).text()

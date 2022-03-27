@@ -8,7 +8,7 @@
 import pyvista as pv
 from pyvistaqt import QtInteractor
 
-from viz.surface import read_fs_surface, create_chs_sphere
+from viz.surface import read_fs_surface, create_chs_sphere, create_roi_surface
 from utils.config import color, brain_kwargs, contact_kwargs, text_kwargs, roi_kwargs
 from utils.process import get_chan_group
 
@@ -29,6 +29,7 @@ class Brain(QtInteractor):
 
         self.brain_surface = {}
         self.actors = {}
+        self.legend_actors = {}
 
     def add_brain(self, subject, subjects_dir, hemi, surf, opacity):
         if isinstance(hemi, str):
@@ -89,7 +90,28 @@ class Brain(QtInteractor):
     def enable_group_label_viz(self, group, viz):
         [self.actors[name].SetVisibility(viz) for name in group]
 
-    def add_rois(self):
-        # compute all coords of the regions related in a dict
-        # then use the dict
-        pass
+    def enable_ch_name_viz(self, ch_name, coord, viz):
+        if f'{ch_name} name' in self.actors.keys():
+            self.actors[f'{ch_name} name'].SetVisibility(viz)
+            return
+        self.actors[f'{ch_name} name'] = self.add_point_labels(coord + 1, [ch_name],
+                                                               name=f'{ch_name} name',
+                                                               **text_kwargs)
+
+    def add_rois(self, subject, subjects_dir, rois, aseg):
+        roi_mesh_color = create_roi_surface(subject, subjects_dir, aseg, rois)
+        if roi_mesh_color is not None:
+            for idx, roi in enumerate(roi_mesh_color):
+                polydata = roi_mesh_color[roi][0]
+                roi_color = roi_mesh_color[roi][1]
+                self.actors[roi] = self.add_mesh(polydata, name=roi, label=roi,
+                                                 color=roi_color, **roi_kwargs)
+                # self.legend_actors[roi] = self.add_legend(labels=[[roi, roi_color]], name=roi+'legend')
+                # self.legend_actors[roi] = self.add_legend()
+
+    def enable_rois_viz(self, roi, viz):
+        self.actors[roi].SetVisibility(viz)
+        # if not viz:
+        #     self.remove_legend()
+        # else:
+        #     self.add_actor(self.legend_actors[roi])

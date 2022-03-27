@@ -8,6 +8,10 @@
 import os.path as op
 import numpy as np
 import pyvista as pv
+import nibabel as nib
+
+from mne.transforms import apply_trans
+from utils.marching_cubes import marching_cubes
 
 
 def check_hemi(hemi):
@@ -41,10 +45,7 @@ def inflated_offset(coords, subject, subjects_dir, hemi):
         coords -= (np.min(right_x_) + 0) * x_dir
     return coords
 
-
 def read_fs_surface(subject, subjects_dir, hemi, surf='pial'):
-    import nibabel as nib
-
     print(f'Loading surface files from {subject}/{subjects_dir}/surf/{hemi}.{surf}')
     coords, faces = nib.freesurfer.read_geometry(op.join(subjects_dir, subject, 'surf', f'{hemi}.{surf}'))
 
@@ -61,3 +62,41 @@ def create_chs_sphere(ch_coords):
         sphere.append(pv.Sphere(radius=1., center=ch_coord))
 
     return sphere
+
+def create_roi_surface(subject, subjects_dir, aseg, rois):
+    from utils.freesurfer import read_freesurfer_lut
+
+    aseg_file = aseg + '.mgz'
+    aseg_path = op.join(subjects_dir, subject, 'mri', aseg_file)
+
+    aseg_mgz = nib.load(aseg_path)
+    aseg_data = np.asarray(aseg_mgz.dataobj)
+    vox_mri_t = aseg_mgz.header.get_vox2ras_tkr()
+    print(f'load segment file from {aseg_file}')
+
+    if 'vep' not in aseg:
+        lut_name = 'utils/FreeSurferColorLUT.txt'
+    else:
+        lut_name = 'utils/VepFreeSurferColorLut.txt'
+
+    lut, fs_colors = read_freesurfer_lut(lut_name)
+    if isinstance(rois, str):
+        rois = [rois]
+    roi2color = {roi: fs_colors[roi][:-1] / 255 for roi in rois}
+    idx = [lut[roi] for roi in rois]
+
+    print('Running marching cubes')
+    if len(idx):
+        surfs, _ = marching_cubes(aseg_data, idx, smooth=0.85)
+
+        roi_mesh_color = {}
+        for roi, (verts, faces) in zip(rois, surfs):
+            roi_color = roi2color[roi]
+            verts = apply_trans(vox_mri_t, verts)
+            nums = np.ones(faces.shape[0]) * 3
+            faces = np.c_[nums, faces].astype(np.int32)
+            roi_mesh_color[roi] = [pv.PolyData(verts, faces), roi_color]
+        return roi_mesh_color
+    else:
+        return None
+

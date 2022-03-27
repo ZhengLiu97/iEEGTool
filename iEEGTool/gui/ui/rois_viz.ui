@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1300</width>
+    <width>1301</width>
     <height>900</height>
    </rect>
   </property>
@@ -25,7 +25,7 @@
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QHBoxLayout" name="horizontalLayout_7">
+   <layout class="QHBoxLayout" name="horizontalLayout_3">
     <item>
      <layout class="QVBoxLayout" name="verticalLayout_3">
       <item>
@@ -243,6 +243,16 @@
              </property>
             </widget>
            </item>
+           <item>
+            <widget class="QCheckBox" name="_chs_name_cbx">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+             <property name="text">
+              <string>Show Electrodes' name</string>
+             </property>
+            </widget>
+           </item>
           </layout>
          </item>
          <item>
@@ -285,7 +295,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1300</width>
+     <width>1301</width>
      <height>26</height>
     </rect>
    </property>

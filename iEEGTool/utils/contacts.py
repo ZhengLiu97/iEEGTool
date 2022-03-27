@@ -155,6 +155,25 @@ def is_gm(roi_name):
         return False
     return True
 
+def is_lh(roi_name):
+    """Judge if roi is in left hemi
+
+    Parameters
+    ----------
+    roi_name : list
+            ROI name
+    Returns
+    -------
+    bool
+
+    """
+    hemi_key = ['left', 'lh']
+    roi_name = roi_name.lower()
+    for key in hemi_key:
+        if key in roi_name:
+            return True
+    return False
+
 def reorder_chs(chs):
     """Reorder iEEG channels' name
     Parameters

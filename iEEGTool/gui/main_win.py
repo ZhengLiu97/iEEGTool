@@ -995,12 +995,20 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         for rm in remove_columns:
             columns.remove(rm)
         values = self.seg_name.values()
-        parcellation = None
+        seg_name = None
         for value in values:
             if value in columns:
-                parcellation = value
+                seg_name = value
+
+                key_list = list(self.seg_name.keys())
+                value_list = list(self.seg_name.values())
+
+                position = value_list.index(seg_name)
+                self.parcellation = key_list[position]
+
         if subject is not None:
-            self._elec_viz_win = ElectrodesWin(subject, freesurfer_path, ch_info, parcellation)
+            self._elec_viz_win = ElectrodesWin(subject, freesurfer_path, ch_info, seg_name,
+                                               self.parcellation)
             self._elec_viz_win.CLOSE_SIGNAL.connect(self._clean_elec_viz_win)
             self._elec_viz_win.show()
 
@@ -1009,7 +1017,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self._elec_viz_win = None
 
     def _rois_viz(self):
-
         subject = self.subject.get_name()
         ch_info = self.electrodes.get_info()
         columns = list(ch_info.columns)
@@ -1017,16 +1024,23 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         for rm in remove_columns:
             columns.remove(rm)
         values = self.seg_name.values()
-        parcellation = None
+        seg_name = None
         for value in values:
             if value in columns:
-                parcellation = value
-        if parcellation is None:
+                seg_name = value
+        if seg_name is None:
             QMessageBox.warning(self, 'ROIs', 'Please get anatomy of electrodes first!')
             return
-        ch_info = ch_info.rename(columns={parcellation: 'ROI'})
+
+        key_list = list(self.seg_name.keys())
+        value_list = list(self.seg_name.values())
+
+        position = value_list.index(seg_name)
+        self.parcellation = key_list[position]
+
+        ch_info = ch_info.rename(columns={seg_name: 'ROI'})
         if subject is not None:
-            self._rois_viz_win = ROIsWin(subject, freesurfer_path, ch_info)
+            self._rois_viz_win = ROIsWin(subject, freesurfer_path, ch_info, self.parcellation)
             self._rois_viz_win.CLOSE_SIGNAL.connect(self._clean_roi_viz_win)
             self._rois_viz_win.show()
 

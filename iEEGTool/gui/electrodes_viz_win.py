@@ -16,13 +16,13 @@ from PyQt5.QtGui import QCloseEvent, QCursor
 from gui.electrodes_viz_ui import Ui_MainWindow
 from viz.surface import check_hemi
 from utils.process import get_chan_group
-from utils.contacts import is_lh
+from utils.contacts import is_lh, is_gm
 
 
 class ElectrodesWin(QMainWindow, Ui_MainWindow):
     CLOSE_SIGNAL = pyqtSignal(bool)
 
-    def __init__(self, subject, subjects_dir, ch_info, parcellation):
+    def __init__(self, subject, subjects_dir, ch_info, seg_name, parcellation):
         super().__init__()
         self.setupUi(self)
         self._center_win()
@@ -37,7 +37,10 @@ class ElectrodesWin(QMainWindow, Ui_MainWindow):
         self.subject = subject
         self.subjects_dir = subjects_dir
         self.ch_info = ch_info
+        self.seg_name = seg_name
         self.parcellation = parcellation
+
+        self.roi_viz_signal = True
 
         self.ch_names = ch_info['Channel'].to_list()
         self.ch_group = get_chan_group(self.ch_names)
@@ -46,12 +49,17 @@ class ElectrodesWin(QMainWindow, Ui_MainWindow):
         self.group_roi_viz = {group: False for group in self.ch_group}
         self.electrode_viz = {ch_name: True for ch_name in self.ch_names}
 
-        if parcellation is not None:
-            self.ch_info_tb = self.ch_info[['Channel', self.parcellation]]
-            rois = ch_info[parcellation].to_list()
-            self.rois_num = {roi: 0 for roi in rois} # to find if the roi need removing
+        coords = ch_info[['x', 'y', 'z']].to_numpy()
+        self.ch_pos = dict(zip(self.ch_names, coords))
+
+        if seg_name is not None:
+            self.ch_info_tb = self.ch_info[['Channel', seg_name]]
+            rois = ch_info[seg_name].to_list()
             issues = ch_info['issue'].to_numpy()
             self.ch_rois = dict(zip(self.ch_names, rois))
+
+            self._init_rois(subject, subjects_dir, set(rois), parcellation)
+            self.rois_num = {roi: 0 for roi in set(rois)}
 
             for group in self.ch_group:
                 ch_name = self.ch_group[group][0]
@@ -82,6 +90,11 @@ class ElectrodesWin(QMainWindow, Ui_MainWindow):
 
     def _init_brain(self, subject, subjects_dir):
         self._plotter.add_brain(subject, subjects_dir, ['lh', 'rh'], 'pial', 0.1)
+
+    def _init_rois(self, subject, subjects_dir, rois, aseg):
+        self._plotter.add_rois(subject, subjects_dir, rois, aseg)
+        for roi in rois:
+            self._plotter.enable_rois_viz(roi, False)
 
     def _init_ch_info(self):
         first_gp = list(self.ch_group.keys())[0]
@@ -122,10 +135,12 @@ class ElectrodesWin(QMainWindow, Ui_MainWindow):
         self._hemi_cbx.currentTextChanged.connect(self._set_brain_hemi)
         self._electrodes_gp.clicked.connect(self._enable_chs)
         self._elec_hemi_cbx.currentTextChanged.connect(self._set_chs_viz)
-        self._roi_cbx.stateChanged.connect(self._enable_rois_viz)
+        self._roi_cbx.clicked.connect(self._enable_rois_viz)
         self._group_cbx.currentTextChanged.connect(self._change_info)
         self._select_cbx.currentTextChanged.connect(self._set_chs_viz)
         self._display_cbx.stateChanged.connect(self._enable_chs_group_viz)
+
+        self._info_table.cellClicked.connect(self._enable_chs_name_viz)
 
     def _enable_brain_viz(self):
         viz = self._brain_gp.isChecked()
@@ -161,26 +176,25 @@ class ElectrodesWin(QMainWindow, Ui_MainWindow):
             for group in viz_group:
                 if self.group_hemi[group] not in hemi:
                     nviz_group.add(group)
-        # print(nviz_group)
         if len(nviz_group):
             for group in nviz_group:
                 nviz_chs = nviz_chs.union(set(self.ch_group[group]))
-        # print(nviz_chs)
         viz_chs = set(self.ch_names) - nviz_chs
         viz_group = set(self.ch_group.keys()) - nviz_group
-        # print(viz_chs)
-        # now we know all the group shouldn't viz and its ch_names
+
+        # now we know all the group shouldn't viz and their chs
         # then we find all the viz_chs not in the right matter
         if matter == 'Gray matter':
             for ch in viz_chs:
                 if ch not in self.chs_gm:
                     nviz_chs.add(ch)
-                    print(ch)
         elif matter == 'White matter':
             for ch in viz_chs:
                 if ch not in self.chs_wm:
                     nviz_chs.add(ch)
+        # do it again
         viz_chs = set(self.ch_names) - nviz_chs
+
         # now we know all the chs should viz and nviz
         # we update their state of viz
         if len(viz_chs):
@@ -195,98 +209,49 @@ class ElectrodesWin(QMainWindow, Ui_MainWindow):
         self._plotter.enable_group_label_viz(nviz_group, False)
 
     def _enable_chs_group_viz(self):
-        nviz_chs = set()
         viz = self._display_cbx.isChecked()
         group = self._group_cbx.currentText()
-        condition = self._select_cbx.currentText()
-        hemi = list(check_hemi(self._elec_hemi_cbx.currentText()))
-        if viz != self.group_viz[group]:
-            if self.group_hemi[group] not in hemi and viz:
-                self.group_viz[group] = viz
-                return
+        self.group_viz[group] = viz
+        self._set_chs_viz()
 
-            ch_names = self.ch_group[group]
-            if viz:
-                # if this group is not viz
-                # then disable all of them
-                # if this group is gonna viz
-                # then find which chs need enabling
-                # according to the condition
-                if condition == 'Gray matter':
-                    [nviz_chs.add(ch_name) for ch_name in ch_names
-                                    if ch_name not in self.chs_gm]
-                elif condition == 'White matter':
-                    [nviz_chs.add(ch_name) for ch_name in ch_names
-                                    if ch_name not in self.chs_wm]
-            ch_names = set(ch_names) - nviz_chs
-            print(ch_names)
-            self._plotter.enable_chs_viz(ch_names, viz)
-            if len(nviz_chs):
-                nviz = not viz
-                self._plotter.enable_chs_viz(nviz_chs, nviz)
-            self._plotter.enable_group_label_viz(group, viz)
-            self.group_viz[group] = viz
-            for ch_name in ch_names:
-                self.electrode_viz[ch_name] = viz
-            if len(nviz_chs):
-                for ch_name in nviz_chs:
-                    self.electrode_viz[ch_name] = not viz
-
-    def _enable_chs_viz(self):
-        nviz_chs = []
-        viz_chs = []
-        condition = self._select_cbx.currentText()
-        if condition == 'All':
-            for group in self.group_viz:
-                if self.group_viz[group]:
-                    ch_names = self.ch_group[group]
-                    viz_chs += ch_names
-                    for ch_name in ch_names:
-                        self.electrode_viz[ch_name] = True
-        elif condition == 'Gray matter':
-            for group in self.group_viz:
-                if self.group_viz[group]:
-                    ch_names = self.ch_group[group]
-                    for ch_name in ch_names:
-                        if ch_name in self.chs_gm:
-                            self.electrode_viz[ch_name] = True
-                            viz_chs.append(ch_name)
-                        else:
-                            self.electrode_viz[ch_name] = False
-                            nviz_chs.append(ch_name)
-        else:
-            for group in self.group_viz:
-                if self.group_viz[group]:
-                    ch_names = self.ch_group[group]
-                    for ch_name in ch_names:
-                        if ch_name in self.chs_wm:
-                            self.electrode_viz[ch_name] = True
-                            viz_chs.append(ch_name)
-                        else:
-                            self.electrode_viz[ch_name] = False
-                            nviz_chs.append(ch_name)
-        if len(nviz_chs):
-            self._plotter.enable_chs_viz(nviz_chs, False)
-        if len(viz_chs):
-            self._plotter.enable_chs_viz(viz_chs, True)
+    def _enable_chs_name_viz(self, i, j):
+        if j == 0:
+            ch_name = self._info_table.item(i, j).text()
+            viz = bool(self._info_table.item(i, j).checkState())
+            coords = self.ch_pos[ch_name]
+            self._plotter.enable_ch_name_viz(ch_name, coords, viz)
 
     def _enable_rois_viz(self):
+        # if self.roi_viz_signal:
         viz = self._roi_cbx.isChecked()
         group = self._group_cbx.currentText()
         ch_names = self.ch_group[group]
-        rois = set()
-        for ch_name in ch_names:
-            rois.add(self.ch_rois[ch_name])
+        rois = self.ch_info[self.ch_info['Channel'].isin(ch_names)][self.seg_name].to_list()
+        rois = set(rois)
+        bad_rois = []
         for roi in rois:
-            self.rois_num[roi] += 1
+            if not is_gm(roi):
+                bad_rois.append(roi)
+        rois = rois - set(bad_rois)
         self.group_roi_viz[group] = viz
-        self._plotter.add_rois(rois)
+        for roi in rois:
+            if viz:
+                self.rois_num[roi] += 1
+                print(roi, self.rois_num[roi])
+                self._plotter.enable_rois_viz(roi, viz)
+            else:
+                self.rois_num[roi] -= 1
+                print(roi, self.rois_num[roi])
+                if self.rois_num[roi] == 0:
+                    self._plotter.enable_rois_viz(roi, viz)
 
     def _change_info(self):
         group = self._group_cbx.currentText()
         ch_names = self.ch_group[group]
 
-        self._roi_cbx.setChecked(self.group_roi_viz[group])
+        roi_viz = self._roi_cbx.isChecked()
+        if roi_viz != self.group_roi_viz[group]:
+            self._roi_cbx.setChecked(self.group_roi_viz[group])
 
         info = self.ch_info_tb[self.ch_info_tb['Channel'].isin(ch_names)]
         self.add_items2table(info)
