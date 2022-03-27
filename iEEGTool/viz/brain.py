@@ -80,6 +80,10 @@ class Brain(QtInteractor):
         for ch_name in ch_spheres:
             self.actors[ch_name] = self.add_mesh(ch_spheres[ch_name], name=ch_name,
                                                  color=ch_color[ch_name], **contact_kwargs)
+            self.actors[f'{ch_name} name'] = self.add_point_labels(ch_pos[ch_name] + 1, [ch_name],
+                                                                   name=f'{ch_name} name',
+                                                                   **text_kwargs)
+
         for group in ch_groups:
             ch_name = ch_groups[group][-1]
             group_label_pos = ch_pos[ch_name] + 1
@@ -92,13 +96,8 @@ class Brain(QtInteractor):
     def enable_group_label_viz(self, group, viz):
         [self.actors[name].SetVisibility(viz) for name in group]
 
-    def enable_ch_name_viz(self, ch_name, coord, viz):
-        if f'{ch_name} name' in self.actors.keys():
-            self.actors[f'{ch_name} name'].SetVisibility(viz)
-            return
-        self.actors[f'{ch_name} name'] = self.add_point_labels(coord + 1, [ch_name],
-                                                               name=f'{ch_name} name',
-                                                               **text_kwargs)
+    def enable_ch_name_viz(self, ch_names, viz):
+        [self.actors[f'{ch_name} name'].SetVisibility(viz) for ch_name in ch_names]
 
     def add_rois(self, subject, subjects_dir, rois, aseg):
         roi_mesh_color = create_roi_surface(subject, subjects_dir, aseg, rois)

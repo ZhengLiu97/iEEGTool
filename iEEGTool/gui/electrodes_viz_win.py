@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 
 from PyQt5.QtWidgets import QMainWindow, QDesktopWidget, QTableWidgetItem, QHeaderView, \
-                            QAbstractItemView, QToolTip, QColorDialog
+                            QAbstractItemView, QToolTip, QColorDialog, QFileDialog
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QCloseEvent, QCursor
 
@@ -147,6 +147,8 @@ class ElectrodesWin(QMainWindow, Ui_MainWindow):
         self._background_color_action.triggered.connect(self._set_background_color)
         self._brain_color_action.triggered.connect(self._set_brain_color)
 
+        self._screenshot_action.triggered.connect(self._screenshot)
+
         # cannot use lambda for don't know why
         # but if using lambda to simplify
         # we cannot open the window the second time
@@ -273,6 +275,11 @@ class ElectrodesWin(QMainWindow, Ui_MainWindow):
         viz = self._display_cbx.isChecked()
         if viz != self.group_viz[group]:
             self._display_cbx.setChecked(self.group_viz[group])
+
+    def _screenshot(self):
+        fname, _ = QFileDialog.getSaveFileName(self, 'Screenshot', filter="Screenshot (*..jpeg)")
+        if len(fname):
+            self._plotter.screenshot(fname)
 
     def _set_background_color(self):
         color = QColorDialog.getColor()

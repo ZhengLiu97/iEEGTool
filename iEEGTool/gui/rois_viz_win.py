@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 
 from PyQt5.QtWidgets import QMainWindow, QDesktopWidget, QTableWidgetItem, QHeaderView, \
-                            QAbstractItemView, QToolTip, QColorDialog
+                            QAbstractItemView, QToolTip, QColorDialog, QFileDialog
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QCloseEvent, QCursor
 
@@ -79,6 +79,7 @@ class ROIsWin(QMainWindow, Ui_MainWindow):
         ch_coords = ch_info[['x', 'y', 'z']].to_numpy()
         self._plotter.add_chs(ch_names, ch_coords)
         self._plotter.enable_chs_viz(ch_names, False)
+        self._plotter.enable_ch_name_viz(ch_names, False)
         self._plotter.enable_group_label_viz(group, False)
 
     def _init_rois(self, subject, subjects_dir, rois):
@@ -117,6 +118,8 @@ class ROIsWin(QMainWindow, Ui_MainWindow):
         self._chs_name_cbx.stateChanged.connect(self._enable_chs_name_viz)
         self._info_table.cellClicked.connect(self._enable_roi_viz)
 
+        self._screenshot_action.triggered.connect(self._screenshot)
+
         # cannot use lambda for don't know why
         # but if using lambda to simplify
         # we cannot open the window the second time
@@ -153,8 +156,11 @@ class ROIsWin(QMainWindow, Ui_MainWindow):
                 ch_names = self.rois_chs[roi]
                 self.viz_chs = self.viz_chs - set(ch_names)
                 self._plotter.enable_chs_viz(ch_names, False)
+                self._plotter.enable_ch_name_viz(ch_names, False)
 
             self._enable_chs_viz()
+            if self._chs_name_cbx.isEnabled():
+                self._enable_chs_name_viz()
 
     def _enable_chs_viz(self):
         viz = self._chs_cbx.isChecked()
@@ -164,20 +170,21 @@ class ROIsWin(QMainWindow, Ui_MainWindow):
             for roi in viz_rois:
                 ch_names += self.rois_chs[roi]
         if len(ch_names):
-            self.viz_chs = self.viz_chs.union(set(ch_names))
             self._plotter.enable_chs_viz(ch_names, viz)
-
+            self.viz_chs = self.viz_chs.union(set(ch_names))
         if not viz:
             self._chs_name_cbx.setChecked(False)
         self._chs_name_cbx.setEnabled(viz)
 
     def _enable_chs_name_viz(self):
         viz = self._chs_name_cbx.isChecked()
-        # print(self.viz_chs)
         if len(self.viz_chs):
-            for ch_name in self.viz_chs:
-                coords = self.ch_pos[ch_name]
-                self._plotter.enable_ch_name_viz(ch_name, coords, viz)
+            self._plotter.enable_ch_name_viz(self.viz_chs, viz)
+
+    def _screenshot(self):
+        fname, _ = QFileDialog.getSaveFileName(self, 'Screenshot', filter="Screenshot (*..jpeg)")
+        if len(fname):
+            self._plotter.screenshot(fname)
 
     def _set_background_color(self):
         color = QColorDialog.getColor()
