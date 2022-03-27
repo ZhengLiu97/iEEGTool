@@ -35,6 +35,12 @@ roi_kwargs = dict(
     reset_camera=False
 )
 
+view_dict = {
+    'front': [(0, 1, 0), (0, 0, 1)], 'back': [(0, -1, 0), (0, 0, 1)],
+    'left': [(-1, 0, 0), (0, 0, 1)], 'right': [(1, 0, 0), (0, 0, 1)],
+    'top': [(0, 0, 1), (0, 1, 0)], 'bottom': [(0, 0, -1), (0, 1, 0)],
+        }
+
 def _to_rgb(*args, name='color', alpha=False):
     from matplotlib.colors import colorConverter
     func = colorConverter.to_rgba if alpha else colorConverter.to_rgb

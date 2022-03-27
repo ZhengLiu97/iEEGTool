@@ -17,6 +17,8 @@ from gui.electrodes_viz_ui import Ui_MainWindow
 from viz.surface import check_hemi
 from utils.process import get_chan_group
 from utils.contacts import is_lh, is_gm
+from utils.decorator import safe_event
+from utils.config import view_dict
 
 
 class ElectrodesWin(QMainWindow, Ui_MainWindow):
@@ -90,6 +92,7 @@ class ElectrodesWin(QMainWindow, Ui_MainWindow):
 
     def _init_brain(self, subject, subjects_dir):
         self._plotter.add_brain(subject, subjects_dir, ['lh', 'rh'], 'pial', 0.1)
+        self._plotter.view_vector(view_dict['front'][0], view_dict['front'][1])
 
     def _init_rois(self, subject, subjects_dir, rois, aseg):
         self._plotter.add_rois(subject, subjects_dir, rois, aseg)
@@ -139,8 +142,17 @@ class ElectrodesWin(QMainWindow, Ui_MainWindow):
         self._group_cbx.currentTextChanged.connect(self._change_info)
         self._select_cbx.currentTextChanged.connect(self._set_chs_viz)
         self._display_cbx.stateChanged.connect(self._enable_chs_group_viz)
-
         self._info_table.cellClicked.connect(self._enable_chs_name_viz)
+
+        # cannot use lambda for don't know why
+        # but if using lambda to simplify
+        # we cannot open the window the second time
+        self._front_action.triggered.connect(self._set_front_view)
+        self._back_action.triggered.connect(self._set_back_view)
+        self._left_action.triggered.connect(self._set_left_view)
+        self._right_action.triggered.connect(self._set_right_view)
+        self._top_action.triggered.connect(self._set_top_view)
+        self._bottom_action.triggered.connect(self._set_bottom_view)
 
     def _enable_brain_viz(self):
         viz = self._brain_gp.isChecked()
@@ -259,10 +271,35 @@ class ElectrodesWin(QMainWindow, Ui_MainWindow):
         if viz != self.group_viz[group]:
             self._display_cbx.setChecked(self.group_viz[group])
 
+    def _set_front_view(self):
+        view = view_dict['front']
+        self._plotter.view_vector(view[0], view[1])
+
+    def _set_back_view(self):
+        view = view_dict['back']
+        self._plotter.view_vector(view[0], view[1])
+
+    def _set_left_view(self):
+        view = view_dict['left']
+        self._plotter.view_vector(view[0], view[1])
+
+    def _set_right_view(self):
+        view = view_dict['right']
+        self._plotter.view_vector(view[0], view[1])
+
+    def _set_top_view(self):
+        view = view_dict['top']
+        self._plotter.view_vector(view[0], view[1])
+
+    def _set_bottom_view(self):
+        view = view_dict['bottom']
+        self._plotter.view_vector(view[0], view[1])
+
     def _show_tooltip(self, i, j):
         item = self._info_table.item(i, j).text()
         if len(item) > 39:
             QToolTip.showText(QCursor.pos(), item)
 
+    @safe_event
     def closeEvent(self, a0: QCloseEvent) -> None:
         self.CLOSE_SIGNAL.emit(True)

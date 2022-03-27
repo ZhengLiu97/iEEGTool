@@ -23,7 +23,6 @@ class Brain(QtInteractor):
         self.background_color = 'w'
         self.enable_depth_peeling()
         self.enable_anti_aliasing()
-        self.isometric_view_interactive()
         self.line_smoothing =True
         self.point_smoothing =True
 

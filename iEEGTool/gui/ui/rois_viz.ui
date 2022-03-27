@@ -305,13 +305,33 @@
     </property>
     <addaction name="_screenshot_action"/>
    </widget>
-   <widget class="QMenu" name="menuView">
+   <widget class="QMenu" name="menuEdit">
     <property name="title">
-     <string>View</string>
+     <string>Edit</string>
     </property>
+    <widget class="QMenu" name="_View_menu">
+     <property name="title">
+      <string>View</string>
+     </property>
+     <addaction name="_front_action"/>
+     <addaction name="_back_action"/>
+     <addaction name="_left_action"/>
+     <addaction name="_right_action"/>
+     <addaction name="_top_action"/>
+     <addaction name="_bottom_action"/>
+    </widget>
+    <widget class="QMenu" name="_Figure_menu">
+     <property name="title">
+      <string>Figure</string>
+     </property>
+     <addaction name="_background_color_action"/>
+     <addaction name="_brain_color"/>
+    </widget>
+    <addaction name="_Figure_menu"/>
+    <addaction name="_View_menu"/>
    </widget>
    <addaction name="menuFile"/>
-   <addaction name="menuView"/>
+   <addaction name="menuEdit"/>
   </widget>
   <action name="actionScreenshot">
    <property name="icon">
@@ -325,6 +345,56 @@
   <action name="_screenshot_action">
    <property name="text">
     <string>Screenshot</string>
+   </property>
+  </action>
+  <action name="actionBrain_Color">
+   <property name="text">
+    <string>Brain Color</string>
+   </property>
+  </action>
+  <action name="actionBackground_Color">
+   <property name="text">
+    <string>Background Color</string>
+   </property>
+  </action>
+  <action name="_background_color_action">
+   <property name="text">
+    <string>Background color</string>
+   </property>
+  </action>
+  <action name="_brain_color">
+   <property name="text">
+    <string>Brain color</string>
+   </property>
+  </action>
+  <action name="_front_action">
+   <property name="text">
+    <string>Front</string>
+   </property>
+  </action>
+  <action name="_back_action">
+   <property name="text">
+    <string>Back</string>
+   </property>
+  </action>
+  <action name="_left_action">
+   <property name="text">
+    <string>Left</string>
+   </property>
+  </action>
+  <action name="_right_action">
+   <property name="text">
+    <string>Right</string>
+   </property>
+  </action>
+  <action name="_top_action">
+   <property name="text">
+    <string>Top</string>
+   </property>
+  </action>
+  <action name="_bottom_action">
+   <property name="text">
+    <string>Bottom</string>
    </property>
   </action>
  </widget>
