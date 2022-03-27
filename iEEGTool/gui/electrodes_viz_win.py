@@ -131,6 +131,7 @@ class ElectrodesWin(QMainWindow, Ui_MainWindow):
         ch_names = ch_info['Channel'].to_list()
         ch_coords = ch_info[['x', 'y', 'z']].to_numpy()
         self._plotter.add_chs(ch_names, ch_coords)
+        self._plotter.enable_ch_name_viz(ch_names, False)
 
     def _slot_connection(self):
         self._brain_gp.clicked.connect(self._enable_brain_viz)
@@ -235,8 +236,7 @@ class ElectrodesWin(QMainWindow, Ui_MainWindow):
         if j == 0:
             ch_name = self._info_table.item(i, j).text()
             viz = bool(self._info_table.item(i, j).checkState())
-            coords = self.ch_pos[ch_name]
-            self._plotter.enable_ch_name_viz(ch_name, coords, viz)
+            self._plotter.enable_ch_name_viz([ch_name], viz)
 
     def _enable_rois_viz(self):
         # if self.roi_viz_signal:
@@ -261,6 +261,7 @@ class ElectrodesWin(QMainWindow, Ui_MainWindow):
                 print(roi, self.rois_num[roi])
                 if self.rois_num[roi] == 0:
                     self._plotter.enable_rois_viz(roi, viz)
+        print('\n')
 
     def _change_info(self):
         group = self._group_cbx.currentText()
