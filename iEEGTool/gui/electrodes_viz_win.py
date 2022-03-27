@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 
 from PyQt5.QtWidgets import QMainWindow, QDesktopWidget, QTableWidgetItem, QHeaderView, \
-                            QAbstractItemView, QToolTip
+                            QAbstractItemView, QToolTip, QColorDialog
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QCloseEvent, QCursor
 
@@ -144,6 +144,9 @@ class ElectrodesWin(QMainWindow, Ui_MainWindow):
         self._display_cbx.stateChanged.connect(self._enable_chs_group_viz)
         self._info_table.cellClicked.connect(self._enable_chs_name_viz)
 
+        self._background_color_action.triggered.connect(self._set_background_color)
+        self._brain_color_action.triggered.connect(self._set_brain_color)
+
         # cannot use lambda for don't know why
         # but if using lambda to simplify
         # we cannot open the window the second time
@@ -270,6 +273,22 @@ class ElectrodesWin(QMainWindow, Ui_MainWindow):
         viz = self._display_cbx.isChecked()
         if viz != self.group_viz[group]:
             self._display_cbx.setChecked(self.group_viz[group])
+
+    def _set_background_color(self):
+        color = QColorDialog.getColor()
+        if color.isValid():
+            # 第四位为透明度 color必须在0-1之间
+            color = color.getRgbF()[:-1]
+            print(f"change brain color to {color}")
+            self._plotter.set_background_color(color)
+
+    def _set_brain_color(self):
+        color = QColorDialog.getColor()
+        if color.isValid():
+            # 第四位为透明度 color必须在0-1之间
+            color = color.getRgbF()[:-1]
+            print(f"change brain color to {color}")
+            self._plotter.set_brain_color(color)
 
     def _set_front_view(self):
         view = view_dict['front']

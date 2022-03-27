@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 
 from PyQt5.QtWidgets import QMainWindow, QDesktopWidget, QTableWidgetItem, QHeaderView, \
-                            QAbstractItemView, QToolTip
+                            QAbstractItemView, QToolTip, QColorDialog
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QCloseEvent, QCursor
 
@@ -127,6 +127,9 @@ class ROIsWin(QMainWindow, Ui_MainWindow):
         self._top_action.triggered.connect(self._set_top_view)
         self._bottom_action.triggered.connect(self._set_bottom_view)
 
+        self._background_color_action.triggered.connect(self._set_background_color)
+        self._brain_color_action.triggered.connect(self._set_brain_color)
+
     def _enable_brain_viz(self):
         viz = self._brain_gp.isChecked()
         hemi = check_hemi(self._hemi_cbx.currentText())
@@ -175,6 +178,22 @@ class ROIsWin(QMainWindow, Ui_MainWindow):
             for ch_name in self.viz_chs:
                 coords = self.ch_pos[ch_name]
                 self._plotter.enable_ch_name_viz(ch_name, coords, viz)
+
+    def _set_background_color(self):
+        color = QColorDialog.getColor()
+        if color.isValid():
+            # 第四位为透明度 color必须在0-1之间
+            color = color.getRgbF()[:-1]
+            print(f"change brain color to {color}")
+            self._plotter.set_background_color(color)
+
+    def _set_brain_color(self):
+        color = QColorDialog.getColor()
+        if color.isValid():
+            # 第四位为透明度 color必须在0-1之间
+            color = color.getRgbF()[:-1]
+            print(f"change brain color to {color}")
+            self._plotter.set_brain_color(color)
 
     def _set_front_view(self):
         view = view_dict['front']

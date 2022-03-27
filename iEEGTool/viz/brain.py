@@ -48,6 +48,9 @@ class Brain(QtInteractor):
         else:
             self.actors[hemi].SetVisibility(viz)
 
+    def set_background_color(self, bk_color):
+        self.set_background(color=bk_color)
+
     def set_brain_color(self, brain_color):
         hemi = ['lh', 'rh']
         [self.actors[name].GetProperty().SetColor(brain_color) for name in hemi]
@@ -114,3 +117,4 @@ class Brain(QtInteractor):
         #     self.remove_legend()
         # else:
         #     self.add_actor(self.legend_actors[roi])
+

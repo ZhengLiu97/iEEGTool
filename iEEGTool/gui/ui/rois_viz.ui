@@ -325,7 +325,7 @@
       <string>Figure</string>
      </property>
      <addaction name="_background_color_action"/>
-     <addaction name="_brain_color"/>
+     <addaction name="_brain_color_action"/>
     </widget>
     <addaction name="_Figure_menu"/>
     <addaction name="_View_menu"/>
@@ -362,7 +362,7 @@
     <string>Background color</string>
    </property>
   </action>
-  <action name="_brain_color">
+  <action name="_brain_color_action">
    <property name="text">
     <string>Brain color</string>
    </property>
