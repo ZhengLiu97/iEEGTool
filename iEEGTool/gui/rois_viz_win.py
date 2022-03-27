@@ -35,11 +35,19 @@ class ROIsWin(QMainWindow, Ui_MainWindow):
 
         stats = list(self.ch_info.groupby(by='ROI'))
         rois = [stat[0] for stat in stats]
-        chs = [', '.join(list(stat[1]['Channel'])) for stat in stats]
+        chs = [list(stat[1]['Channel']) for stat in stats]
+        chs_tb = [', '.join(list(stat[1]['Channel'])) for stat in stats]
 
-        rois_chs = dict(zip(rois, chs))
+        self.viz_chs = set()
 
-        self.roi_info = pd.DataFrame(rois_chs.items(), columns=['ROI', 'Channel'])
+        self.ch_names = ch_info['Channel'].to_list()
+        coords = ch_info[['x', 'y', 'z']].to_numpy()
+        self.ch_pos = dict(zip(self.ch_names, coords))
+
+        self.rois_chs = dict(zip(rois, chs))
+        self.rois_chs_tb = dict(zip(rois, chs_tb))
+
+        self.roi_info = pd.DataFrame(self.rois_chs_tb.items(), columns=['ROI', 'Channel'])
 
         self._info_table.setMouseTracking(True)
         self._info_table.cellEntered.connect(self._show_tooltip)
@@ -49,6 +57,7 @@ class ROIsWin(QMainWindow, Ui_MainWindow):
         self._init_brain(subject, subjects_dir)
         self._init_rois(subject, subjects_dir, rois)
         self.add_items2table(self.roi_info)
+        self._init_electrodes(ch_info)
 
         self._slot_connection()
 
@@ -60,6 +69,14 @@ class ROIsWin(QMainWindow, Ui_MainWindow):
 
     def _init_brain(self, subject, subjects_dir):
         self._plotter.add_brain(subject, subjects_dir, ['lh', 'rh'], 'pial', 0.1)
+
+    def _init_electrodes(self, ch_info):
+        ch_names = ch_info['Channel'].to_list()
+        group = get_chan_group(ch_names).keys()
+        ch_coords = ch_info[['x', 'y', 'z']].to_numpy()
+        self._plotter.add_chs(ch_names, ch_coords)
+        self._plotter.enable_chs_viz(ch_names, False)
+        self._plotter.enable_group_label_viz(group, False)
 
     def _init_rois(self, subject, subjects_dir, rois):
         self._plotter.add_rois(subject, subjects_dir, rois, self.parcellation)
@@ -93,7 +110,8 @@ class ROIsWin(QMainWindow, Ui_MainWindow):
         self._brain_gp.clicked.connect(self._enable_brain_viz)
         self._transparency_slider.valueChanged.connect(self._set_brain_transparency)
         self._hemi_cbx.currentTextChanged.connect(self._set_brain_hemi)
-
+        self._chs_cbx.clicked.connect(self._enable_chs_viz)
+        self._chs_name_cbx.stateChanged.connect(self._enable_chs_name_viz)
         self._info_table.cellClicked.connect(self._enable_roi_viz)
 
     def _enable_brain_viz(self):
@@ -115,6 +133,35 @@ class ROIsWin(QMainWindow, Ui_MainWindow):
             viz = bool(self._info_table.item(i, 0).checkState())
             self.roi_viz[roi] = viz
             self._plotter.enable_rois_viz(roi, viz)
+            if not viz:
+                ch_names = self.rois_chs[roi]
+                self.viz_chs = self.viz_chs - set(ch_names)
+                self._plotter.enable_chs_viz(ch_names, False)
+
+            self._enable_chs_viz()
+
+    def _enable_chs_viz(self):
+        viz = self._chs_cbx.isChecked()
+        viz_rois = [roi for roi in self.roi_viz if self.roi_viz[roi]]
+        ch_names = []
+        if len(viz_rois):
+            for roi in viz_rois:
+                ch_names += self.rois_chs[roi]
+        if len(ch_names):
+            self.viz_chs = self.viz_chs.union(set(ch_names))
+            self._plotter.enable_chs_viz(ch_names, viz)
+
+        if not viz:
+            self._chs_name_cbx.setChecked(False)
+        self._chs_name_cbx.setEnabled(viz)
+
+    def _enable_chs_name_viz(self):
+        viz = self._chs_name_cbx.isChecked()
+        # print(self.viz_chs)
+        if len(self.viz_chs):
+            for ch_name in self.viz_chs:
+                coords = self.ch_pos[ch_name]
+                self._plotter.enable_ch_name_viz(ch_name, coords, viz)
 
     def _show_tooltip(self, i, j):
         item = self._info_table.item(i, j).text()

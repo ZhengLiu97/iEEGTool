@@ -58,6 +58,7 @@ def read_fs_surface(subject, subjects_dir, hemi, surf='pial'):
 
 def create_chs_sphere(ch_coords):
     sphere = []
+    print("Creating Channels' sphere")
     for ch_coord in ch_coords:
         sphere.append(pv.Sphere(radius=1., center=ch_coord))
 
@@ -72,7 +73,7 @@ def create_roi_surface(subject, subjects_dir, aseg, rois):
     aseg_mgz = nib.load(aseg_path)
     aseg_data = np.asarray(aseg_mgz.dataobj)
     vox_mri_t = aseg_mgz.header.get_vox2ras_tkr()
-    print(f'load segment file from {aseg_file}')
+    print(f'loading segment file from {aseg_file}')
 
     if 'vep' not in aseg:
         lut_name = 'utils/FreeSurferColorLUT.txt'
