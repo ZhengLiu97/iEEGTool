@@ -316,6 +316,8 @@ class Ui_MainWindow(object):
         self._aseg_action.setObjectName("_aseg_action")
         self._vep_action = QtWidgets.QAction(MainWindow)
         self._vep_action.setObjectName("_vep_action")
+        self._laplacian_action = QtWidgets.QAction(MainWindow)
+        self._laplacian_action.setObjectName("_laplacian_action")
         self._toolbar.addAction(self._load_t1_action)
         self._toolbar.addAction(self._load_ct_action)
         self._toolbar.addAction(self._load_ieeg_action)
@@ -355,6 +357,7 @@ class Ui_MainWindow(object):
         self.menuReference.addAction(self._monopolar_action)
         self.menuReference.addAction(self._bipolar_action)
         self.menuReference.addAction(self._average_action)
+        self.menuReference.addAction(self._laplacian_action)
         self.menuDrop_bad.addAction(self._drop_annotations_action)
         self.menuDrop_bad.addAction(self._drop_white_matters_action)
         self.menuDrop_bad.addAction(self._drop_gray_matters_action)
@@ -570,6 +573,7 @@ class Ui_MainWindow(object):
         self._dkt_action.setText(_translate("MainWindow", "aparc.DKTatlas+aseg"))
         self._aseg_action.setText(_translate("MainWindow", "aparc+aseg"))
         self._vep_action.setText(_translate("MainWindow", "aparc+aseg.vep"))
+        self._laplacian_action.setText(_translate("MainWindow", "Laplacian"))
 
 
 if __name__ == "__main__":

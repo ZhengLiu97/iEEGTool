@@ -55,7 +55,8 @@ from utils.log_config import create_logger
 from utils.decorator import safe_event
 from utils.electrodes import Electrodes
 from utils.contacts import calc_ch_pos, calc_bipolar_chs_pos, reorder_chs, reorder_chs_df
-from utils.process import get_chan_group, set_montage, clean_chans, get_montage, mne_bipolar
+from utils.process import get_chan_group, set_montage, clean_chans, get_montage, mne_bipolar, \
+                          set_laplacian_ref
 from utils.get_anatomical_labels import labelling_contacts_vol_fs_mgz
 from viz.locate_ieeg import locate_ieeg
 
@@ -173,6 +174,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self._fir_filter_action.triggered.connect(self._fir_filter_ieeg)
         self._monopolar_action.triggered.connect(self._monopolar_reference)
         self._bipolar_action.triggered.connect(self._bipolar_ieeg)
+        self._laplacian_action.triggered.connect(self._laplacian_ieeg)
         self._average_action.triggered.connect(self._average_reference)
         self._drop_annotations_action.triggered.connect(self._drop_bad_from_annotations)
         self._drop_white_matters_action.triggered.connect(self._drop_wm_chs)
@@ -342,6 +344,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                                                filter='Coordinates (*.txt *.tsv)')
         if len(fname):
             # try:
+            self.chs_name = fname
             basename = os.path.basename(fname)
             self.subject.set_name(basename[:basename.rfind('.txt')])
             coords_df = pd.read_table(fname)
@@ -511,7 +514,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def _view_chs_info(self):
         ch_info = self.electrodes.get_info()
         if len(ch_info):
-            self._table_win = TableWin(ch_info)
+            self._table_win = TableWin(ch_info, self.chs_name)
             self._table_win.show()
 
     # Localization Menu
@@ -777,6 +780,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.subject.set_electrodes(None)
             self._update_fig()
 
+    def _laplacian_ieeg(self):
+        ieeg = self.subject.get_ieeg()
+        if ieeg is not None:
+            ieeg = set_laplacian_ref(ieeg)
+            self.subject.set_ieeg(ieeg)
+            self._update_fig()
+
     def _average_reference(self):
         ieeg = self.subject.get_ieeg()
         if ieeg is not None:
@@ -875,21 +885,24 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         parcellation = self.parcellation
         if parcellation not in self.seg_name.keys():
             self.seg_name[parcellation] = 'Custom'
-        anatomical_labels = labelling_contacts_vol_fs_mgz(subject, self.subjects_dir, xyz,
-                                                          radius=2, file=parcellation,
-                                                          lut_path=lut_path)
-        self.electrodes.set_issues(anatomical_labels)
-        self.electrodes.set_anatomy(self.seg_name[parcellation], anatomical_labels)
+        if op.isfile(op.join(self.subjects_dir, subject, 'mri', f'{parcellation}.mgz')):
+            anatomical_labels = labelling_contacts_vol_fs_mgz(subject, self.subjects_dir, xyz,
+                                                              radius=2, file=parcellation,
+                                                              lut_path=lut_path)
+            self.electrodes.set_issues(anatomical_labels)
+            self.electrodes.set_anatomy(self.seg_name[parcellation], anatomical_labels)
 
-        # if set_montage is True, replace the electrodes info in subject
-        # This happens when loading coordinates without anatomy and setting the montage
-        # before getting the anatomy
-        if self.set_montage:
-            self.subject.set_electrodes(self.electrodes.get_info())
-            issue = self.electrodes.get_issue()
-            self.wm_chs = ch_names[issue == 'White']
-            self.unknown_chs = ch_names[issue == 'Unknown']
-            self.gm_chs = ch_names[issue == 'Gray']
+            # if set_montage is True, replace the electrodes info in subject
+            # This happens when loading coordinates without anatomy and setting the montage
+            # before getting the anatomy
+            if self.set_montage:
+                self.subject.set_electrodes(self.electrodes.get_info())
+                issue = self.electrodes.get_issue()
+                self.wm_chs = ch_names[issue == 'White']
+                self.unknown_chs = ch_names[issue == 'Unknown']
+                self.gm_chs = ch_names[issue == 'Gray']
+        else:
+            QMessageBox.critical(self, 'Anatomy', f'{parcellation}.mgz not exists')
 
     def _psd_multitaper(self):
         ieeg = self.subject.get_ieeg()

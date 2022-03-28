@@ -15,8 +15,10 @@ import mne
 from mne.transforms import apply_trans, invert_transform
 from mne._freesurfer import _read_mri_info
 
+from utils.reference import set_laplacian_reference
 
-def get_chan_group(chans, exclude=['E'], return_df=False):
+
+def get_chan_group(chans, exclude=None, return_df=False):
     """Group iEEG channel
     Parameters
     ----------
@@ -151,18 +153,47 @@ def get_bipolar_pair(ch_names):
     group_pair = {name: [group[name][:-1], group[name][1:]] for name in group}
     return group_pair
 
-def mne_bipolar(raw):
+def mne_bipolar(ieeg):
     from mne import set_bipolar_reference
 
-    ch_names = raw.ch_names
+    ch_names = ieeg.ch_names
     bipolar_pairs = get_bipolar_pair(ch_names)
     anode = []
     cathode = []
     for group in bipolar_pairs:
         anode += bipolar_pairs[group][0]
         cathode += bipolar_pairs[group][1]
-    raw_bipolar = set_bipolar_reference(raw, anode=anode, cathode=cathode)
-    return raw_bipolar
+    ieeg_bipolar = set_bipolar_reference(raw, anode=anode, cathode=cathode)
+    return ieeg_bipolar
+
+def get_laplacian_pair(ch_names):
+    group_chs = get_chan_group(ch_names)
+
+    laplacian_cen_node = []
+    laplacian_adj_node = []
+    for group in group_chs:
+        group_ch = group_chs[group]
+
+        laplacian_cen_node.append(group_ch[0])
+        laplacian_adj_node.append([group_ch[0], group_ch[0]])
+
+        for i in range(1, len(group_ch) - 1):
+            laplacian_cen_node.append(group_ch[i])
+            laplacian_adj_node.append([group_ch[i - 1], group_ch[i + 1]])
+
+        laplacian_cen_node.append(group_ch[-1])
+        laplacian_adj_node.append([group_ch[-1], group_ch[-1]])
+    return group_chs, laplacian_cen_node, laplacian_adj_node
+
+def set_laplacian_ref(ieeg):
+    group_chs, laplacian_cen_node, laplacian_adj_node = get_laplacian_pair(ieeg.ch_names)
+    ieeg_laplacian = set_laplacian_reference(ieeg, laplacian_cen_node, laplacian_adj_node)
+    drop_chs = []
+    for group in group_chs:
+        drop_chs.append(group_chs[group][0])
+        drop_chs.append(group_chs[group][-1])
+    ieeg_laplacian.drop_channels(drop_chs)
+    return ieeg_laplacian
 
 def get_montage(ch_pos, subject, subjects_dir):
     """Get montage given Surface RAS (aka mri coordinates in MNE)

@@ -140,6 +140,7 @@
      <addaction name="_monopolar_action"/>
      <addaction name="_bipolar_action"/>
      <addaction name="_average_action"/>
+     <addaction name="_laplacian_action"/>
     </widget>
     <widget class="QMenu" name="menuDrop_bad">
      <property name="title">
@@ -857,6 +858,11 @@
   <action name="_vep_action">
    <property name="text">
     <string>aparc+aseg.vep</string>
+   </property>
+  </action>
+  <action name="_laplacian_action">
+   <property name="text">
+    <string>Laplacian</string>
    </property>
   </action>
  </widget>

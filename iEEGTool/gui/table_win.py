@@ -13,10 +13,11 @@ from gui.table_ui import Ui_MainWindow
 
 class TableWin(QMainWindow, Ui_MainWindow):
 
-    def __init__(self, table):
+    def __init__(self, table, title=''):
         super(TableWin, self).__init__()
         self.setupUi(self)
         self._center_win()
+        self.setWindowTitle(title)
 
         self.table = table
 
