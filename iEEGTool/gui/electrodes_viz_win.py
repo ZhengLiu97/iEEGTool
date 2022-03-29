@@ -263,6 +263,9 @@ class ElectrodesWin(QMainWindow, Ui_MainWindow):
                     self._plotter.enable_rois_viz(roi, viz)
         print('\n')
 
+        viz_roi = [roi for roi in self.rois_num if self.rois_num[roi] > 0]
+        self._plotter.add_rois_text(viz_roi)
+
     def _change_info(self):
         group = self._group_cbx.currentText()
         ch_names = self.ch_group[group]

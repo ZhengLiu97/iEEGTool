@@ -161,6 +161,8 @@ class ROIsWin(QMainWindow, Ui_MainWindow):
             self._enable_chs_viz()
             if self._chs_name_cbx.isEnabled():
                 self._enable_chs_name_viz()
+        viz_rois = [roi for roi in self.roi_viz if self.roi_viz[roi]]
+        self._plotter.add_rois_text(viz_rois)
 
     def _enable_chs_viz(self):
         viz = self._chs_cbx.isChecked()

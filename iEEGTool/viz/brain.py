@@ -5,6 +5,7 @@
 @Author  ：Barry
 @Date    ：2022/3/16 15:27 
 """
+import numpy as np
 import pyvista as pv
 from pyvistaqt import QtInteractor
 
@@ -29,6 +30,8 @@ class Brain(QtInteractor):
         self.brain_surface = {}
         self.actors = {}
         self.legend_actors = {}
+        self.text_actors = {}
+        self.roi_color = {}
 
     def add_brain(self, subject, subjects_dir, hemi, surf, opacity):
         if isinstance(hemi, str):
@@ -101,19 +104,27 @@ class Brain(QtInteractor):
 
     def add_rois(self, subject, subjects_dir, rois, aseg):
         roi_mesh_color = create_roi_surface(subject, subjects_dir, aseg, rois)
+        self.roi_color = {roi: roi_mesh_color[roi][1] for roi in roi_mesh_color}
         if roi_mesh_color is not None:
             for idx, roi in enumerate(roi_mesh_color):
                 polydata = roi_mesh_color[roi][0]
                 roi_color = roi_mesh_color[roi][1]
                 self.actors[roi] = self.add_mesh(polydata, name=roi, label=roi,
                                                  color=roi_color, **roi_kwargs)
-                # self.legend_actors[roi] = self.add_legend(labels=[[roi, roi_color]], name=roi+'legend')
-                # self.legend_actors[roi] = self.add_legend()
 
     def enable_rois_viz(self, roi, viz):
         self.actors[roi].SetVisibility(viz)
-        # if not viz:
-        #     self.remove_legend()
-        # else:
-        #     self.add_actor(self.legend_actors[roi])
+
+    def add_rois_text(self, rois):
+        if len(self.text_actors):
+            [self.remove_actor(self.text_actors[roi]) for roi in self.text_actors]
+            self.text_actors = {}
+        start_pos = np.array([5, 10])
+        font_size = 9 if len(rois) < 15 else 6
+        for index, roi in enumerate(rois):
+            text_pos = start_pos + np.array([0, index*25])
+            roi_color = self.roi_color[roi]
+            self.text_actors[f'{roi} text'] = self.add_text(text=roi, position=text_pos,
+                                                            font_size=font_size, color=roi_color)
+
 
