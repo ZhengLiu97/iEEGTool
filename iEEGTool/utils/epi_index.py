@@ -9,120 +9,12 @@ import mne
 import numpy as np
 import pandas as pd
 
-import matplotlib.pyplot as plt
-from skmultiflow.drift_detection.base_drift_detector import BaseDriftDetector
+from scipy.signal import argrelextrema
 
 
-class PageHinkley(BaseDriftDetector):
-    """ Page-Hinkley method for concept drift detection.
-    References
-    ----------
-    .. [1] E. S. Page. 1954. Continuous Inspection Schemes.
-       Biometrika 41, 1/2 (1954), 100–115.
-
-    Parameters
-    ----------
-    min_instances: int (default=30)
-        The minimum number of instances before detecting change.
-    delta: float (default=0.005)
-        The delta factor for the Page Hinkley test.
-    threshold: int (default=50)
-        The change detection threshold (lambda).
-    alpha: float (default=1 - 0.0001)
-        The forgetting factor, used to weight the observed value
-        and the mean.
-    """
-
-    def __init__(self, delta=0.1, threshold=1):
-        super().__init__()
-        self.delta = delta
-        self.threshold = threshold
-        self.x_mean = None
-        self.sample_count = None
-        self.sum = None
-        self.U_n = []
-        self.U_n_min = []
-        self._mean = []
-        self.reset()
-
-    def reset(self):
-        """ reset
-
-        Resets the change detector parameters.
-
-        """
-        super().reset()
-        self.sample_count = 1
-        self.x_mean = 0.0
-        self.sum = 0.0
-        self.U_n_min = []
-
-    def add_element(self, x):
-        """ Add a new element to the statistics
-
-        Parameters
-        ----------
-        x: numeric value
-            The observed value, from which we want to detect the
-            concept change.
-
-        Notes
-        -----
-        After calling this method, to verify if change was detected, one
-        should call the super method detected_change, which returns True
-        if concept drift was detected and False otherwise.
-
-        """
-        if self.in_concept_change:
-            self.reset()
-
-        self.x_mean = self.x_mean + (x - self.x_mean) / float(self.sample_count)
-        self._mean.append(self.x_mean)
-        self.sum = self.sum + (x - self.x_mean - self.delta)
-        self.U_n.append(self.sum)
-        self.U_n_min.append(self.sum)
-        self.sample_count += 1
-
-        self.estimation = self.x_mean
-        self.in_concept_change = False
-        self.in_warning_zone = False
-
-        self.delay = 0
-
-        # print(f'sum {self.sum}  threshold {self.threshold}')
-        if self.sum - min(self.U_n_min) > self.threshold:
-            # print(self.sum - min(self.U_n_min))
-            # print(self.threshold)
-            self.in_concept_change = True
-
-
-def calc_psd_multitaper(ieeg, freqs, window=1, step=0.25):
-    fmin = freqs[0]
-    fmax = freqs[1]
-
-    start = 0
-    samples_per_seg = int(ieeg.info['sfreq'] * window)
-    step = samples_per_seg * step
-
-    data = ieeg.get_data()
-    sfreq = ieeg.info['sfreq']
-    ch_len = data.shape[0]
-    n_segs = int(data.shape[1] // step)
-    multitaper_psd = np.zeros((ch_len, int(fmax - fmin) + 1, n_segs))
-    print(multitaper_psd.shape)
-    for i in range(n_segs):
-        end = start + samples_per_seg
-        if end > data.shape[-1]:
-            return multitaper_psd, freqs
-        seg_data = data[:, start: end]
-        psd, freqs = mne.time_frequency.psd_array_multitaper(seg_data, sfreq=sfreq, fmin=fmin, fmax=fmax, adaptive=True,
-                                                             n_jobs=10, verbose='error')
-        multitaper_psd[:, :, i] = psd
-        start = int(start + step)
-    return multitaper_psd, freqs
 
 def calc_psd_welch(raw, freqs, window=1, step=0.25):
-    """Calculating PSD using welch morlet
+    """Calculating PSD using welch
     Parameters
     ----------
     raw : mne.io.Raw
@@ -160,6 +52,7 @@ def calc_psd_welch(raw, freqs, window=1, step=0.25):
     return psd, freqs
 
 
+
 def calc_ER(raw, low=(4, 12), high=(12, 127), window=1, step=0.25):
     """Calculating energy ratio
     Parameters
@@ -188,72 +81,66 @@ def calc_ER(raw, low=(4, 12), high=(12, 127), window=1, step=0.25):
     print(f"lfreq_band shape {lfreq_band.shape}")
     print(f"hfreq_band shape {hfreq_band.shape}")
 
-    ER =hfreq_band[:, :-3] / lfreq_band[:, :-3]
+    ER = hfreq_band / lfreq_band
     return ER
 
 
-def page_hinkley(ch_names, ER, start, step, threshold=1, bias=1):
-    """Calculating detection time and alarm time using Page-Hinkley algorithm
+def page_hinkley(data, bias=0.1, threshold=1):
+    """Page-Hinkley algorithm for concept drift detection
     Parameters
     ----------
-    ch_names : list
-        channels' name
-    ER : np.array  shape (n_channels, n_segments)
-        Energy ratio of channels
-    start : float | int  default 0
-        start time in second
-    step : float
-        step of PSD calculation
-    threshold : float | int
-        number of deviations to use in Page-Hinkley(lambda)
-    bias: float | int
-        the bias/delta factor for the Page Hinkley test
+    data : np.ndarray
+        data to detect concept drift
+    bias : float  default 0.1
+     bias factor for Page-Hinkley test
+    threshold : float  default 1
+        the concept drift threshold
 
     Returns
     -------
-    ei_df : pd.DataFrame
-        DataFrame consists of Channel, detection_idx, detection_time, alarm_idx,
-        alarm_time, ER, norm_ER, EI and norm_EI
-    U_n : np.array shape (n_channels, step)
-        cusum of ER in each step of channels
+    drift_index : list
+        index of the data when drifting
+    U_n : list
+        the cusum of data
+
     """
-    from scipy.signal import argrelextrema
+    bias = bias
+    threshold = threshold
 
-    ei_df = pd.DataFrame(columns=['Channel', 'detection_idx', 'detection_time', 'alarm_idx',
-                                  'alarm_time', 'ER', 'norm_ER', 'EI', 'norm_EI'], dtype=np.float64)
-    ei_df['Channel'] = ch_names
-
-    drift_idx = [np.nan] * len(ch_names)
+    x_mean = 0
+    sample_count = 1
+    x_sum = 0
     U_n = []
-    for i in range(len(ch_names)):
-        ch_drift_idx = []
-        ph = PageHinkley(threshold=threshold, delta=bias)
-        for j in range(len(ER[i, :])):
-            ph.add_element(ER[i, j])
-            if ph.detected_change():
-                ch_drift_idx.append(j)
-                # print(f'Change has been detected in data: {ER[i, j]} of index: {j} in channel {ch_names[i]}')
-        # print('\n')
-        drift_idx[i] = int(ch_drift_idx[0]) if len(ch_drift_idx) else np.nan
-        U_n.append(ph.U_n)
-    U_n = np.asarray(U_n)
+    U_n_min = []
+    all_mean = []
 
-    ei_df['alarm_idx'] = drift_idx
-    ei_df['alarm_time'] = start + step * ei_df.alarm_idx
+    concept_drift = True
+    drift_index = []
 
-    detection_idx = [np.nan] * len(ch_names)
-    for num, idx in enumerate(drift_idx):
-        if not np.isnan(idx):
-            detect_idx = argrelextrema(U_n[num, :idx+1], np.less)[0]
-            if len(detect_idx):
-                detection_idx[num] = detect_idx[-1]
-            else:
-                detection_idx[num] = np.argmin(U_n[num, :idx+1])
-    ei_df['detection_idx'] = detection_idx
-    ei_df['detection_time'] = start + step * ei_df.detection_idx
-    print(f"The first time which gets the threshold is the {ei_df.alarm_time.min()}th second")
+    for index, x in enumerate(data):
+        if concept_drift:
+            x_mean = 0
+            sample_count = 1
+            x_sum = 0
+            U_n_min = []
 
-    return ei_df, U_n
+        x_mean = x_mean + (x - x_mean) / float(sample_count)
+        x_sum = x_sum + (x - x_mean - bias)
+        U_n.append(x_sum)
+        U_n_min.append(x_sum)
+        all_mean.append(x_mean)
+
+        concept_drift = False
+        if x_sum - min(U_n_min) > threshold:
+            concept_drift = True
+            drift_index.append(index)
+
+        sample_count += 1
+
+    if not len(drift_index):
+        drift_index = [np.nan]
+
+    return drift_index, U_n
 
 
 def calc_EI(raw, low=(4, 12), high=(12, 127), window=1, step=0.25,
@@ -288,7 +175,34 @@ def calc_EI(raw, low=(4, 12), high=(12, 127), window=1, step=0.25,
     ER = calc_ER(raw, low=low, high=high, window=window, step=step)
 
     start = window / 2
-    ei_df, U_n = page_hinkley(ch_names, ER=ER, start=start, step=step, threshold=threshold, bias=bias)
+
+    ei_df = pd.DataFrame(columns=['Channel', 'detection_idx', 'detection_time', 'alarm_idx',
+                                  'alarm_time', 'ER', 'norm_ER', 'EI', 'norm_EI'], dtype=np.float64)
+    ei_df['Channel'] = ch_names
+
+    drift_idx = []
+    U_n = []
+    for data in ER:
+        result = page_hinkley(data, bias, threshold)
+        drift_idx.append(result[0][0]) # only use the first drift
+        U_n.append(result[1])
+    U_n = np.asarray(U_n)
+
+    # calculate the alarm time
+    ei_df['alarm_idx'] = drift_idx
+    ei_df['alarm_time'] = start + step * ei_df.alarm_idx
+
+    # calculate the detection time
+    detection_idx = [np.nan] * len(ch_names)
+    for num, idx in enumerate(drift_idx):
+        if not np.isnan(idx):
+            detect_idx = argrelextrema(U_n[num, :idx + 1], np.less)[0]
+            if len(detect_idx):
+                detection_idx[num] = detect_idx[-1]
+            else:
+                detection_idx[num] = np.argmin(U_n[num, :idx + 1])
+    ei_df['detection_idx'] = detection_idx
+    ei_df['detection_time'] = start + step * ei_df.detection_idx
 
     ei_df['EI'] = np.zeros((len(ch_names)))
     N0 = ei_df.detection_time.min(skipna=True)
@@ -314,6 +228,7 @@ def calc_EI(raw, low=(4, 12), high=(12, 127), window=1, step=0.25,
     ei_df = ei_df.round(3)
 
     return ei_df, U_n
+
 
 
 

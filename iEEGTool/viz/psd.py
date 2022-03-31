@@ -13,7 +13,6 @@ from functools import partial
 from mne.viz.utils import _convert_psds
 
 
-
 def plot_psd(info, psds, freqs, dB, average, method):
     fig, ax = plt.subplots(figsize=(6, 6))
     estimate = 'power' if dB else 'amplitude'
@@ -42,4 +41,4 @@ def plot_psd(info, psds, freqs, dB, average, method):
            ylabel=ylabels)
     plt.grid(color='k', linestyle=':', linewidth=0.5)
     fig.tight_layout()
-    plt.show()
+    plt.show(block=True)
