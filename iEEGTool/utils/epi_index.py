@@ -250,7 +250,3 @@ def calc_EI(raw, low=(4, 12), high=(12, 127), window=1, step=0.25,
     ei_df = ei_df.round(3)
 
     return ei_df, U_n
-
-
-
-
