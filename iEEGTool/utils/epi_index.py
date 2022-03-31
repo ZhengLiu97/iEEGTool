@@ -12,6 +12,31 @@ import pandas as pd
 from scipy.signal import argrelextrema
 
 
+def calc_psd_multitaper(ieeg, freqs, window=1, step=0.25):
+    fmin = freqs[0]
+    fmax = freqs[1]
+
+    start = 0
+    samples_per_seg = int(ieeg.info['sfreq'] * window)
+    step = samples_per_seg * step
+
+    data = ieeg.get_data()
+    sfreq = ieeg.info['sfreq']
+    ch_len = data.shape[0]
+    n_segs = int(data.shape[1] // step)
+    multitaper_psd = np.zeros((ch_len, int(fmax - fmin) + 1, n_segs))
+    print(multitaper_psd.shape)
+    for i in range(n_segs):
+        end = start + samples_per_seg
+        if end > data.shape[-1]:
+            return multitaper_psd, freqs
+        seg_data = data[:, start: end]
+        psd, freqs = mne.time_frequency.psd_array_multitaper(seg_data, sfreq=sfreq, fmin=fmin, fmax=fmax, adaptive=True,
+                                                             n_jobs=10, verbose='error')
+        multitaper_psd[:, :, i] = psd
+        start = int(start + step)
+    return multitaper_psd, freqs
+
 
 def calc_psd_welch(raw, freqs, window=1, step=0.25):
     """Calculating PSD using welch
@@ -45,12 +70,9 @@ def calc_psd_welch(raw, freqs, window=1, step=0.25):
     # psd_hann, freqs = mne.time_frequency.psd_welch(raw, fmin=fmin, fmax=fmax, n_fft=samples_per_seg,
     #                                                n_per_seg=samples_per_seg,
     #                                                n_overlap=overlap, average=None, window='hann')
-    # psd += psd_hann
-    # psd /= 2
 
     print(f'PSD shape = {psd.shape}')
     return psd, freqs
-
 
 
 def calc_ER(raw, low=(4, 12), high=(12, 127), window=1, step=0.25):
