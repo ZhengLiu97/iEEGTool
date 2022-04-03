@@ -14,6 +14,7 @@ from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtGui import QIntValidator, QDoubleValidator, QIcon, QFont, QPixmap
 
 from gui.compute_ei_ui import Ui_MainWindow
+from gui.ei_viz_win import EIWin
 from gui.list_win import ItemSelectionWin
 from gui.table_win import TableWin
 from utils.log_config import create_logger
@@ -26,11 +27,11 @@ from utils.decorator import safe_event
 logger = create_logger(filename='iEEGTool.log')
 
 
-class EIWin(QMainWindow, Ui_MainWindow):
+class ElectrodesWin(QMainWindow, Ui_MainWindow):
     ANATOMY_SIGNAL = pyqtSignal(str)
 
     def __init__(self, ieeg, anatomy=None, seg_name=None):
-        super(EIWin, self).__init__()
+        super(ElectrodesWin, self).__init__()
         self.setupUi(self)
         self._center_win()
         self.setWindowTitle('Epileptogenicity Index')
@@ -63,6 +64,7 @@ class EIWin(QMainWindow, Ui_MainWindow):
         self._load_anatomy_action.triggered.connect(self._load_anatomy)
         self._viz_ieeg_action.triggered.connect(self._viz_ieeg)
         self._bar_chart_action.triggered.connect(self._plot_ei_barchart)
+        self._3d_vis_action.triggered.connect(self._ez_viz)
 
         self._select_chan_btn.clicked.connect(self._select_chans)
         self._compute_btn.clicked.connect(self._compute_ei)
@@ -272,6 +274,9 @@ class EIWin(QMainWindow, Ui_MainWindow):
             ei = ei.sort_values(by='norm_EI', ascending=False)
             self._ei_table_win = TableWin(ei)
             self._ei_table_win.show()
+
+    def _ez_viz(self):
+        pass
 
     def _save_excel(self):
         fname, _ = QFileDialog.getSaveFileName(self, 'Export', filter="EI (*.xlsx)")

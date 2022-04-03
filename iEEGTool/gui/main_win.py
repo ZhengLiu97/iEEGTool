@@ -227,8 +227,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self._ieeg_viz_stack.addWidget(fig)
 
     def _short_cut(self):
-        QShortcut(QKeySequence(self.tr("Ctrl+F")), self, self.showMaximized)
-        QShortcut(QKeySequence(self.tr("Ctrl+G")), self, self.showNormal)
+        QShortcut(QKeySequence(self.tr("F10")), self, self.showNormal)
+        QShortcut(QKeySequence(self.tr("F11")), self, self.showMaximized)
         QShortcut(QKeySequence(self.tr("Ctrl+S")), self, self._export_ieeg_fif)
         QShortcut(QKeySequence(self.tr("Ctrl+Q")), self, self.close)
 
