@@ -61,7 +61,7 @@ from utils.get_anatomical_labels import labelling_contacts_vol_fs_mgz
 from viz.locate_ieeg import locate_ieeg
 
 matplotlib.use('Qt5Agg')
-mne.viz.set_browser_backend('qt')
+mne.viz.set_browser_backend('pyqtgraph')
 
 SYSTEM = platform.system()
 
@@ -217,9 +217,25 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         fig = mne.viz.plot_raw(raw, remove_dc=True, color='k',
                                n_channels=30, scalings={'seeg': 1e-4}, show=False)
         fig.mne.overview_bar.setVisible(False)
+        remove_actions = ['SSP', 'Settings']
+        for action in fig.mne.toolbar.actions():
+            if action.text() in remove_actions:
+                fig.mne.toolbar.removeAction(action)
+
+        # Set the default selection of the overview_menu is Hidden
+        for index, action in enumerate(fig.mne.overview_menu.actions()):
+            # the action is an instance of QWidgetAction
+            # in MNE they set its defaultWidget as a radioWidget
+            # here we find the index of hidden is 3
+            # so we set the defaultWidget of QWidgetAction when index is 3 Checked
+            if index == 3:
+                action.defaultWidget().setChecked(True)
+                # print(action.defaultWidget().text())
+                fig._overview_mode_changed('hidden')
         fig.statusBar().setVisible(False)
         fig._set_annotations_visible(False)
         fig.mne.toolbar.setVisible(False)
+        # print(type(fig))
 
         if self._ieeg_viz_stack.count() > 0:
             widget = self._ieeg_viz_stack.widget(0)
