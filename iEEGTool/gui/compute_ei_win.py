@@ -9,12 +9,13 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 from matplotlib import pyplot as plt
+from collections import OrderedDict
 from PyQt5.QtWidgets import QMainWindow, QMessageBox, QDesktopWidget, QFileDialog
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtGui import QIntValidator, QDoubleValidator, QIcon, QFont, QPixmap
 
 from gui.compute_ei_ui import Ui_MainWindow
-from gui.ei_viz_win import EIWin
+from gui.ei_viz_win import ElectrodesWin
 from gui.list_win import ItemSelectionWin
 from gui.table_win import TableWin
 from utils.log_config import create_logger
@@ -27,24 +28,28 @@ from utils.decorator import safe_event
 logger = create_logger(filename='iEEGTool.log')
 
 
-class ElectrodesWin(QMainWindow, Ui_MainWindow):
+class EIWin(QMainWindow, Ui_MainWindow):
     ANATOMY_SIGNAL = pyqtSignal(str)
 
-    def __init__(self, ieeg, anatomy=None, seg_name=None):
-        super(ElectrodesWin, self).__init__()
+    def __init__(self, ieeg, subject, subjects_dir, anatomy=None, seg_name=None, parcellation=None):
+        super().__init__()
         self.setupUi(self)
         self._center_win()
         self.setWindowTitle('Epileptogenicity Index')
         self._set_icon()
 
         self.ieeg = ieeg
+        self.subject = subject
+        self.subjects_dir = subjects_dir
         self.anatomy = anatomy
         self.seg_name = seg_name
+        self.parcellation = parcellation
         self.chans = ieeg.ch_names
         self.ei = None
         self.ei_anatomy = pd.DataFrame()
 
         self._ei_table_win = None
+        self._3d_viz_win = None
 
         int_validator = QIntValidator()
         self._lfreq_low_le.setValidator(int_validator)
@@ -109,9 +114,14 @@ class ElectrodesWin(QMainWindow, Ui_MainWindow):
     def _load_anatomy(self):
         self.ANATOMY_SIGNAL.emit('EI')
 
-    def set_anatomy(self, anatomy):
+    def set_anatomy(self, subject, subjects_dir, anatomy):
+        self.subject = subject
+        self.subjects_dir = subjects_dir
         self.ei_anatomy = pd.DataFrame()
-        ch_names = self.ei['Channel'].to_list()
+        if self.ei is not None:
+            ch_names = self.ei['Channel'].to_list()
+        else:
+            ch_names = self.chans
 
         anatomy = anatomy[anatomy['Channel'].isin(ch_names)]
 
@@ -119,15 +129,56 @@ class ElectrodesWin(QMainWindow, Ui_MainWindow):
         extra_chans = list(set(ch_names).difference(set(ana_ch)))
         print('Extra channels are: ', extra_chans)
         # reorder the anatomy df using ei df
-        anatomy['Channel'] = anatomy['Channel'].astype('category').cat.set_categories(ch_names)
-        anatomy = anatomy.sort_values(by=['Channel'], ascending=True)
-        self.ei[self.seg_name] = anatomy[self.seg_name].to_list()
+        # anatomy['Channel'] = anatomy['Channel'].astype('category').cat.set_categories(ch_names)
+        # anatomy = anatomy.sort_values(by=['Channel'], ascending=True)
+
+        chs = anatomy['Channel'].to_list()
+        rois = anatomy[self.seg_name].to_list()
+        x = anatomy['x'].to_list()
+        y = anatomy['y'].to_list()
+        z = anatomy['z'].to_list()
+        chs_rois_dict = dict(zip(chs, rois))
+        chs_x = dict(zip(chs, x))
+        chs_y = dict(zip(chs, y))
+        chs_z = dict(zip(chs, z))
+
+        rois_ordered = []
+        for ch in ch_names:
+            if ch in chs_rois_dict:
+                rois_ordered.append(chs_rois_dict[ch])
+            else:
+                rois_ordered.append(None)
+
+        x_ordered = []
+        for ch in ch_names:
+            if ch in chs_x:
+                x_ordered.append(chs_x[ch])
+            else:
+                x_ordered.append(np.nan)
+
+        y_ordered = []
+        for ch in ch_names:
+            if ch in chs_y:
+                y_ordered.append(chs_y[ch])
+            else:
+                y_ordered.append(np.nan)
+
+        z_ordered = []
+        for ch in ch_names:
+            if ch in chs_z:
+                z_ordered.append(chs_z[ch])
+            else:
+                z_ordered.append(np.nan)
+
         # print(ch_names)
         self.ei_anatomy['Channel'] = ch_names
-        self.ei_anatomy['x'] = anatomy['x']
-        self.ei_anatomy['y'] = anatomy['y']
-        self.ei_anatomy['z'] = anatomy['z']
-        self.ei_anatomy[self.seg_name] = anatomy[self.seg_name].to_list()
+        self.ei_anatomy['x'] = x_ordered
+        self.ei_anatomy['y'] = y_ordered
+        self.ei_anatomy['z'] = z_ordered
+        self.ei_anatomy[self.seg_name] = rois_ordered
+        self.ei[self.seg_name] = rois_ordered
+
+        print(self.ei_anatomy)
 
     def _select_chans(self):
         self._select_chans_win = ItemSelectionWin(self.ieeg.ch_names)
@@ -172,7 +223,7 @@ class ElectrodesWin(QMainWindow, Ui_MainWindow):
             self.ei = df
 
         if self.anatomy is not None:
-            self.set_anatomy(self.anatomy.copy())
+            self.set_anatomy(self.subject, self.subjects_dir, self.anatomy.copy())
 
         onset = self.ei.detection_time.min()
 
@@ -276,7 +327,25 @@ class ElectrodesWin(QMainWindow, Ui_MainWindow):
             self._ei_table_win.show()
 
     def _ez_viz(self):
-        pass
+        threshold = float(self._ez_threshold_le.text())
+        if len(self.ei_anatomy):
+            ei_info = self.ei.copy()
+
+            ez_chs = ei_info[ei_info['norm_EI'] >= threshold]['Channel'].to_list()
+
+            ch_info = self.ei_anatomy.copy()
+
+            ez = set(ch_info[ch_info['Channel'].isin(ez_chs)][self.seg_name].to_list())
+            if list(ez)[0] is not None:
+                self._3d_viz_win = ElectrodesWin(self.subject, self.subjects_dir, threshold, ez_chs,
+                                                 ch_info, ei_info, self.seg_name, self.parcellation)
+                self._3d_viz_win.CLOSE_SIGNAL.connect(self._close_3d_win)
+                self._3d_viz_win.show()
+            else:
+                QMessageBox.warning(self, 'Anatomy', 'Wrong Montage!')
+
+    def _close_3d_win(self):
+        self._3d_viz_win = None
 
     def _save_excel(self):
         fname, _ = QFileDialog.getSaveFileName(self, 'Export', filter="EI (*.xlsx)")
@@ -290,3 +359,5 @@ class ElectrodesWin(QMainWindow, Ui_MainWindow):
     def closeEvent(self, event):
         if self._ei_table_win is not None:
             self._ei_table_win.close()
+        if self._3d_viz_win is not None:
+            self._3d_viz_win.close()

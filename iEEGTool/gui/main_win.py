@@ -981,13 +981,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         }
         win = windows[win_type]
         ch_info = self.subject.get_electrodes()
+        subject = self.subject.get_name()
         if ch_info is not None:
             print('Transfer anatomy to sub window')
             if 'issue' in ch_info.columns:
                 win.seg_name = self.seg_name[self.parcellation]
-                win.set_anatomy(ch_info)
+                win.parcellation = self.parcellation
+                win.set_anatomy(subject, self.subjects_dir, ch_info)
 
     def _compute_ei(self):
+        subject = self.subject.get_name()
         ieeg = self.subject.get_ieeg()
         ch_info = self.subject.get_electrodes()
         anatomy = None
@@ -997,7 +1000,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 anatomy = ch_info[['Channel', 'x', 'y', 'z', self.seg_name[self.parcellation]]]
                 seg_name = self.seg_name[self.parcellation]
         if ieeg is not None:
-            self._ei_win = EIWin(ieeg, anatomy, seg_name)
+            self._ei_win = EIWin(ieeg, subject, self.subjects_dir, anatomy, seg_name, self.parcellation)
             self._ei_win.ANATOMY_SIGNAL.connect(self._transfer_anatomy)
             self._ei_win.show()
 

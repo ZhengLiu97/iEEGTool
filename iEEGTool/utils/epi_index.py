@@ -114,7 +114,7 @@ def page_hinkley(data, bias=0.1, threshold=1):
     data : np.ndarray
         data to detect concept drift
     bias : float  default 0.1
-     bias factor for Page-Hinkley test
+        bias factor for Page-Hinkley test
     threshold : float  default 1
         the concept drift threshold
 

@@ -91,7 +91,7 @@ class RMSHFOWin(QMainWindow, Ui_MainWindow):
     def _load_anatomy(self):
         self.ANATOMY_SIGNAL.emit('HFO')
 
-    def set_anatomy(self, anatomy):
+    def set_anatomy(self, subject, subjects_dir, anatomy):
         ch_names = self.hfo_rate_df['Channel'].to_list()
         anatomy = anatomy[anatomy['Channel'].isin(ch_names)]
         # reorder the anatomy df using hfo_rate_df

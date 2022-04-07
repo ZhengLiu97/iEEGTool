@@ -14,15 +14,16 @@ from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QCloseEvent, QCursor
 
 from gui.ei_viz_ui import Ui_MainWindow
-from viz.surface import check_hemi
+from viz.surface import check_hemi, create_chs_sphere
 from utils.decorator import safe_event
-from utils.config import view_dict
+from utils.config import view_dict, contact_kwargs, text_kwargs
 
 
-class EIWin(QMainWindow, Ui_MainWindow):
+class ElectrodesWin(QMainWindow, Ui_MainWindow):
     CLOSE_SIGNAL = pyqtSignal(bool)
 
-    def __init__(self, subject, subjects_dir, ch_info, ei_info, seg_name, parcellation):
+    def __init__(self, subject, subjects_dir, threshold, ez_chs,
+                 ch_info, ei_info, seg_name, parcellation):
         super().__init__()
         self.setupUi(self)
         self._center_win()
@@ -30,28 +31,33 @@ class EIWin(QMainWindow, Ui_MainWindow):
 
         self.subject = subject
         self.subjects_dir = subjects_dir
-        self.ch_info = ch_info
-        self.ei_info = ei_info
+        self.ez_chs = ez_chs
+        self.ch_info = ch_info  # anatomy
+        self.ei_info = ei_info  # EI value
         self.seg_name = seg_name
         self.parcellation = parcellation
+        self.threshold = threshold
 
         self.ch_names = ch_info['Channel'].to_list()
 
         coords = ch_info[['x', 'y', 'z']].to_numpy()
         self.ch_pos = dict(zip(self.ch_names, coords))
 
-        self.ch_info_tb = self.ch_info[['Channel', 'norm_EI', seg_name]]
-        rois = ch_info[seg_name].to_list()
-        self.ch_rois = dict(zip(self.ch_names, rois))
+        self.ei_info_tb = self.ei_info[['Channel', 'norm_EI', seg_name]].\
+                          sort_values(by='norm_EI', ascending=False)
 
-        self._init_rois(subject, subjects_dir, set(rois), parcellation)
+        self.ez = set(ch_info[ch_info['Channel'].isin(ez_chs)][self.seg_name].to_list())
+        self._init_rois(subject, subjects_dir, parcellation)
 
         self._info_table.setMouseTracking(True)
         self._info_table.cellEntered.connect(self._show_tooltip)
 
+        self.actors = {}
+
         self._init_brain(subject, subjects_dir)
-        self._init_ch_info()
-        self._init_electrodes(ch_info)
+        self.add_items2table(self.ei_info_tb)
+
+        self._init_electrodes()
 
         self._slot_connection()
 
@@ -65,11 +71,13 @@ class EIWin(QMainWindow, Ui_MainWindow):
         self._plotter.add_brain(subject, subjects_dir, ['lh', 'rh'], 'pial', 0.1)
         self._plotter.view_vector(view_dict['front'][0], view_dict['front'][1])
 
-    def _init_rois(self, subject, subjects_dir, rois, aseg):
-        self._plotter.add_rois(subject, subjects_dir, rois, aseg)
-
-    def _init_ch_info(self):
-        pass
+    def _init_rois(self, subject, subjects_dir, aseg):
+        self._plotter.add_rois(subject, subjects_dir, self.ez, aseg)
+        self._plotter.add_rois_text(self.ez)
+        for roi in self.ez:
+            self._plotter.enable_rois_viz(roi, False)
+        text_actors = self._plotter.text_actors
+        [text_actors[actor].SetVisibility(False) for actor in text_actors]
 
     def add_items2table(self, ch_info):
         columns = list(ch_info.columns)
@@ -82,8 +90,6 @@ class EIWin(QMainWindow, Ui_MainWindow):
             info = list(info)
             for col, item in enumerate(info):
                 item = QTableWidgetItem(str(item))
-                if col == 0:
-                    item.setCheckState(Qt.Unchecked)
                 item.setFlags(Qt.ItemIsUserCheckable | Qt.ItemIsEnabled)
                 self._info_table.setItem(index, col, item)
         for i in range(table_npy.shape[0]):
@@ -94,11 +100,31 @@ class EIWin(QMainWindow, Ui_MainWindow):
         self._info_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
         self._info_table.horizontalHeader().setStretchLastSection(True)
 
-    def _init_electrodes(self, ch_info):
-        ch_names = ch_info['Channel'].to_list()
-        ch_coords = ch_info[['x', 'y', 'z']].to_numpy()
-        self._plotter.add_chs(ch_names, ch_coords)
-        self._plotter.enable_ch_name_viz(ch_names, False)
+    def _init_electrodes(self):
+        all_chs = self.ei_info['Channel'].to_list()
+
+        ez_chs = self.ez_chs
+        ez_df = self.ch_info.copy()
+        ez_df = ez_df[ez_df['Channel'].isin(ez_chs)]
+        ez_pos = ez_df[['x', 'y', 'z']].to_numpy()
+        ez_spheres = create_chs_sphere(ez_pos, radius=1.5)
+        ch_spheres = dict(zip(ez_chs, ez_spheres))
+        for ch_name in ch_spheres:
+            self.actors[ch_name] = self._plotter.add_mesh(ch_spheres[ch_name], name=ch_name,
+                                                          color='r', **contact_kwargs)
+            self.actors[f'{ch_name} name'] = self._plotter.add_point_labels(self.ch_pos[ch_name] + 1,
+                                                                   [ch_name], name=f'{ch_name} name',
+                                                                   **text_kwargs)
+
+        nez_chs = set(all_chs) - set(ez_chs)
+        nez_df = self.ch_info.copy()
+        nez_pos = nez_df[nez_df['Channel'].isin(nez_chs)][['x', 'y', 'z']].to_numpy()
+        nez_spheres = create_chs_sphere(nez_pos, radius=0.8)
+        nch_spheres = dict(zip(nez_chs, nez_spheres))
+        for ch_name in nch_spheres:
+            self.actors[ch_name] = self._plotter.add_mesh(nch_spheres[ch_name], name=ch_name,
+                                                          color='b', **contact_kwargs)
+        [self.actors[actor].SetVisibility(False) for actor in self.actors]
 
     def _slot_connection(self):
         self._brain_gp.clicked.connect(self._enable_brain_viz)
@@ -106,8 +132,8 @@ class EIWin(QMainWindow, Ui_MainWindow):
         self._hemi_cbx.currentTextChanged.connect(self._set_brain_hemi)
 
         self._ei_gp.clicked.connect(self._enable_ei_vz)
-        self._electrodes_cbx.clicked.connect(self._enable_electrodes_viz)
-        self._ez_cbx.clicked.connect(self._enable_ez_viz)
+        self._electrodes_cbx.stateChanged.connect(self._enable_electrodes_viz)
+        self._ez_cbx.stateChanged.connect(self._enable_ez_viz)
 
         self._background_color_action.triggered.connect(self._set_background_color)
         self._brain_color_action.triggered.connect(self._set_brain_color)
@@ -136,3 +162,72 @@ class EIWin(QMainWindow, Ui_MainWindow):
     def _set_brain_hemi(self):
         hemi = check_hemi(self._hemi_cbx.currentText())
         self._plotter.set_brain_hemi(hemi)
+
+    def _enable_ei_vz(self):
+        viz = self._ei_gp.isChecked()
+        self._electrodes_cbx.setEnabled(viz)
+        self._ez_cbx.setEnabled(viz)
+
+    def _enable_electrodes_viz(self):
+        viz = self._electrodes_cbx.isChecked()
+        [self.actors[actor].SetVisibility(viz) for actor in self.actors]
+
+    def _enable_ez_viz(self):
+        viz = self._ez_cbx.isChecked()
+        rois = self.ez
+        [self._plotter.enable_rois_viz(roi, viz) for roi in rois]
+        text_actors = self._plotter.text_actors
+        [text_actors[actor].SetVisibility(viz) for actor in text_actors]
+
+    def _screenshot(self):
+        fname, _ = QFileDialog.getSaveFileName(self, 'Screenshot', filter="Screenshot (*..jpeg)")
+        if len(fname):
+            self._plotter.screenshot(fname)
+
+    def _set_background_color(self):
+        color = QColorDialog.getColor()
+        if color.isValid():
+            # 第四位为透明度 color必须在0-1之间
+            color = color.getRgbF()[:-1]
+            print(f"change brain color to {color}")
+            self._plotter.set_background_color(color)
+
+    def _set_brain_color(self):
+        color = QColorDialog.getColor()
+        if color.isValid():
+            # 第四位为透明度 color必须在0-1之间
+            color = color.getRgbF()[:-1]
+            print(f"change brain color to {color}")
+            self._plotter.set_brain_color(color)
+
+    def _set_front_view(self):
+        view = view_dict['front']
+        self._plotter.view_vector(view[0], view[1])
+
+    def _set_back_view(self):
+        view = view_dict['back']
+        self._plotter.view_vector(view[0], view[1])
+
+    def _set_left_view(self):
+        view = view_dict['left']
+        self._plotter.view_vector(view[0], view[1])
+
+    def _set_right_view(self):
+        view = view_dict['right']
+        self._plotter.view_vector(view[0], view[1])
+
+    def _set_top_view(self):
+        view = view_dict['top']
+        self._plotter.view_vector(view[0], view[1])
+
+    def _set_bottom_view(self):
+        view = view_dict['bottom']
+        self._plotter.view_vector(view[0], view[1])
+
+    def _show_tooltip(self, i, j):
+        item = self._info_table.item(i, j).text()
+        if len(item) > 39:
+            QToolTip.showText(QCursor.pos(), item)
+
+    def closeEvent(self, a0: QCloseEvent) -> None:
+        self.CLOSE_SIGNAL.emit(True)

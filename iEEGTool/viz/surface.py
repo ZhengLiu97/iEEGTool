@@ -56,11 +56,11 @@ def read_fs_surface(subject, subjects_dir, hemi, surf='pial'):
         coords = inflated_offset(coords, subject, subjects_dir, hemi)
     return coords, faces
 
-def create_chs_sphere(ch_coords):
+def create_chs_sphere(ch_coords, radius=1.):
     sphere = []
     print("Creating Channels' sphere")
     for ch_coord in ch_coords:
-        sphere.append(pv.Sphere(radius=1., center=ch_coord))
+        sphere.append(pv.Sphere(radius=radius, center=ch_coord))
 
     return sphere
 

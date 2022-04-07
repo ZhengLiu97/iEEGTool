@@ -150,11 +150,11 @@ class ElectrodesWin(QMainWindow, Ui_MainWindow):
 
         self._screenshot_action.triggered.connect(self._screenshot)
 
-        # cannot use lambda for don't know why
+        # cannot use lambda or partial for don't know why
         # but if using lambda to simplify
         # we cannot open the window the second time
-        self._front_action.triggered.connect(self._set_front_view)
-        self._back_action.triggered.connect(self._set_back_view)
+        # self._front_action.triggered.connect(self._set_front_view)
+        # self._back_action.triggered.connect(self._set_back_view)
         self._left_action.triggered.connect(self._set_left_view)
         self._right_action.triggered.connect(self._set_right_view)
         self._top_action.triggered.connect(self._set_top_view)
