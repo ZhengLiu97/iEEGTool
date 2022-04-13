@@ -33,10 +33,9 @@ def get_chan_group(chans, exclude=None, return_df=False):
     """
     import re
     import pandas as pd
-    try:
-        chans.pop(chans.index('E'))
-    except:
-        pass
+
+    if isinstance(exclude, list):
+        [chans.pop(chans.index(ch)) for ch in exclude]
 
     chan_df = pd.DataFrame(columns=['Channel', 'Group'])
     chan_df['Channel'] = chans
@@ -69,6 +68,36 @@ def get_chan_group(chans, exclude=None, return_df=False):
         return chan_df
     else:
         return chan_group
+
+
+def get_chan_group_only(chans, exclude=None, return_df=False):
+    """Group iEEG channel
+    Parameters
+    ----------
+    chans: list
+        channels' name
+    exclude: list
+        channels need to be excluded
+    Returns
+    -------
+    chan_group: dict  group: channels
+        channels belong to each group
+    """
+    import re
+
+    if isinstance(exclude, list):
+        [chans.pop(chans.index(ch)) for ch in exclude]
+
+    group_chs = dict()
+    for ch in chans:
+        match = r"([a-zA-Z]+')" if "'" in ch else r"([a-zA-Z]+)"
+        group = re.match(match, ch, re.I).group()
+        if group not in group_chs:
+            group_chs[group] = [ch]
+        else:
+            group_chs[group].append(ch)
+    return group_chs
+
 
 def clean_chans(ieeg):
     import re

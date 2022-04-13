@@ -210,14 +210,14 @@ def reorder_chs(chs):
         quote = "'" in ch
         if quote:
             # In this case, the contact's name is like A'1 or A'1-A'2
-            match = re.match(r"([A-Z]+)(')([0-9]+)", ch, re.I)
+            match = re.match(r"([a-zA-Z]+)(')([0-9]+)", ch, re.I)
             ch_group = match.groups()[0] + match.groups()[1]
             # have to int the num so it would be sorted by the rule of int
             # not the rule of str
             ch_num = int(match.groups()[2])
         else:
             # In this case, the contact's name is like A1 or A1-A2
-            match = re.match(r"([A-Z]+)([0-9]+)", ch, re.I)
+            match = re.match(r"([a-zA-Z]+)([0-9]+)", ch, re.I)
             ch_group = match.groups()[0]
             ch_num = int(match.groups()[1])
         if ch_group in unsorted_chs_dict:
