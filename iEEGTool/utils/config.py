@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 """
-@Project ：EpiLock
+@Project ：iEEGTool
 @File    ：_config.py
 @Author  ：Barry
 @Date    ：2021/11/15 21:20
