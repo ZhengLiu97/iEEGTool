@@ -13,7 +13,7 @@ import mne.gui._ieeg_locate_gui as mne_ieeg
 
 
 class SEEGLocator(mne_ieeg.IntracranialElectrodeLocator):
-    CLOSE_SIGNAL = pyqtSignal(bool)
+    CLOSE_SIGNAL = pyqtSignal(dict)
 
     def __init__(self, info, trans, aligned_ct, subject=None,
                  subjects_dir=None, groups=None, verbose=None):
@@ -23,7 +23,7 @@ class SEEGLocator(mne_ieeg.IntracranialElectrodeLocator):
     @safe_event
     def closeEvent(self, event) -> None:
         self._renderer.plotter.close()
-        self.CLOSE_SIGNAL.emit(True)
+        self.CLOSE_SIGNAL.emit(self._chs)
         self.close()
 
 
@@ -35,6 +35,7 @@ def locate_ieeg(info, trans, aligned_ct, subject=None, subjects_dir=None,
     ----------
     %(info_not_none)s
     %(trans_not_none)s
+    info
     aligned_ct : path-like | nibabel.spatialimages.SpatialImage
         The CT image that has been aligned to the Freesurfer T1. Path-like
         inputs and nibabel image objects are supported.

@@ -67,7 +67,7 @@ SYSTEM = platform.system()
 
 logger = create_logger(filename='iEEGTool.log')
 
-default_path = 'H:/SZ'
+default_path = 'data'
 freesurfer_path = 'data/freesurfer'
 
 
@@ -89,9 +89,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.ct_title = ''
 
         # self.subject = Subject('sample')
-        self.subject = Subject()
+        self.subject = Subject('cenjianv')
         self._info = {'subject_name': '', 'age': '', 'gender': ''}
         self.subjects_dir = freesurfer_path
+        self.chs_name = ''
 
         self.electrodes = Electrodes()
         self.wm_chs = list()
@@ -635,22 +636,21 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.ieeg_locator.CLOSE_SIGNAL.connect(self.get_contact_pos)
         logger.info('Start iEEG Locator')
 
-    def get_contact_pos(self, event):
+    def get_contact_pos(self, result):
+        ch_names = []
+        x = []
+        y = []
+        z = []
+        ch_pos = {}
+        for ch in result:
+            xyz = np.round(result[ch], 3)
+            if True not in np.isnan(xyz):
+                ch_pos[ch] = xyz
+                ch_names.append(ch)
+
         raw = self.subject.get_ieeg()
         subject = self.subject.get_name()
-        ch_names, chs = raw.info['ch_names'], raw.info['chs']
-        pos = np.asarray([chs[i]['loc'][:3] for i in range(len(ch_names))])
-        ch_pos_df = pd.DataFrame()
-        ch_pos_df['Channel'] = ch_names
-        ch_pos_df['x'] = pos[:, 0]
-        ch_pos_df['y'] = pos[:, 1]
-        ch_pos_df['z'] = pos[:, 2]
-        ch_pos_df = ch_pos_df.dropna(axis=0, how='any')
-
-        ch_locate = ch_pos_df['Channel'].to_list()
-        pos = ch_pos_df[['x', 'y', 'z']].to_numpy()
-        ch_pos = dict(zip(ch_locate, pos))
-        ch_locate_group = get_chan_group(ch_locate)
+        ch_locate_group = get_chan_group(ch_names)
         ch_group = get_chan_group(raw.ch_names)
         contact_pos = ch_pos.copy()
         for group in ch_group:
@@ -658,22 +658,30 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             tail_ch = ch_group[group][-1]
             if (tip_ch in ch_pos.keys()) and \
                     (tail_ch in ch_pos.keys()) and (len(ch_locate_group[group]) == 2):
-                tip = ch_pos[tip_ch] * 1000
-                tail = ch_pos[tail_ch] * 1000
+                tip = ch_pos[tip_ch]
+                tail = ch_pos[tail_ch]
                 ch_num = len(ch_group[group])
                 dist = 3.5
-                print(f'Calculating group {group} contacts')
+                print(f'Calculating group {group} contacts based on {tip_ch} and {tail_ch}')
                 calc_pos = calc_ch_pos(tip, tail, ch_num, dist)
                 curr_ch_names = ch_group[group]
-                contact_pos.update(dict(zip(curr_ch_names, calc_pos / 1000)))
+                contact_pos.update(dict(zip(curr_ch_names, calc_pos)))
 
         if len(contact_pos):
-            lpa, nasion, rpa = mne.coreg.get_mni_fiducials(
-                subject=subject, subjects_dir=self.subjects_dir)
-            lpa, nasion, rpa = lpa['r'], nasion['r'], rpa['r']
-            montage = mne.channels.make_dig_montage(
-                contact_pos, coord_frame='head', nasion=nasion, lpa=lpa, rpa=rpa)
+            montage_pos = {ch: contact_pos[ch] / 1000 for ch in contact_pos}
+            _, montage = get_montage(montage_pos, subject, self.subjects_dir)
             raw.set_montage(montage, on_missing='ignore')
+
+            self.electrodes.clean()
+            ch_names = list(contact_pos.keys())
+            ch_names = reorder_chs(ch_names)
+            self.electrodes.set_ch_names(ch_names)
+            for ch in ch_names:
+                xyz = np.round(contact_pos[ch], 3)
+                x.append(xyz[0])
+                y.append(xyz[1])
+                z.append(xyz[2])
+            self.electrodes.set_ch_xyz([x, y, z])
 
     # Signal Menu
     def _set_ieeg_montage(self):

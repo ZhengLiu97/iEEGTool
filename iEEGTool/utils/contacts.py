@@ -43,7 +43,7 @@ def calc_ch_pos(tip, tail, ch_num, dist=3.5, extra_interval=None):
         tip = np.asarray(tip)
     if not isinstance(tail, np.ndarray):
         tail = np.asarray(tail)
-    xyz_diff = tail - tip
+    xyz_diff = tail.astype(np.float64) - tip.astype(np.float64)
     line_len = np.sqrt(xyz_diff[0] ** 2 + xyz_diff[1] ** 2 + xyz_diff[2] ** 2)
     ch_pos = np.zeros((ch_num, 3))
     ch_pos[0, :] = tip
