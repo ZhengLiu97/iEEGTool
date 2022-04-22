@@ -1,16 +1,40 @@
 # -*- coding: UTF-8 -*-
 """
-@Project ：EpiLocker 
-@File    ：_calculate_contact_pos.py
+@Project ：iEEGTool 
+@File    ：revise_chs.py
 @Author  ：Barry
-@Date    ：2022/1/20 1:52 
+@Date    ：2022/4/22 10:29 
 """
-import re
 import numpy as np
 
-from collections import OrderedDict
+def get_chan_group(chans, exclude=None):
+    """Group iEEG channel
+    Parameters
+    ----------
+    chans: list
+        channels' name
+    exclude: list
+        channels need to be excluded
+    Returns
+    -------
+    chan_group: dict  group: channels
+        channels belong to each group
+    """
+    import re
 
-from utils.process import get_chan_group
+    if isinstance(exclude, list):
+        [chans.pop(chans.index(ch)) for ch in exclude]
+
+    group_chs = dict()
+    for ch in chans:
+        match = r"([a-zA-Z]+')" if "'" in ch else r"([a-zA-Z]+)"
+        group = re.match(match, ch, re.I).group()
+        if group not in group_chs:
+            group_chs[group] = [ch]
+        else:
+            group_chs[group].append(ch)
+    return group_chs
+
 
 def calc_ch_pos(tip, tail, ch_num, dist=3.5, extra_interval=None):
     """Calculate channels' position in the same shaft
@@ -26,7 +50,7 @@ def calc_ch_pos(tip, tail, ch_num, dist=3.5, extra_interval=None):
     dist: int | float
         the distance between the center of mass of contacts
     extra_interval: int | float
-        not uniformly-spaced at the middle should be 10
+        not uniformly-spaced at the middle should be 12
         specify for 16 contacts
 
     Returns
@@ -59,120 +83,7 @@ def calc_ch_pos(tip, tail, ch_num, dist=3.5, extra_interval=None):
         xyz_extra = extra_dist * xyz_diff / line_len
         ch_pos[ch_num//2:, :] += xyz_extra
 
-    return ch_pos
-
-def calc_bipolar_chs_pos(ch_pos, middle=False):
-    """Calculate the bipolar channels' position based on the original coordinates
-    Parameters
-    ----------
-    ch_pos : dict
-        the coordinates of each contact
-
-    middle : bool
-
-    Returns
-    -------
-    bipolar_ch_pos : dict
-        the coordinates of the bipolar contacts
-
-    """
-    from utils.process import get_bipolar_pair
-
-    ch_names = list(ch_pos.keys())
-    bipolar_pairs = get_bipolar_pair(ch_names)
-    anode = []
-    cathode = []
-    for group in bipolar_pairs:
-        anode += bipolar_pairs[group][0]
-        cathode += bipolar_pairs[group][1]
-    bipolar_ch_pos = OrderedDict()
-    for index, _ in enumerate(anode):
-        anode_name = anode[index]
-        cathode_name = cathode[index]
-        ch_name = f'{anode_name}-{cathode_name}'
-        if middle:
-            bipolar_ch_pos[ch_name] = np.round((ch_pos[anode_name] + ch_pos[cathode_name]) / 2, 3)
-        else:
-            bipolar_ch_pos[ch_name] = ch_pos[anode_name]
-
-    return bipolar_ch_pos
-
-def is_wm(roi_name):
-    """Judge if roi is in white matter
-
-    Parameters
-    ----------
-    roi_name : list
-            ROI name
-
-    Returns
-    -------
-    bool
-
-    """
-    wm_key = ['white', 'wm']
-    roi_name = roi_name.lower()
-    for key in wm_key:
-        if key in roi_name:
-            return True
-    return False
-
-def is_unknown(roi_name):
-    """Judge if roi is in unknown
-
-    Parameters
-    ----------
-    roi_name : list
-            ROI name
-
-    Returns
-    -------
-    bool
-
-    """
-    unknown_key = 'unknown'
-    roi_name = roi_name.lower()
-    if unknown_key in roi_name:
-        return True
-    else:
-        return False
-
-def is_gm(roi_name):
-    """Judge if roi is in gray matter
-
-    Parameters
-    ----------
-    roi_name : list
-            ROI name
-    Returns
-    -------
-    bool
-
-    """
-    if is_wm(roi_name):
-        return False
-    if is_unknown(roi_name):
-        return False
-    return True
-
-def is_lh(roi_name):
-    """Judge if roi is in left hemi
-
-    Parameters
-    ----------
-    roi_name : list
-            ROI name
-    Returns
-    -------
-    bool
-
-    """
-    hemi_key = ['left', 'lh']
-    roi_name = roi_name.lower()
-    for key in hemi_key:
-        if key in roi_name:
-            return True
-    return False
+    return np.round(ch_pos, 3)
 
 def reorder_chs(chs):
     """Reorder iEEG channels' name
@@ -238,33 +149,70 @@ def reorder_chs(chs):
             if ch_name in post_node:
                 ch_name += post_node[ch_name]
             sorted_chs.append(ch_name)
-    # print(sorted_chs)
 
     return sorted_chs
 
-def reorder_chs_df(df):
-    ch_names = df['Channel'].to_list()
-    try:
-        ch_names = reorder_chs(ch_names)
-        # print(ch_names)
-        df['Channel'] = df['Channel'].astype('category').cat.set_categories(ch_names)
-        return df.sort_values(by=['Channel'], ascending=True)
-    except:
-        print('This is not iEEG')
-        return None
-
 
 if __name__ == '__main__':
-    from matplotlib import pyplot as plt
-    tip = (1, 1, 1)
-    tail = (18, 18, 18)
-    ch_pos = calc_ch_pos(tip, tail, 16, extra_interval=10)
-    fig = plt.figure()
-    ax = fig.add_subplot(projection='3d')
-    ax.scatter(ch_pos[:, 0], ch_pos[:, 1], ch_pos[:, 2])
-    plt.show(block=True)
+    import argparse
 
+    import os.path as op
+    import pandas as pd
 
+    help_text = f"Adjust special contacts' location"
+    parser = argparse.ArgumentParser(description=help_text)
 
+    parser.add_argument('-i', '--input_path', dest='fpath',
+                        help='coordinates file path')
+    parser.add_argument('-g', '--group', dest='group', type=list, default=[],
+                        help='group of contacts to revise')
+    parser.add_argument('-n', '--ch_num', dest='ch_num', type=int, default=16,
+                        help='number of contacts')
+    parser.add_argument('-d', '--dist', dest='dist', type=float, default=3.5,
+                        help='distance of contacts')
+    parser.add_argument('-e', '--extra_interval', dest='extra_interval', type=float, default=12,
+                        help='extra interval of contacts')
+    parser.add_argument('-s', '--save_path', dest='save_path', type=str, default='',
+                        help='revised coordinates save path')
+    args = parser.parse_args()
+    fpath = args.fpath
+    group = args.group
+    ch_num = args.ch_num
+    dist = args.dist
+    extra_interval = args.extra_interval
+    save_path = args.save_path
+    if not op.exists(fpath):
+        raise FileNotFoundError(f'No such file or directory: {fpath}')
+    if not op.isfile(save_path):
+        raise ValueError(f'Wrong save path format \n'
+                         f'should be like *.txt')
+    coords = pd.read_table(fpath)
+    print(f'Loading coordinates from {fpath}')
+    print(f'Revising group {group} using distance {dist} with extra interval {extra_interval}')
 
+    ch_names = coords['Channel'].to_list()
+    xyz = coords[['x', 'y', 'z']].to_numpy()
+    ch_pos = dict(zip(ch_names, xyz))
+    group_chs = get_chan_group(ch_names)
+    if len(group):
+        for g in group:
+            if g not in group_chs:
+                print(f'No group {g} in this file')
+            else:
+                g_chs = group_chs[g]
+                tip_name = g_chs[0]
+                tail_name = g_chs[-1]
+                tip = ch_pos[tip_name]
+                tail = ch_pos[tail_name]
+                g_ch_pos = calc_ch_pos(tip, tail, ch_num, dist, extra_interval)
+                for index, ch in enumerate(g_chs):
+                    ch_index = ch_names.index(ch)
+                    coords.loc[ch_index, ['x', 'y', 'z']] = g_ch_pos[index]
 
+                # from matplotlib import pyplot as plt
+                #
+                # fig = plt.figure()
+                # ax = fig.add_subplot(projection='3d')
+                # ax.scatter(g_ch_pos[:, 0], g_ch_pos[:, 1], g_ch_pos[:, 2])
+                # plt.show(block=True)
+        coords.to_csv(save_path, sep='\t', index=None)

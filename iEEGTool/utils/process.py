@@ -70,7 +70,7 @@ def get_chan_group(chans, exclude=None, return_df=False):
         return chan_group
 
 
-def get_chan_group_only(chans, exclude=None, return_df=False):
+def get_chan_group_only(chans, exclude=None):
     """Group iEEG channel
     Parameters
     ----------
