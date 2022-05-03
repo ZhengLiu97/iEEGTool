@@ -107,32 +107,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             'aparc+aseg.vep': 'VEP',
         })
 
-        # Signal window
-        self._crop_win = None
-        self._resample_win = None
-        self._fir_filter_win = None
-        self._iir_filter_win = None
-
-        # Analysis window
-        self._psd_multitaper_win = None
-        self._psd_welch_win = None
-
-        self._csd_fourier_win = None
-        self._csd_morlet_win = None
-        self._csd_multitaper_win = None
-
-        self._tfr_multitaper_win = None
-        self._tfr_morlet_win = None
-
-        self._nxn_con_win = None
-        self._nx1_con_win = None
-
-        self._ei_win = None
-        self._hfo_win = None
-
-        # Visualization
-        self._elec_viz_win = None
-        self._rois_viz_win = None
+        self.wins = dict(crop_win=None, resample_win=None, fir_filter_win=None, iir_filter_win=None,
+                         psd_multitaper_win=None, psd_welch_win=None, csd_fourier_win=None, csd_morlet_win=None,
+                         csd_multitaper_win=None, tfr_multitaper_win=None, tfr_morlet_win=None, nxn_con_win=None,
+                         nx1_con_win=None, ei_win=None, hfo_win=None, elec_viz_win=None, rois_viz_win=None,
+                         ieeg_info_win=None, info_win=None, table_win=None, monopolar_win=None)
 
     def _center_win(self):
         qr = self.frameGeometry()
@@ -388,8 +367,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
                     position = value_list.index(seg_name)
                     self.parcellation = key_list[position]
-                    # print(self.parcellation)
-                    # print(seg_name)
+                    print(self.parcellation)
+                    print(seg_name)
                 rois = coords_df[seg_name].to_list()
                 # print(rois)
                 self.electrodes.set_issues(rois)
@@ -496,9 +475,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             logger.info('What??????')
 
     def _write_info(self):
-        self._info_win = InfoWin(self._info)
-        self._info_win.INFO_PARAM.connect(self.get_info)
-        self._info_win.show()
+        self.wins['info_win'] = InfoWin(self._info)
+        self.wins['info_win'].INFO_PARAM.connect(self.get_info)
+        self.wins['info_win'].show()
 
     def get_info(self, info):
         self._info = info
@@ -523,16 +502,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             info['fmin'] = ieeg.info['highpass']
             info['fmax'] = int(ieeg.info['lowpass'])
             info['data_size'] = round(ieeg._size / (1024 ** 2), 2)
-            self._ieeg_info_win = iEEGInfoWin(info)
-            self._ieeg_info_win.show()
+            self.wins['ieeg_info_win'] = iEEGInfoWin(info)
+            self.wins['ieeg_info_win'].show()
         else:
             QMessageBox.warning(self, 'iEEG', 'Please load iEEG first!')
 
     def _view_chs_info(self):
         ch_info = self.electrodes.get_info()
         if len(ch_info):
-            self._table_win = TableWin(ch_info, self.chs_name)
-            self._table_win.show()
+            self.wins['table_win'] = TableWin(ch_info, self.chs_name)
+            self.wins['table_win'].show()
 
     # Localization Menu
     def _display_t1(self):
@@ -721,9 +700,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def _crop_ieeg(self):
         if self.subject.get_ieeg() is not None:
             raw = self.subject.get_ieeg()
-            self._crop_win = CropWin(raw.times[0], round(raw.times[-1]))
-            self._crop_win.CROP_SIGNAL.connect(self._get_cropped_ieeg)
-            self._crop_win.show()
+            self.wins['crop_win'] = CropWin(raw.times[0], round(raw.times[-1]))
+            self.wins['crop_win'].CROP_SIGNAL.connect(self._get_cropped_ieeg)
+            self.wins['crop_win'].show()
 
     def _get_cropped_ieeg(self, tmin, tmax):
         self.subject.get_ieeg().crop(tmin, tmax)
@@ -735,9 +714,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if self.subject.get_ieeg() is not None:
             print('here2')
             raw = self.subject.get_ieeg()
-            self._resample_win = ResampleWin(raw)
-            self._resample_win.RESAMPLE_SIGNAL.connect(self._get_resampled_ieeg)
-            self._resample_win.show()
+            self.wins['resample_win'] = ResampleWin(raw)
+            self.wins['resample_win'].RESAMPLE_SIGNAL.connect(self._get_resampled_ieeg)
+            self.wins['resample_win'].show()
 
     def _get_resampled_ieeg(self, ieeg):
         QMessageBox.information(self, 'iEEG', 'Resampling finished!')
@@ -747,9 +726,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def _fir_filter_ieeg(self):
         raw = self.subject.get_ieeg()
         if raw is not None:
-            self._fir_filter_win = FIRFilterWin(raw)
-            self._fir_filter_win.IEEG_SIGNAL.connect(self._get_filtered_ieeg)
-            self._fir_filter_win.show()
+            self.wins['fir_filter_win'] = FIRFilterWin(raw)
+            self.wins['fir_filter_win'].IEEG_SIGNAL.connect(self._get_filtered_ieeg)
+            self.wins['fir_filter_win'].show()
 
     def _get_filtered_ieeg(self, ieeg):
         QMessageBox.information(self, 'iEEG', 'Filtering finished!')
@@ -759,9 +738,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def _monopolar_reference(self):
         ieeg = self.subject.get_ieeg()
         if ieeg is not None:
-            self._monopolar_win = ItemSelectionWin(ieeg.ch_names)
-            self._monopolar_win.SELECTION_SIGNAL.connect(self._get_monopolar_chans)
-            self._monopolar_win.show()
+            self.wins['monopolar_win'] = ItemSelectionWin(ieeg.ch_names)
+            self.wins['monopolar_win'].SELECTION_SIGNAL.connect(self._get_monopolar_chans)
+            self.wins['monopolar_win'].show()
 
     def _get_monopolar_chans(self, chans):
         ieeg, _ = mne.set_eeg_reference(self.subject.get_ieeg(), ref_channels=chans, copy=False)
@@ -931,8 +910,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def _psd_multitaper(self):
         ieeg = self.subject.get_ieeg()
         if ieeg is not None:
-            self._psd_multitaper_win = MultitaperPSDWin(ieeg)
-            self._psd_multitaper_win.show()
+            self.wins['psd_multitaper_win'] = MultitaperPSDWin(ieeg)
+            self.wins['psd_multitaper_win'].show()
 
     def _psd_welch(self):
         ieeg = self.subject.get_ieeg()
@@ -943,56 +922,56 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def _csd_fourier(self):
         ieeg = self.subject.get_ieeg()
         if ieeg is not None:
-            self._csd_fourier_win = FourierCSDWin(ieeg)
-            self._csd_fourier_win.show()
+            self.wins['csd_fourier_win'] = FourierCSDWin(ieeg)
+            self.wins['csd_fourier_win'].show()
 
     def _csd_morlet(self):
         ieeg = self.subject.get_ieeg()
         if ieeg is not None:
-            self._csd_fourier_win = MorletCSDWin(ieeg)
-            self._csd_fourier_win.show()
+            self.wins['csd_fourier_win'] = MorletCSDWin(ieeg)
+            self.wins['csd_fourier_win'].show()
 
     def _csd_multitaper(self):
         ieeg = self.subject.get_ieeg()
         if ieeg is not None:
-            self._csd_fourier_win = MultitaperCSDWin(ieeg)
-            self._csd_fourier_win.show()
+            self.wins['csd_fourier_win'] = MultitaperCSDWin(ieeg)
+            self.wins['csd_fourier_win'].show()
 
     def _tfr_multitaper(self):
         ieeg = self.subject.get_ieeg()
         if ieeg is not None:
-            self._tfr_multitaper_win = TFRMultitaperWin(ieeg)
-            self._tfr_multitaper_win.show()
+            self.wins['tfr_multitaper_win'] = TFRMultitaperWin(ieeg)
+            self.wins['tfr_multitaper_win'].show()
 
     def _tfr_morlet(self):
         ieeg = self.subject.get_ieeg()
         if ieeg is not None:
-            self._tfr_morlet_win = TFRMorletWin(ieeg)
-            self._tfr_morlet_win.show()
+            self.wins['tfr_morlet_win'] = TFRMorletWin(ieeg)
+            self.wins['tfr_morlet_win'].show()
 
     def _nxn_con(self, method):
         ieeg = self.subject.get_ieeg()
         if ieeg is not None:
-            self._nxn_con_win = NxNSpectraConWin(ieeg, method)
-            self._nxn_con_win.show()
+            self.wins['nxn_con_win'] = NxNSpectraConWin(ieeg, method)
+            self.wins['nxn_con_win'].show()
 
     def _nx1_con(self, method):
         ieeg = self.subject.get_ieeg()
         if ieeg is not None:
-            self._nx1_con_win = Nx1SpectraConWin(ieeg, method)
-            self._nx1_con_win.show()
+            self.wins['nx1_con_win'] = Nx1SpectraConWin(ieeg, method)
+            self.wins['nx1_con_win'].show()
 
     def _transfer_anatomy(self, win_type):
         windows = {
-            'EI': self._ei_win,
-            'HFO': self._hfo_win,
+            'EI': self.wins['ei_win'],
+            'HFO': self.wins['hfo_win'],
         }
         win = windows[win_type]
         ch_info = self.subject.get_electrodes()
         subject = self.subject.get_name()
         if ch_info is not None:
             print('Transfer anatomy to sub window')
-            if 'issue' in ch_info.columns:
+            if 'ROI' in ch_info.columns:
                 win.seg_name = self.seg_name[self.parcellation]
                 win.parcellation = self.parcellation
                 win.set_anatomy(subject, self.subjects_dir, ch_info)
@@ -1002,29 +981,29 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         ieeg = self.subject.get_ieeg()
         ch_info = self.subject.get_electrodes()
         anatomy = None
-        seg_name = None
         if ch_info is not None:
             if 'issue' in ch_info.columns:
                 anatomy = ch_info[['Channel', 'x', 'y', 'z', self.seg_name[self.parcellation]]]
                 seg_name = self.seg_name[self.parcellation]
+                # anatomy = ch_info[['Channel', 'x', 'y', 'z', seg_name]]
         if ieeg is not None:
-            self._ei_win = EIWin(ieeg, subject, self.subjects_dir, anatomy, seg_name, self.parcellation)
-            self._ei_win.ANATOMY_SIGNAL.connect(self._transfer_anatomy)
-            self._ei_win.show()
+            self.wins['ei_win'] = EIWin(ieeg, subject, self.subjects_dir, anatomy, seg_name, self.parcellation)
+            self.wins['ei_win'].ANATOMY_SIGNAL.connect(self._transfer_anatomy)
+            self.wins['ei_win'].show()
 
     def _compute_hfo(self):
         ieeg = self.subject.get_ieeg()
         ch_info = self.subject.get_electrodes()
         anatomy = None
-        seg_name = None
         if ch_info is not None:
             if 'issue' in ch_info.columns:
                 anatomy = ch_info[['Channel', 'x', 'y', 'z', self.seg_name[self.parcellation]]]
                 seg_name = self.seg_name[self.parcellation]
+                # anatomy = ch_info[['Channel', 'x', 'y', 'z', seg_name]]
         if ieeg is not None:
-            self._hfo_win = RMSHFOWin(ieeg, anatomy, seg_name)
-            self._hfo_win.ANATOMY_SIGNAL.connect(self._transfer_anatomy)
-            self._hfo_win.show()
+            self.wins['hfo_win'] = RMSHFOWin(ieeg, anatomy, 'ROI')
+            self.wins['hfo_win'].ANATOMY_SIGNAL.connect(self._transfer_anatomy)
+            self.wins['hfo_win'].show()
 
     # Visualization Menu
     def _electrodes_viz(self):
@@ -1047,14 +1026,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.parcellation = key_list[position]
 
         if subject is not None:
-            self._elec_viz_win = ElectrodesWin(subject, freesurfer_path, ch_info, seg_name,
+            self.wins['elec_viz_win'] = ElectrodesWin(subject, freesurfer_path, ch_info, seg_name,
                                                self.parcellation)
-            self._elec_viz_win.CLOSE_SIGNAL.connect(self._clean_elec_viz_win)
-            self._elec_viz_win.show()
+            self.wins['elec_viz_win'].CLOSE_SIGNAL.connect(self._clean_elec_viz_win)
+            self.wins['elec_viz_win'].show()
 
     def _clean_elec_viz_win(self, close):
         if close:
-            self._elec_viz_win = None
+            self.wins['elec_viz_win'] = None
 
     def _rois_viz(self):
         subject = self.subject.get_name()
@@ -1080,13 +1059,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         ch_info = ch_info.rename(columns={seg_name: 'ROI'})
         if subject is not None:
-            self._rois_viz_win = ROIsWin(subject, freesurfer_path, ch_info, self.parcellation)
-            self._rois_viz_win.CLOSE_SIGNAL.connect(self._clean_roi_viz_win)
-            self._rois_viz_win.show()
+            self.wins['rois_viz_win'] = ROIsWin(subject, freesurfer_path, ch_info, self.parcellation)
+            self.wins['rois_viz_win'].CLOSE_SIGNAL.connect(self._clean_roi_viz_win)
+            self.wins['rois_viz_win'].show()
 
     def _clean_roi_viz_win(self, close):
         if close:
-            self._rois_viz_win = None
+            self.wins['rois_viz_win'] = None
 
     def _open_freeview(self):
         if SYSTEM != 'Windows':
@@ -1118,35 +1097,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     @safe_event
     def closeEvent(self, event):
-        if self._crop_win is not None:
-            self._crop_win.close()
-        if self._resample_win is not None:
-            self._resample_win.close()
-        if self._fir_filter_win is not None:
-            self._fir_filter_win.close()
-        if self._ei_win is not None:
-            self._ei_win.close()
-        if self._hfo_win is not None:
-            self._hfo_win.close()
-        if self._tfr_morlet_win is not None:
-            self._tfr_morlet_win.close()
-        if self._tfr_multitaper_win is not None:
-            self._tfr_multitaper_win.close()
-        if self._psd_multitaper_win is not None:
-            self._psd_multitaper_win.close()
-        if self._psd_welch_win is not None:
-            self._psd_welch_win.close()
-        if self._csd_fourier_win is not None:
-            self._csd_fourier_win.close()
-        if self._csd_morlet_win is not None:
-            self._csd_morlet_win.close()
-        if self._csd_multitaper_win is not None:
-            self._csd_multitaper_win.close()
-        if self._nxn_con_win is not None:
-            self._nxn_con_win.close()
-        if self._nx1_con_win is not None:
-            self._nx1_con_win.close()
-        if self._elec_viz_win is not None:
-            self._elec_viz_win.close()
-        if self._rois_viz_win is not None:
-            self._rois_viz_win.close()
+        for win in self.wins:
+            if self.wins[win] is not None:
+                self.wins[win].close()
+        [self.wins[win].close() for win in self.wins if self.wins[win] is not None]
