@@ -1097,7 +1097,4 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     @safe_event
     def closeEvent(self, event):
-        for win in self.wins:
-            if self.wins[win] is not None:
-                self.wins[win].close()
         [self.wins[win].close() for win in self.wins if self.wins[win] is not None]
