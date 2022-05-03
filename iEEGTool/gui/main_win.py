@@ -971,7 +971,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         subject = self.subject.get_name()
         if ch_info is not None:
             print('Transfer anatomy to sub window')
-            if 'ROI' in ch_info.columns:
+            if 'issues' in ch_info.columns:
                 win.seg_name = self.seg_name[self.parcellation]
                 win.parcellation = self.parcellation
                 win.set_anatomy(subject, self.subjects_dir, ch_info)
@@ -1001,7 +1001,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 seg_name = self.seg_name[self.parcellation]
                 # anatomy = ch_info[['Channel', 'x', 'y', 'z', seg_name]]
         if ieeg is not None:
-            self.wins['hfo_win'] = RMSHFOWin(ieeg, anatomy, 'ROI')
+            self.wins['hfo_win'] = RMSHFOWin(ieeg, anatomy, seg_name)
             self.wins['hfo_win'].ANATOMY_SIGNAL.connect(self._transfer_anatomy)
             self.wins['hfo_win'].show()
 
