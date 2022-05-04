@@ -117,8 +117,7 @@ def get_contact_label_vol(vol, tab_idx, tab_labels, xyz, radius=5.,
         return bad_labels
 
 
-def labelling_contacts_vol_fs_mgz(subject, subjects_dir, xyz, radius=2., file='aseg',
-                                  bad_label='Unknown', lut_path=None):
+def labelling_contacts_vol_fs_mgz(mri_path, xyz, radius=2., bad_label='Unknown', lut_path=None):
     """Labelling contacts using Freesurfer mgz volume.
 
     This function should be used with files like aseg.mgz, aparc+aseg.mgz
@@ -154,20 +153,14 @@ def labelling_contacts_vol_fs_mgz(subject, subjects_dir, xyz, radius=2., file='a
     """
     # -------------------------------------------------------------------------
     # build path to the volume file
-    mri_path = op.join(subjects_dir, subject, 'mri')
-    mgz_path = op.join(mri_path, f"{file}.mgz")
-    print(mgz_path)
-    if not op.isfile(mgz_path):
-        raise IOError(f"File {mgz_path} doesn't exist in the /mri/ Freesurfer "
-                      "subfolder.")
     n_contacts = xyz.shape[0]
-    print(f"-> Localize {n_contacts} using {file}.mgz")
+    print(f"-> Localize {n_contacts} using {mri_path}")
     # white matter indices
     wm_idx = [2, 41]
 
     # -------------------------------------------------------------------------
     # load volume and transformation
-    arch = nib.load(mgz_path)
+    arch = nib.load(mri_path)
     vol = arch.get_data()
     tr = arch.header.get_vox2ras_tkr()
     vs = nib.affines.voxel_sizes(tr)

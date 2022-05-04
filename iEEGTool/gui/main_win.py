@@ -99,13 +99,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.gm_chs = list()
         self.unknown_chs = list()
         self.set_montage = False
-        self.parcellation = 'aparc+aseg.vep'
-        self.seg_name = OrderedDict({
-            'aparc+aseg': 'ASEG',
-            'aparc.DKTatlas+aseg': 'DKT',
-            'aparc.a2009s+aseg': 'Destrieux',
-            'aparc+aseg.vep': 'VEP',
-        })
+        self.mri_path = ''
 
         self.wins = dict(crop_win=None, resample_win=None, fir_filter_win=None, iir_filter_win=None,
                          psd_multitaper_win=None, psd_welch_win=None, csd_fourier_win=None, csd_morlet_win=None,
@@ -162,10 +156,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self._drop_unknown_matters_action.triggered.connect(self._drop_unknown_chs)
 
         # Analysis Menu
-        self._vep_action.triggered.connect(lambda: self._set_anatomy('aparc+aseg.vep'))
-        self._a2009s_action.triggered.connect(lambda: self._set_anatomy('aparc.a2009s+aseg'))
-        self._dkt_action.triggered.connect(lambda: self._set_anatomy('aparc.DKTatlas+aseg'))
-        self._aseg_action.triggered.connect(lambda: self._set_anatomy('aparc+aseg'))
+        self._anatomical_labeling_action.triggered.connect(self._set_anatomy)
         self._psd_multitaper_action.triggered.connect(self._psd_multitaper)
         self._psd_welch_action.triggered.connect(self._psd_welch)
         self._csd_fourier_action.triggered.connect(self._csd_fourier)
@@ -356,23 +347,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.electrodes.set_ch_names(ch_names)
             self.electrodes.set_ch_xyz([x, y, z])
 
-            if 'issue' in coords_df.columns and len(coords_df.columns) >= 6:
-                seg_name = coords_df.columns[-1]
-                if seg_name not in self.seg_name.values():
-                    self.parcellation = 'Custom'
-                    self.seg_name[self.parcellation] = 'Custom'
-                else:
-                    key_list = list(self.seg_name.keys())
-                    value_list = list(self.seg_name.values())
-
-                    position = value_list.index(seg_name)
-                    self.parcellation = key_list[position]
-                    print(self.parcellation)
-                    print(seg_name)
-                rois = coords_df[seg_name].to_list()
+            if 'ROI' in coords_df.columns:
+                rois = coords_df['ROI'].to_list()
                 # print(rois)
                 self.electrodes.set_issues(rois)
-                self.electrodes.set_anatomy(seg_name, rois)
+                self.electrodes.set_anatomy('ROI', rois)
             self.set_montage = False
             logger.info("Importing channels' coordinates finished!")
             QMessageBox.information(self, 'Coordinates', "Importing channels' coordinates finished!")
@@ -861,39 +840,34 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             #     logger.warning('No channels will be left, so dropping channels is stopped')
 
     # Analysis Menu
-    def _set_anatomy(self, parcellation):
-        print(f'Selected parcellation is {parcellation}')
-        self.parcellation = parcellation
+    def _set_anatomy(self):
+        mri_path, _ = QFileDialog.getOpenFileName(self, 'Anatomy', freesurfer_path,
+                                                  filter='Anatomy (*.mgz *.nii)')
+        self.mri_path = mri_path
         self._get_anatomy()
 
     def _get_anatomy(self):
         ch_info = self.electrodes.get_info()
+
         if not len(ch_info):
             QMessageBox.warning(self, 'Coordinates', 'Please Load Coordinates first!')
             return
+
         if 'x' not in ch_info.columns:
             QMessageBox.warning(self, 'Coordinates', 'Please Load Coordinates first!')
             return
         xyz = ch_info[['x', 'y', 'z']].to_numpy()
         ch_names = ch_info['Channel'].to_numpy()
-        if self.subject.get_name() is None:
-            QMessageBox.warning(self, 'Subject', 'Please Set Subject name first!')
-            return
-        else:
-            subject = self.subject.get_name()
-        if 'vep' in self.parcellation:
+
+        if 'vep' in self.mri_path:
             lut_path = 'utils/VepFreeSurferColorLut.txt'
         else:
             lut_path = 'utils/FreeSurferColorLUT.txt'
-        parcellation = self.parcellation
-        if parcellation not in self.seg_name.keys():
-            self.seg_name[parcellation] = 'Custom'
-        if op.isfile(op.join(self.subjects_dir, subject, 'mri', f'{parcellation}.mgz')):
-            anatomical_labels = labelling_contacts_vol_fs_mgz(subject, self.subjects_dir, xyz,
-                                                              radius=2, file=parcellation,
-                                                              lut_path=lut_path)
+
+        if op.isfile(self.mri_path):
+            anatomical_labels = labelling_contacts_vol_fs_mgz(self.mri_path, xyz, radius=2, lut_path=lut_path)
             self.electrodes.set_issues(anatomical_labels)
-            self.electrodes.set_anatomy(self.seg_name[parcellation], anatomical_labels)
+            self.electrodes.set_anatomy('ROI', anatomical_labels)
 
             # if set_montage is True, replace the electrodes info in subject
             # This happens when loading coordinates without anatomy and setting the montage
@@ -905,7 +879,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.unknown_chs = ch_names[issue == 'Unknown']
                 self.gm_chs = ch_names[issue == 'Gray']
         else:
-            QMessageBox.critical(self, 'Anatomy', f'{parcellation}.mgz not exists')
+            QMessageBox.critical(self, 'Anatomy', f'{self.mri_path} not exists')
 
     def _psd_multitaper(self):
         ieeg = self.subject.get_ieeg()
