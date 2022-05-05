@@ -64,18 +64,15 @@ def create_chs_sphere(ch_coords, radius=1.):
 
     return sphere
 
-def create_roi_surface(subject, subjects_dir, aseg, rois):
+def create_roi_surface(mri_path, rois):
     from utils.freesurfer import read_freesurfer_lut
 
-    aseg_file = aseg + '.mgz'
-    aseg_path = op.join(subjects_dir, subject, 'mri', aseg_file)
-
-    aseg_mgz = nib.load(aseg_path)
+    aseg_mgz = nib.load(mri_path)
     aseg_data = np.asarray(aseg_mgz.dataobj)
     vox_mri_t = aseg_mgz.header.get_vox2ras_tkr()
-    print(f'loading segment file from {aseg_file}')
+    print(f'loading segment file from {mri_path}')
 
-    if 'vep' not in aseg:
+    if 'vep' not in mri_path:
         lut_name = 'utils/FreeSurferColorLUT.txt'
     else:
         lut_name = 'utils/VepFreeSurferColorLut.txt'
@@ -88,7 +85,7 @@ def create_roi_surface(subject, subjects_dir, aseg, rois):
 
     print('Running marching cubes')
     if len(idx):
-        surfs, _ = marching_cubes(aseg_data, idx, smooth=0.85)
+        surfs, _ = marching_cubes(aseg_data, idx, smooth=0.9)
 
         roi_mesh_color = {}
         for roi, (verts, faces) in zip(rois, surfs):

@@ -24,7 +24,7 @@ from utils.decorator import safe_event
 class ROIsWin(QMainWindow, Ui_MainWindow):
     CLOSE_SIGNAL = pyqtSignal(bool)
 
-    def __init__(self, subject, subjects_dir, ch_info, parcellation):
+    def __init__(self, subject, subjects_dir, ch_info, mri_path):
         super().__init__()
         self.setupUi(self)
         self._center_win()
@@ -33,7 +33,7 @@ class ROIsWin(QMainWindow, Ui_MainWindow):
         self.subject = subject
         self.subjects_dir = subjects_dir
         self.ch_info = ch_info
-        self.parcellation = parcellation
+        self.mri_path = mri_path
 
         stats = list(self.ch_info.groupby(by='ROI'))
         rois = [stat[0] for stat in stats]
@@ -56,7 +56,7 @@ class ROIsWin(QMainWindow, Ui_MainWindow):
 
         self.roi_viz = {roi: False for roi in rois}
 
-        self._init_rois(subject, subjects_dir, rois)
+        self._init_rois(rois)
         self._init_brain(subject, subjects_dir)
         self.add_items2table(self.roi_info)
         self._init_electrodes(ch_info)
@@ -82,10 +82,9 @@ class ROIsWin(QMainWindow, Ui_MainWindow):
         self._plotter.enable_ch_name_viz(ch_names, False)
         self._plotter.enable_group_label_viz(group, False)
 
-    def _init_rois(self, subject, subjects_dir, rois):
-        self._plotter.add_rois(subject, subjects_dir, rois, self.parcellation)
-        for roi in rois:
-            self._plotter.enable_rois_viz(roi, False)
+    def _init_rois(self, rois):
+        self._plotter.add_rois(rois, self.mri_path)
+        [self._plotter.enable_rois_viz(roi, False) for roi in rois]
 
     def add_items2table(self, ch_info):
         columns = list(ch_info.columns)

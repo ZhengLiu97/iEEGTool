@@ -102,8 +102,8 @@ class Brain(QtInteractor):
     def enable_ch_name_viz(self, ch_names, viz):
         [self.actors[f'{ch_name} name'].SetVisibility(viz) for ch_name in ch_names]
 
-    def add_rois(self, subject, subjects_dir, rois, aseg):
-        roi_mesh_color = create_roi_surface(subject, subjects_dir, aseg, rois)
+    def add_rois(self, rois, mri_path):
+        roi_mesh_color = create_roi_surface(mri_path, rois)
         self.roi_color = {roi: roi_mesh_color[roi][1] for roi in roi_mesh_color}
         if roi_mesh_color is not None:
             for idx, roi in enumerate(roi_mesh_color):

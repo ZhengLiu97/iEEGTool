@@ -338,6 +338,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             df = reorder_chs_df(coords_df)
             if df is not None:
                 coords_df = df
+            else:
+                return
             ch_names = coords_df['Channel'].to_list()
             x = coords_df['x'].to_numpy()
             y = coords_df['y'].to_numpy()
@@ -945,9 +947,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         subject = self.subject.get_name()
         if ch_info is not None:
             print('Transfer anatomy to sub window')
-            if 'issues' in ch_info.columns:
-                win.seg_name = self.seg_name[self.parcellation]
-                win.parcellation = self.parcellation
+            if 'ROI' in ch_info.columns:
                 win.set_anatomy(subject, self.subjects_dir, ch_info)
 
     def _compute_ei(self):
@@ -957,9 +957,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         anatomy = None
         if ch_info is not None:
             if 'issue' in ch_info.columns:
-                anatomy = ch_info[['Channel', 'x', 'y', 'z', self.seg_name[self.parcellation]]]
-                seg_name = self.seg_name[self.parcellation]
-                # anatomy = ch_info[['Channel', 'x', 'y', 'z', seg_name]]
+                anatomy = ch_info[['Channel', 'x', 'y', 'z', 'ROI']]
         if ieeg is not None:
             self.wins['ei_win'] = EIWin(ieeg, subject, self.subjects_dir, anatomy, seg_name, self.parcellation)
             self.wins['ei_win'].ANATOMY_SIGNAL.connect(self._transfer_anatomy)
@@ -970,10 +968,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         ch_info = self.subject.get_electrodes()
         anatomy = None
         if ch_info is not None:
-            if 'issue' in ch_info.columns:
-                anatomy = ch_info[['Channel', 'x', 'y', 'z', self.seg_name[self.parcellation]]]
-                seg_name = self.seg_name[self.parcellation]
-                # anatomy = ch_info[['Channel', 'x', 'y', 'z', seg_name]]
+            if 'ROI' in ch_info.columns:
+                anatomy = ch_info[['Channel', 'x', 'y', 'z', 'ROI']]
         if ieeg is not None:
             self.wins['hfo_win'] = RMSHFOWin(ieeg, anatomy, seg_name)
             self.wins['hfo_win'].ANATOMY_SIGNAL.connect(self._transfer_anatomy)
@@ -987,21 +983,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         remove_columns = ['Channel', 'x', 'y', 'z']
         for rm in remove_columns:
             columns.remove(rm)
-        values = self.seg_name.values()
-        seg_name = None
-        for value in values:
-            if value in columns:
-                seg_name = value
-
-                key_list = list(self.seg_name.keys())
-                value_list = list(self.seg_name.values())
-
-                position = value_list.index(seg_name)
-                self.parcellation = key_list[position]
-
         if subject is not None:
-            self.wins['elec_viz_win'] = ElectrodesWin(subject, freesurfer_path, ch_info, seg_name,
-                                               self.parcellation)
+            print(self.mri_path)
+            if not op.isfile(self.mri_path):
+                mri_path, _ = QFileDialog.getOpenFileName(self, 'Anatomy', freesurfer_path,
+                                                          filter='Anatomy (*.mgz *.nii)')
+                self.mri_path = mri_path
+                self._get_anatomy()
+            self.wins['elec_viz_win'] = ElectrodesWin(subject, freesurfer_path, ch_info, self.mri_path)
             self.wins['elec_viz_win'].CLOSE_SIGNAL.connect(self._clean_elec_viz_win)
             self.wins['elec_viz_win'].show()
 
@@ -1016,24 +1005,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         remove_columns = ['Channel', 'x', 'y', 'z']
         for rm in remove_columns:
             columns.remove(rm)
-        values = self.seg_name.values()
-        seg_name = None
-        for value in values:
-            if value in columns:
-                seg_name = value
-        if seg_name is None:
-            QMessageBox.warning(self, 'ROIs', 'Please get anatomy of electrodes first!')
-            return
-
-        key_list = list(self.seg_name.keys())
-        value_list = list(self.seg_name.values())
-
-        position = value_list.index(seg_name)
-        self.parcellation = key_list[position]
-
-        ch_info = ch_info.rename(columns={seg_name: 'ROI'})
         if subject is not None:
-            self.wins['rois_viz_win'] = ROIsWin(subject, freesurfer_path, ch_info, self.parcellation)
+            if not op.isfile(self.mri_path):
+                mri_path, _ = QFileDialog.getOpenFileName(self, 'Anatomy', freesurfer_path,
+                                                          filter='Anatomy (*.mgz *.nii)')
+                self.mri_path = mri_path
+                self._get_anatomy()
+            self.wins['rois_viz_win'] = ROIsWin(subject, freesurfer_path, ch_info, self.mri_path)
             self.wins['rois_viz_win'].CLOSE_SIGNAL.connect(self._clean_roi_viz_win)
             self.wins['rois_viz_win'].show()
 
