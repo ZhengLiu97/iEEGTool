@@ -192,7 +192,7 @@ def mne_bipolar(ieeg):
     for group in bipolar_pairs:
         anode += bipolar_pairs[group][0]
         cathode += bipolar_pairs[group][1]
-    ieeg_bipolar = set_bipolar_reference(raw, anode=anode, cathode=cathode)
+    ieeg_bipolar = set_bipolar_reference(ieeg, anode=anode, cathode=cathode)
     return ieeg_bipolar
 
 def get_laplacian_pair(ch_names):

@@ -23,7 +23,7 @@ class ElectrodesWin(QMainWindow, Ui_MainWindow):
     CLOSE_SIGNAL = pyqtSignal(bool)
 
     def __init__(self, subject, subjects_dir, threshold, ez_chs,
-                 ch_info, ei_info, seg_name, parcellation):
+                 ch_info, ei_info, mri_path):
         super().__init__()
         self.setupUi(self)
         self._center_win()
@@ -34,8 +34,8 @@ class ElectrodesWin(QMainWindow, Ui_MainWindow):
         self.ez_chs = ez_chs
         self.ch_info = ch_info  # anatomy
         self.ei_info = ei_info  # EI value
-        self.seg_name = seg_name
-        self.parcellation = parcellation
+        self.mri_path = mri_path
+
         self.threshold = threshold
 
         self.ch_names = ch_info['Channel'].to_list()
@@ -43,11 +43,11 @@ class ElectrodesWin(QMainWindow, Ui_MainWindow):
         coords = ch_info[['x', 'y', 'z']].to_numpy()
         self.ch_pos = dict(zip(self.ch_names, coords))
 
-        self.ei_info_tb = self.ei_info[['Channel', 'norm_EI', seg_name]].\
-                          sort_values(by='norm_EI', ascending=False)
+        self.ei_info_tb = self.ei_info[['Channel', 'norm_EI', 'ROI']].\
+                                       sort_values(by='norm_EI', ascending=False)
 
-        self.ez = set(ch_info[ch_info['Channel'].isin(ez_chs)][self.seg_name].to_list())
-        self._init_rois(subject, subjects_dir, parcellation)
+        self.ez = set(ch_info[ch_info['Channel'].isin(ez_chs)]['ROI'].to_list())
+        self._init_rois(mri_path)
 
         self._info_table.setMouseTracking(True)
         self._info_table.cellEntered.connect(self._show_tooltip)
@@ -71,8 +71,8 @@ class ElectrodesWin(QMainWindow, Ui_MainWindow):
         self._plotter.add_brain(subject, subjects_dir, ['lh', 'rh'], 'pial', 0.1)
         self._plotter.view_vector(view_dict['front'][0], view_dict['front'][1])
 
-    def _init_rois(self, subject, subjects_dir, aseg):
-        self._plotter.add_rois(subject, subjects_dir, self.ez, aseg)
+    def _init_rois(self, mri_path):
+        self._plotter.add_rois(self.ez, mri_path)
         self._plotter.add_rois_text(self.ez)
         for roi in self.ez:
             self._plotter.enable_rois_viz(roi, False)

@@ -34,7 +34,7 @@ save_path = 'H:\\SZ\\HFO'
 class RMSHFOWin(QMainWindow, Ui_MainWindow):
     ANATOMY_SIGNAL = pyqtSignal(str)
 
-    def __init__(self, ieeg, anatomy=None, seg_name=None):
+    def __init__(self, ieeg, anatomy=None):
         super(RMSHFOWin, self).__init__()
         self.setupUi(self)
         self._center_win()
@@ -43,7 +43,6 @@ class RMSHFOWin(QMainWindow, Ui_MainWindow):
 
         self.ieeg = ieeg
         self.anatomy = anatomy
-        self.seg_name = seg_name
         self.chans = ieeg.ch_names
         self.params = None
         self.detector = None
@@ -98,9 +97,9 @@ class RMSHFOWin(QMainWindow, Ui_MainWindow):
         anatomy['Channel'] = anatomy['Channel'].astype('category').cat.set_categories(ch_names)
         anatomy = anatomy.sort_values(by=['Channel'], ascending=True)
 
-        rois = anatomy[self.seg_name].to_list()
+        rois = anatomy['ROI'].to_list()
 
-        self.hfo_rate_df[self.seg_name] = rois
+        self.hfo_rate_df['ROI'] = rois
 
     def _select_chan(self):
         self._select_chan_win = ItemSelectionWin(self.ieeg.ch_names)
@@ -207,7 +206,6 @@ class RMSHFOWin(QMainWindow, Ui_MainWindow):
         try:
             del self.ieeg
             del self.anatomy
-            del self.seg_name
             del self.chans
             del self.params
             del self.detector

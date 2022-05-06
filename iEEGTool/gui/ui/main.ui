@@ -229,16 +229,7 @@
      <addaction name="_csd_morlet_action"/>
      <addaction name="_csd_multitaper_action"/>
     </widget>
-    <widget class="QMenu" name="menuAnatomical_labels">
-     <property name="title">
-      <string>Anatomical labels</string>
-     </property>
-     <addaction name="_vep_action"/>
-     <addaction name="_a2009s_action"/>
-     <addaction name="_dkt_action"/>
-     <addaction name="_aseg_action"/>
-    </widget>
-    <addaction name="menuAnatomical_labels"/>
+    <addaction name="_anatomical_labeling_action"/>
     <addaction name="menuMNI_Transform"/>
     <addaction name="separator"/>
     <addaction name="menuPower_Spectral_Density"/>
@@ -863,6 +854,11 @@
   <action name="_laplacian_action">
    <property name="text">
     <string>Laplacian</string>
+   </property>
+  </action>
+  <action name="_anatomical_labeling_action">
+   <property name="text">
+    <string>Anatomical Labeling</string>
    </property>
   </action>
  </widget>

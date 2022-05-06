@@ -24,7 +24,7 @@ from utils.config import view_dict
 class ElectrodesWin(QMainWindow, Ui_MainWindow):
     CLOSE_SIGNAL = pyqtSignal(bool)
 
-    def __init__(self, subject, subjects_dir, ch_info, seg_name, parcellation):
+    def __init__(self, subject, subjects_dir, ch_info, mri_path):
         super().__init__()
         self.setupUi(self)
         self._center_win()
@@ -39,8 +39,7 @@ class ElectrodesWin(QMainWindow, Ui_MainWindow):
         self.subject = subject
         self.subjects_dir = subjects_dir
         self.ch_info = ch_info
-        self.seg_name = seg_name
-        self.parcellation = parcellation
+        self.mri_path = mri_path
 
         self.roi_viz_signal = True
 
@@ -54,13 +53,13 @@ class ElectrodesWin(QMainWindow, Ui_MainWindow):
         coords = ch_info[['x', 'y', 'z']].to_numpy()
         self.ch_pos = dict(zip(self.ch_names, coords))
 
-        if seg_name is not None:
-            self.ch_info_tb = self.ch_info[['Channel', seg_name]]
-            rois = ch_info[seg_name].to_list()
+        if mri_path is not None:
+            self.ch_info_tb = self.ch_info[['Channel', 'ROI']]
+            rois = ch_info['ROI'].to_list()
             issues = ch_info['issue'].to_numpy()
             self.ch_rois = dict(zip(self.ch_names, rois))
 
-            self._init_rois(subject, subjects_dir, set(rois), parcellation)
+            self._init_rois(set(rois))
             self.rois_num = {roi: 0 for roi in set(rois)}
 
             for group in self.ch_group:
@@ -94,10 +93,9 @@ class ElectrodesWin(QMainWindow, Ui_MainWindow):
         self._plotter.add_brain(subject, subjects_dir, ['lh', 'rh'], 'pial', 0.1)
         self._plotter.view_vector(view_dict['front'][0], view_dict['front'][1])
 
-    def _init_rois(self, subject, subjects_dir, rois, aseg):
-        self._plotter.add_rois(subject, subjects_dir, rois, aseg)
-        for roi in rois:
-            self._plotter.enable_rois_viz(roi, False)
+    def _init_rois(self, rois):
+        self._plotter.add_rois(rois, self.mri_path)
+        [self._plotter.enable_rois_viz(roi, False) for roi in rois]
 
     def _init_ch_info(self):
         first_gp = list(self.ch_group.keys())[0]
@@ -243,7 +241,7 @@ class ElectrodesWin(QMainWindow, Ui_MainWindow):
         viz = self._roi_cbx.isChecked()
         group = self._group_cbx.currentText()
         ch_names = self.ch_group[group]
-        rois = self.ch_info[self.ch_info['Channel'].isin(ch_names)][self.seg_name].to_list()
+        rois = self.ch_info[self.ch_info['Channel'].isin(ch_names)]['ROI'].to_list()
         rois = set(rois)
         bad_rois = []
         for roi in rois:

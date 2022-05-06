@@ -31,7 +31,7 @@ logger = create_logger(filename='iEEGTool.log')
 class EIWin(QMainWindow, Ui_MainWindow):
     ANATOMY_SIGNAL = pyqtSignal(str)
 
-    def __init__(self, ieeg, subject, subjects_dir, anatomy=None, seg_name=None, parcellation=None):
+    def __init__(self, ieeg, subject, subjects_dir, anatomy=None, mri_path=None):
         super().__init__()
         self.setupUi(self)
         self._center_win()
@@ -42,8 +42,8 @@ class EIWin(QMainWindow, Ui_MainWindow):
         self.subject = subject
         self.subjects_dir = subjects_dir
         self.anatomy = anatomy
-        self.seg_name = seg_name
-        self.parcellation = parcellation
+        self.mri_path = mri_path
+
         self.chans = ieeg.ch_names
         self.ei = None
         self.ei_anatomy = pd.DataFrame()
@@ -133,7 +133,7 @@ class EIWin(QMainWindow, Ui_MainWindow):
         # anatomy = anatomy.sort_values(by=['Channel'], ascending=True)
 
         chs = anatomy['Channel'].to_list()
-        rois = anatomy[self.seg_name].to_list()
+        rois = anatomy['ROI'].to_list()
         x = anatomy['x'].to_list()
         y = anatomy['y'].to_list()
         z = anatomy['z'].to_list()
@@ -175,8 +175,8 @@ class EIWin(QMainWindow, Ui_MainWindow):
         self.ei_anatomy['x'] = x_ordered
         self.ei_anatomy['y'] = y_ordered
         self.ei_anatomy['z'] = z_ordered
-        self.ei_anatomy[self.seg_name] = rois_ordered
-        self.ei[self.seg_name] = rois_ordered
+        self.ei_anatomy['ROI'] = rois_ordered
+        self.ei['ROI'] = rois_ordered
 
         print(self.ei_anatomy)
 
@@ -319,8 +319,8 @@ class EIWin(QMainWindow, Ui_MainWindow):
         logger.info("Display EI Table!")
         if self.ei is not None:
             columns = ['Channel', 'detection_time', 'alarm_time', 'ER', 'norm_EI']
-            if self.seg_name is not None:
-                columns.append(self.seg_name)
+            if 'ROI' in self.ei:
+                columns.append('ROI')
             ei = self.ei[columns]
             ei = ei.sort_values(by='norm_EI', ascending=False)
             self._ei_table_win = TableWin(ei)
@@ -335,10 +335,10 @@ class EIWin(QMainWindow, Ui_MainWindow):
 
             ch_info = self.ei_anatomy.copy()
 
-            ez = set(ch_info[ch_info['Channel'].isin(ez_chs)][self.seg_name].to_list())
+            ez = set(ch_info[ch_info['Channel'].isin(ez_chs)]['ROI'].to_list())
             if list(ez)[0] is not None:
                 self._3d_viz_win = ElectrodesWin(self.subject, self.subjects_dir, threshold, ez_chs,
-                                                 ch_info, ei_info, self.seg_name, self.parcellation)
+                                                 ch_info, ei_info, self.mri_path)
                 self._3d_viz_win.CLOSE_SIGNAL.connect(self._close_3d_win)
                 self._3d_viz_win.show()
             else:
