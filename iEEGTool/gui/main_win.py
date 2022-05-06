@@ -956,10 +956,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         ch_info = self.subject.get_electrodes()
         anatomy = None
         if ch_info is not None:
-            if 'issue' in ch_info.columns:
+            if 'ROI' in ch_info.columns:
                 anatomy = ch_info[['Channel', 'x', 'y', 'z', 'ROI']]
         if ieeg is not None:
-            self.wins['ei_win'] = EIWin(ieeg, subject, self.subjects_dir, anatomy, seg_name, self.parcellation)
+            self.wins['ei_win'] = EIWin(ieeg, subject, self.subjects_dir, anatomy, self.mri_path)
             self.wins['ei_win'].ANATOMY_SIGNAL.connect(self._transfer_anatomy)
             self.wins['ei_win'].show()
 
@@ -971,7 +971,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             if 'ROI' in ch_info.columns:
                 anatomy = ch_info[['Channel', 'x', 'y', 'z', 'ROI']]
         if ieeg is not None:
-            self.wins['hfo_win'] = RMSHFOWin(ieeg, anatomy, seg_name)
+            self.wins['hfo_win'] = RMSHFOWin(ieeg, anatomy)
             self.wins['hfo_win'].ANATOMY_SIGNAL.connect(self._transfer_anatomy)
             self.wins['hfo_win'].show()
 
