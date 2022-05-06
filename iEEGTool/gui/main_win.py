@@ -69,7 +69,7 @@ logger = create_logger(filename='iEEGTool.log')
 
 default_path = 'data'
 freesurfer_path = 'data/freesurfer'
-
+MNE_BROWSER_OVERVIEW_MODE = 'hidden'
 
 class MainWindow(QMainWindow, Ui_MainWindow):
 
@@ -185,24 +185,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         raw = self.subject.get_ieeg()
         # fig = mne.viz.plot_raw(raw, remove_dc=True, color='k',
         #                        n_channels=30, scalings='auto', show=False)
-        fig = mne.viz.plot_raw(raw, remove_dc=True, color='k',
-                               n_channels=30, scalings={'seeg': 1e-4}, show=False)
+        fig = mne.viz.plot_raw(raw, remove_dc=True, color='k', n_channels=30, scalings={'seeg': 1e-4},
+                               show=False, block=False, precompute=False, overview_mode='hidden')
         fig.mne.overview_bar.setVisible(False)
         remove_actions = ['SSP', 'Settings']
         for action in fig.mne.toolbar.actions():
             if action.text() in remove_actions:
                 fig.mne.toolbar.removeAction(action)
 
-        # Set the default selection of the overview_menu is Hidden
-        for index, action in enumerate(fig.mne.overview_menu.actions()):
-            # the action is an instance of QWidgetAction
-            # in MNE they set its defaultWidget as a radioWidget
-            # here we find the index of hidden is 3
-            # so we set the defaultWidget of QWidgetAction when index is 3 Checked
-            if index == 3:
-                action.defaultWidget().setChecked(True)
-                # print(action.defaultWidget().text())
-                fig._overview_mode_changed('hidden')
         fig.statusBar().setVisible(False)
         fig._set_annotations_visible(False)
         fig.mne.toolbar.setVisible(False)
