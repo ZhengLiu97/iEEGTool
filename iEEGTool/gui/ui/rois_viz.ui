@@ -239,7 +239,7 @@
            <item>
             <widget class="QCheckBox" name="_chs_cbx">
              <property name="text">
-              <string>Elelctrodes of Interest</string>
+              <string>Electrodes of Interest</string>
              </property>
             </widget>
            </item>

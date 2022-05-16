@@ -23,8 +23,7 @@ from matplotlib import pyplot as plt
 from dipy.align import resample
 from collections import OrderedDict
 from nibabel.viewers import OrthoSlicer3D
-from PyQt5.QtWidgets import QMainWindow, QApplication, QStyleFactory, QDesktopWidget, \
-                            QFileDialog, QMessageBox, QShortcut, QAction
+from PyQt5.QtWidgets import QMainWindow, QDesktopWidget, QFileDialog, QMessageBox, QShortcut
 from PyQt5.QtCore import pyqtSignal, QTimer, QUrl
 from PyQt5.QtGui import QIcon, QDesktopServices, QKeySequence, QFont, QPixmap
 
@@ -980,9 +979,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                                                           filter='Anatomy (*.mgz *.nii)')
                 self.mri_path = mri_path
                 self._get_anatomy()
-            self.wins['elec_viz_win'] = ElectrodesWin(subject, freesurfer_path, ch_info, self.mri_path)
-            self.wins['elec_viz_win'].CLOSE_SIGNAL.connect(self._clean_elec_viz_win)
-            self.wins['elec_viz_win'].show()
+            if len(self.mri_path):
+                self.wins['elec_viz_win'] = ElectrodesWin(subject, freesurfer_path, ch_info, self.mri_path)
+                self.wins['elec_viz_win'].CLOSE_SIGNAL.connect(self._clean_elec_viz_win)
+                self.wins['elec_viz_win'].show()
 
     def _clean_elec_viz_win(self, close):
         if close:
@@ -1001,9 +1001,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                                                           filter='Anatomy (*.mgz *.nii)')
                 self.mri_path = mri_path
                 self._get_anatomy()
-            self.wins['rois_viz_win'] = ROIsWin(subject, freesurfer_path, ch_info, self.mri_path)
-            self.wins['rois_viz_win'].CLOSE_SIGNAL.connect(self._clean_roi_viz_win)
-            self.wins['rois_viz_win'].show()
+            if len(self.mri_path):
+                self.wins['rois_viz_win'] = ROIsWin(subject, freesurfer_path, ch_info, self.mri_path)
+                self.wins['rois_viz_win'].CLOSE_SIGNAL.connect(self._clean_roi_viz_win)
+                self.wins['rois_viz_win'].show()
 
     def _clean_roi_viz_win(self, close):
         if close:

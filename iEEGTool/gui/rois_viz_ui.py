@@ -180,7 +180,7 @@ class Ui_MainWindow(object):
         self._hemi_cbx.setItemText(1, _translate("MainWindow", "Left"))
         self._hemi_cbx.setItemText(2, _translate("MainWindow", "Right"))
         self._rois_gp.setTitle(_translate("MainWindow", "Regions of Interest"))
-        self._chs_cbx.setText(_translate("MainWindow", "Elelctrodes of Interest"))
+        self._chs_cbx.setText(_translate("MainWindow", "Electrodes of Interest"))
         self._chs_name_cbx.setText(_translate("MainWindow", "Show Electrodes\' name"))
         self.menuFile.setTitle(_translate("MainWindow", "File"))
         self.menuEdit.setTitle(_translate("MainWindow", "Edit"))
