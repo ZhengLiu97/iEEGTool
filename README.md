@@ -17,7 +17,7 @@ A Python-based Software for processing and analyzing pipeline of iEEG, containin
 
 ## ✍️ Author
 
-Hi, I' [Barry Liu](https://github.com/BarryLiu97), from China. I created this project hoping to design a Python-based, easy-used Tool to process and analyze iEEG for clinicians or researchers.
+Hi, This is NINE Lab. We created this project hoping to design a Python-based, easy-used Tool to process and analyze iEEG for clinicians or researchers.
 
 ## 🖥️ Installation
 
@@ -35,3 +35,7 @@ pip install -r requirements.txt
 cd iEEGTool
 python main.py
 ```
+
+## 🚴 Contributors
+
+[BarryLiu](https://github.com/BarryLiu97)  
