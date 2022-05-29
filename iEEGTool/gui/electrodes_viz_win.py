@@ -279,7 +279,7 @@ class ElectrodesWin(QMainWindow, Ui_MainWindow):
             self._display_cbx.setChecked(self.group_viz[group])
 
     def _screenshot(self):
-        fname, _ = QFileDialog.getSaveFileName(self, 'Screenshot', filter="Screenshot (*..jpeg)")
+        fname, _ = QFileDialog.getSaveFileName(self, 'Screenshot', filter="Screenshot (*.jpeg)")
         if len(fname):
             self._plotter.screenshot(fname)
 

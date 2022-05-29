@@ -348,6 +348,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             QMessageBox.information(self, 'Coordinates', "Importing channels' coordinates finished!")
             # except:
             #     QMessageBox.warning(self, 'Coordinates', 'Wrong file format!')
+            self.mri_path = ''
 
     def _export_ieeg_fif(self):
         ieeg_format = '.fif'
