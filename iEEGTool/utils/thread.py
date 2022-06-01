@@ -207,6 +207,7 @@ class ReconAll(QThread):
                 print(result)
                 if result:
                     self._RECON_SIGNAL.emit(result)
+                    return
             if not os.path.exists(os.path.join(self._output_dir, _subject_id)):
                 recon_order = "recon-all -i {:} -s {:}  -sd {:} -all -qcache -cw256".format(self._t1_path, self._subject_id,
                                                                        self._output_dir)
@@ -215,7 +216,7 @@ class ReconAll(QThread):
                 print('Start recon-all')
             print('Finish recon-all')
             if not os.path.exists(os.path.join(self._output_dir, _subject_id, 'mri', 'aparc+aseg.vep.mgz')):
-                create_vep_order = "bash VEP_atlas/create_vep_parc_without_reconall.sh"
+                create_vep_order = "bash {_subject_id} {self._output_dir} vep_atlas/create_vep_parc_without_reconall.sh"
                 print(create_vep_order)
                 result = os.system(create_vep_order)
             print('Finish create VEP atlas')

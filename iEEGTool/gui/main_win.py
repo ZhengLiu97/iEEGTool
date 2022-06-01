@@ -99,6 +99,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.unknown_chs = list()
         self.set_montage = False
         self.mri_path = ''
+        self.t1_path = ''
 
         self.wins = dict(crop_win=None, resample_win=None, fir_filter_win=None, iir_filter_win=None,
                          psd_multitaper_win=None, psd_welch_win=None, csd_fourier_win=None, csd_morlet_win=None,
@@ -139,6 +140,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self._display_ct_action.triggered.connect(self._display_ct)
         self._registration_action.triggered.connect(self._registe_ct)
         self._plot_overlay_action.triggered.connect(self._plot_overlay)
+        self._recon_freesurfer_action.triggered.connect(self._recon_all)
+        self._compute_vep_atlas_action.triggered.connect(self._compute_vep_atlas)
         self._ieeg_locator_action.triggered.connect(self._locate_ieeg)
 
         # Signal Menu
@@ -269,6 +272,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def _import_t1(self):
         fpath, _ = QFileDialog.getOpenFileName(self, "Load T1 MRI", default_path,
                                                   filter="MRI (*.nii *.nii.gz *.mgz)")
+        self.t1_path = fpath
         if len(fpath):
             t1 = nib.load(fpath)
             self.subject.set_t1(t1)
@@ -567,6 +571,33 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             fig.tight_layout()
             plt.show()
             print('Finish displaying overlay')
+
+    def _recon_all(self):
+        if not len(self.t1_path):
+            QMessageBox.warning(self, 'Images', 'T1 MRI is needed!')
+            return
+        self._recon_all_thread = ReconAll(self.t1_path, subject_id=self.subject.get_name(), method='recon-all')
+        self._recon_all_thread._RECON_SIGNAL.connect(self._get_recon)
+        self._recon_all_thread.start()
+
+    def _get_recon(self, result):
+        if not result:
+            QMessageBox.warning(self, 'Recon all', 'This function needs Linux')
+        else:
+            QMessageBox.information(self, 'Recon all', 'recon-all finished')
+
+    def _compute_vep_atlas(self):
+        subject_id = self.subject.get_name()
+        if not len(subject_id):
+            QMessageBox.warning(self, 'Subject', "Please set up subject's name first")
+            return
+        create_vep_order = f"bash {subject_id} {freesurfer_path} vep_atlas/create_vep_parc_without_reconall.sh"
+        print(create_vep_order)
+        result = os.system(create_vep_order)
+        if result:
+            QMessageBox.warning(self, 'Recon all', 'This function needs Linux')
+        else:
+            QMessageBox.information(self, 'Recon all', 'VEP atals computation finished')
 
     def _locate_ieeg(self):
         raw = self.subject.get_ieeg()
