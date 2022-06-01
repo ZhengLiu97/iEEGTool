@@ -6,6 +6,7 @@
 @Date    ：2022/2/18 2:07 
 """
 import mne
+import platform
 import numpy as np
 import pandas as pd
 
@@ -132,49 +133,51 @@ class ComputeSpectralCon(QThread):
 class AlignCTMRI(QThread):
     _ALIGN_SIGNAL = pyqtSignal(list)
 
-    def __init__(self, ct, t1, pipeline=None, mode='ants', transform='DenseRigid'):
+    def __init__(self, ct, t1):
         super(AlignCTMRI, self).__init__()
         self._ct = ct
         self._t1 = t1
-        self._pipeline = pipeline
-        self._mode = mode
-        self._transform = transform
+        self._transform = 'DenseRigid'
 
     def run(self) -> None:
-        if self._mode == 'ants':
+        if platform.system() == 'Windows':
+            import mne
+            print(f'System is {platform.system()}, using mne and dipy')
+            reg_affine, _ = mne.transforms.compute_volume_registration(self._ct, self._t1,
+                                                                       pipeline=['translation', 'rigid'])
+            print('reg_affine: \n', reg_affine)
+            ct_aligned = mne.transforms.apply_volume_registration(self._ct, self._t1, reg_affine)
+        else:
             import ants
-            from dipy.align.imaffine import MutualInformationMetric
-            from dipy.align.transforms import RigidTransform3D
+            # from dipy.align.imaffine import MutualInformationMetric
+            # from dipy.align.transforms import RigidTransform3D
+
+            print(f'System is {platform.system()}, using ANTSPY')
             print('Start registration')
             result = ants.registration(fixed=self._t1, moving=self._ct, type_of_transform=self._transform)
             ct_aligned = ants.apply_transforms(fixed=self._t1, moving=self._ct,
                                                transformlist=result['fwdtransforms'],
                                                interpolator='linear')
-            print('Start calculating Mutual Information')
-            metric = MutualInformationMetric()
-            transform = RigidTransform3D()
 
-            static = self._t1.to_nibabel()
-            move = self._ct.to_nibabel()
-            move_align = ct_aligned.to_nibabel()
-
-            metric.setup(transform, np.array(static.dataobj), np.array(move.dataobj),
-                         static.affine, move.affine)
-            metric._update_mutual_information(transform.get_identity_parameters())
-            orig_mutual_info = metric.metric_val
-
-            metric.setup(transform, np.array(static.dataobj), np.array(move_align.dataobj),
-                         static.affine, move_align.affine)
-            metric._update_mutual_information(transform.get_identity_parameters())
-            align_mutual_info = metric.metric_val
-        else:
-            import mne
-            reg_affine, _ = mne.transforms.compute_volume_registration(self._ct, self._t1,
-                                                                       pipeline=self._pipeline)
-            print('reg_affine: \n', reg_affine)
-            ct_aligned = mne.transforms.apply_volume_registration(self._ct, self._t1, reg_affine)
-        print(ct_aligned)
-        self._ALIGN_SIGNAL.emit([ct_aligned, orig_mutual_info, align_mutual_info])
+            ## Calculating Mutual information
+            # print('Start calculating Mutual Information')
+            # metric = MutualInformationMetric()
+            # transform = RigidTransform3D()
+            #
+            # static = self._t1.to_nibabel()
+            # move = self._ct.to_nibabel()
+            # move_align = ct_aligned.to_nibabel()
+            #
+            # metric.setup(transform, np.array(static.dataobj), np.array(move.dataobj),
+            #              static.affine, move.affine)
+            # metric._update_mutual_information(transform.get_identity_parameters())
+            # orig_mutual_info = metric.metric_val
+            #
+            # metric.setup(transform, np.array(static.dataobj), np.array(move_align.dataobj),
+            #              static.affine, move_align.affine)
+            # metric._update_mutual_information(transform.get_identity_parameters())
+            # align_mutual_info = metric.metric_val
+        self._ALIGN_SIGNAL.emit([ct_aligned])
 
 
 class ReconAll(QThread):
