@@ -137,6 +137,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # Localization Menu
         self._display_mri_action.triggered.connect(self._display_t1)
         self._display_ct_action.triggered.connect(self._display_ct)
+        self._registration_action.triggered.connect(self._registe_ct)
         self._plot_overlay_action.triggered.connect(self._plot_overlay)
         self._ieeg_locator_action.triggered.connect(self._locate_ieeg)
 
@@ -510,6 +511,21 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.ct_axes[1].set_title('Coronal', pad=20)
             self.ct_axes[2].set_title('Axial', pad=20)
             self.ct_viewer.show()
+
+    def _registe_ct(self):
+        t1 = self.subject.get_t1()
+        ct = self.subject.get_ct()
+        if t1 is None or ct is None:
+            QMessageBox.warning(self, 'Images', 'MRI and CT are both needed!')
+            return
+        self._align_ct_thread = AlignCTMRI(ct, t1)
+        self._align_ct_thread._ALIGN_SIGNAL.connect(self._get_aligned_ct)
+        self._align_ct_thread.start()
+
+    def _get_aligned_ct(self, ct):
+        aligned_ct = ct[0]
+        self.subject.set_align_ct(aligned_ct)
+        QMessageBox.information(self, 'Images', 'Registration finished!')
 
     def _plot_overlay(self):
         logger.info('Display Overlay')

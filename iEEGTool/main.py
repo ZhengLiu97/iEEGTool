@@ -16,6 +16,6 @@ if __name__ == '__main__':
     QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps)
     app = QApplication(sys.argv)
     Window = MainWindow()
-    # Window.showMaximized()
-    Window.show()
+    Window.showMaximized()
+    # Window.show()
     sys.exit(app.exec_())
