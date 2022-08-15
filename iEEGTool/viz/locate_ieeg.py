@@ -9,7 +9,7 @@ from PyQt5.QtGui import QFont
 from PyQt5.QtCore import pyqtSignal
 
 from utils.decorator import safe_event
-import mne.gui._ieeg_locate_gui as mne_ieeg
+from mne.gui import _ieeg_locate as mne_ieeg
 
 
 class SEEGLocator(mne_ieeg.IntracranialElectrodeLocator):
