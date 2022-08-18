@@ -12,6 +12,7 @@ from matplotlib import patheffects
 from functools import partial
 from mne.viz.utils import _convert_psds
 
+plt.style.use('default')
 
 def plot_psd(info, psds, freqs, dB, average, method):
     fig, ax = plt.subplots(figsize=(6, 6))

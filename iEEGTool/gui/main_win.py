@@ -88,7 +88,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.ct_title = ''
 
         # self.subject = Subject('sample')
-        self.subject = Subject('cenjianv')
+        self.subject = Subject('fsaverage')
         self._info = {'subject_name': '', 'age': '', 'gender': ''}
         self.subjects_dir = freesurfer_path
         self.chs_name = ''

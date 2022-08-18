@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1920</width>
-    <height>1001</height>
+    <height>978</height>
    </rect>
   </property>
   <property name="font">
@@ -24,6 +24,14 @@
      <width>1000</width>
      <height>600</height>
     </size>
+   </property>
+   <property name="font">
+    <font>
+     <family>Ubuntu</family>
+     <weight>75</weight>
+     <bold>true</bold>
+     <kerning>true</kerning>
+    </font>
    </property>
    <layout class="QVBoxLayout" name="verticalLayout">
     <property name="spacing">
@@ -43,6 +51,12 @@
     </property>
     <item>
      <widget class="QStackedWidget" name="_ieeg_viz_stack">
+      <property name="font">
+       <font>
+        <weight>50</weight>
+        <bold>false</bold>
+       </font>
+      </property>
       <property name="focusPolicy">
        <enum>Qt::NoFocus</enum>
       </property>
@@ -54,6 +68,11 @@
    </layout>
   </widget>
   <widget class="QToolBar" name="_toolbar">
+   <property name="font">
+    <font>
+     <family>DejaVu Math TeX Gyre</family>
+    </font>
+   </property>
    <property name="windowTitle">
     <string>toolBar</string>
    </property>
